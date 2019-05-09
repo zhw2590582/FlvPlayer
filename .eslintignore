@@ -1,0 +1,4 @@
+/dist
+/test
+/node_modules
+./rollup-config.js

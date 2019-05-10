@@ -4,6 +4,6 @@ export default class FlvplayerError extends Error {
         if (typeof Error.captureStackTrace === 'function') {
             Error.captureStackTrace(this, context || this.constructor);
         }
-        this.name = 'FlvplayerError';
+        this.name = 'FlvPlayerError';
     }
 }

@@ -1,4 +1,4 @@
-import FlvplayerError from './utils/FlvplayerError';
+import FlvPlayerError from './utils/FlvPlayerError';
 
 export default class Debug {
     constructor(flv) {
@@ -17,7 +17,7 @@ export default class Debug {
 
         this.error = (condition, msg) => {
             if (!condition) {
-                throw new FlvplayerError(msg);
+                throw new FlvPlayerError(msg);
             }
         };
     }

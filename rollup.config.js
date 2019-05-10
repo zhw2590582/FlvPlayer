@@ -18,7 +18,7 @@ const banner =
 module.exports = {
     input: 'src/index.js',
     output: {
-        name: 'Flvplayer',
+        name: 'FlvPlayer',
         file: isProd ? `dist/flvPlayer.js` : `docs/uncompiled-flvPlayer.js`,
         format: 'umd',
         sourcemap: !isProd,

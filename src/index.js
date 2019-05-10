@@ -8,22 +8,22 @@ import Decoder from './decoder';
 import Player from './player';
 
 let id = 0;
-class Flvplayer extends Emitter {
+class FlvPlayer extends Emitter {
     constructor(options) {
         super();
         checkSupport();
-        this.options = Object.assign({}, Flvplayer.options, options);
-        optionValidator(this.options);
+        this.options = Object.assign({}, FlvPlayer.options, options);
+        optionValidator(this);
 
         this.debug = new Debug(this);
         this.events = new Events(this);
         this.workers = new Workers(this);
-        this.decoder = new Decoder(this);
+        // this.decoder = new Decoder(this);
         this.player = new Player(this);
 
         id += 1;
         this.id = id;
-        Flvplayer.instances.push(this);
+        FlvPlayer.instances.push(this);
     }
 
     static get options() {
@@ -48,13 +48,13 @@ class Flvplayer extends Emitter {
     destroy() {
         this.events.destroy();
         this.workers.destroy();
-        Flvplayer.instances.splice(Flvplayer.instances.indexOf(this), 1);
+        FlvPlayer.instances.splice(FlvPlayer.instances.indexOf(this), 1);
         this.emit('destroy');
     }
 }
 
-Object.defineProperty(Flvplayer, 'instances', {
+Object.defineProperty(FlvPlayer, 'instances', {
     value: []
 });
 
-export default Flvplayer;
+export default FlvPlayer;

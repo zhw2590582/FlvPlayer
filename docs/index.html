@@ -5,6 +5,16 @@
     <title>flvPlayer.js</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+    </style>
 </head>
 <body>
     <canvas id="canvas"></canvas>
@@ -13,6 +23,8 @@
         var flv = new FlvPlayer({
             url: 'https://zhw2590582.github.io/assets-cdn/video/you-name-h264-aac.flv',
             canvas: document.getElementById('canvas'),
+            debug: true,
+            live: false,
             width: 400,
             height: 300,
         });

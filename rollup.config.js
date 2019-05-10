@@ -4,24 +4,23 @@ const nodeResolve = require('rollup-plugin-node-resolve');
 const { eslint } = require('rollup-plugin-eslint');
 const replace = require('rollup-plugin-replace');
 const { uglify } = require('rollup-plugin-uglify');
-const { name, version, homepage } = require('./package.json');
+const { version, homepage } = require('./package.json');
 
 const isProd = process.env.NODE_ENV === 'production';
 const banner =
     '/*!\n' +
-    ` * ${name}.js v${version}\n` +
+    ` * flvPlayer.js v${version}\n` +
     ` * Github: ${homepage}\n` +
     ` * (c) 2017-${new Date().getFullYear()} Harvey Zack\n` +
     ' * Released under the MIT License.\n' +
     ' */\n';
 
 module.exports = {
-    input: 'index.js',
+    input: 'src/index.js',
     output: {
-        name,
-        file: isProd ? `dist/${name}.js` : `dist/uncompiled-${name}.js`,
+        name: 'Flvplayer',
+        file: isProd ? `dist/flvPlayer.js` : `docs/uncompiled-flvPlayer.js`,
         format: 'umd',
-        exports: 'named',
         sourcemap: !isProd,
     },
     plugins: [

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>flvPlayer.js</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <script src="./uncompiled-flvPlayer.js"></script>
+    <script>
+        var flv = new FlvPlayer({
+            url: 'https://zhw2590582.github.io/assets-cdn/video/you-name-h264-aac.flv',
+            canvas: document.getElementById('canvas'),
+            width: 400,
+            height: 300,
+        });
+
+        console.log(flv);
+    </script>
+</body>
+</html>

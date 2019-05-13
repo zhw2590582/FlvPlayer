@@ -4,7 +4,10 @@ import optionValidator from './utils/optionValidator';
 import Debug from './debug';
 import Events from './events';
 import Workers from './workers';
-import Decoder from './decoder';
+import Parse from './parse';
+import Demuxer from './demuxer';
+import Remuxer from './remuxer';
+import Stream from './stream';
 import Player from './player';
 
 let id = 0;
@@ -18,7 +21,10 @@ class FlvPlayer extends Emitter {
         this.debug = new Debug(this);
         this.events = new Events(this);
         this.workers = new Workers(this);
-        // this.decoder = new Decoder(this);
+        this.parse = new Parse(this);
+        this.demuxer = new Demuxer(this);
+        this.remuxer = new Remuxer(this);
+        this.stream = new Stream(this);
         this.player = new Player(this);
 
         id += 1;
@@ -33,7 +39,8 @@ class FlvPlayer extends Emitter {
             debug: false,
             live: false,
             width: null,
-            height: null
+            height: null,
+            header: {}
         };
     }
 

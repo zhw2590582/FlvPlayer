@@ -29,7 +29,6 @@ export default class SPSParser {
         [result.profile_idc] = readSPS(1);
         readSPS(1);
         [result.level_idc] = readSPS(1);
-        console.log(uint8, result);
         return result;
     }
 }

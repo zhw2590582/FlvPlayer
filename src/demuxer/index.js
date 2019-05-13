@@ -1,3 +1,5 @@
+import { mergeBuffer } from '../utils/buffer';
+import { download } from '../utils';
 import AudioTag from './audioTag';
 import VideoTag from './videoTag';
 import ScripTag from './scripTag';
@@ -53,5 +55,14 @@ export default class Demuxer {
                     break;
             }
         });
+    }
+
+    downloadAudio() {
+        const url = URL.createObjectURL(
+            new Blob([mergeBuffer(...this.audioFrames)], {
+                type: `audio/${this.audioHeader.format}`,
+            }),
+        );
+        download(url, `audioTrack.${this.audioHeader.format}`);
     }
 }

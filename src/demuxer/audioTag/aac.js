@@ -86,6 +86,7 @@ export default class AAC {
         result.audioObjectType = (packetData[0] & 0xf8) >> 3;
         result.samplingFrequencyIndex = ((packetData[0] & 7) << 1) + (((packetData[1] & 0x80) >> 7) & 1);
         result.channelConfiguration = (packetData[1] & 0x7f) >> 3;
+        console.log(result);
         return result;
     }
 

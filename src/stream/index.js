@@ -40,14 +40,4 @@ export default class Stream {
 
         return xhrRequest;
     }
-
-    cancel() {
-        // TODO
-        this.transportFactory.cancel();
-    }
-
-    continue() {
-        // TODO
-        this.transportFactory.continue();
-    }
 }

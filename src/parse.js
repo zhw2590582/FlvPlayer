@@ -1,12 +1,13 @@
-import { mergeBuffer, readBufferSum, readString } from '../utils/buffer';
+import { mergeBuffer, readBufferSum, readString } from './utils/buffer';
 
-export default class Decoder {
+export default class Parse {
     constructor(flv) {
         this.flv = flv;
         const { options, debug } = flv;
         this.uint8 = new Uint8Array(0);
         this.index = 0;
         this.header = null;
+        this.loaded = false;
         this.tags = [];
 
         flv.on('streamStart', () => {
@@ -28,7 +29,7 @@ export default class Decoder {
                 this.parse();
             }
 
-            this.flv.loaded = true;
+            this.loaded = true;
             flv.emit('parseDone');
             debug.log('parse-done');
         });

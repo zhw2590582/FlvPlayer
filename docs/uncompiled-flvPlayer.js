@@ -310,11 +310,11 @@
     var _flv$options = flv.options,
         canvas = _flv$options.canvas,
         url = _flv$options.url;
-    errorHandle(canvas instanceof HTMLCanvasElement, "The 'canvas' option is not a 'HTMLCanvasElement'");
+    errorHandle(canvas instanceof HTMLCanvasElement, 'The \'canvas\' option is not a \'HTMLCanvasElement\'');
     errorHandle(flv.constructor.instances.every(function (item) {
       return item.options.canvas !== canvas;
     }), 'Cannot mount multiple instances on the same canvas element, please destroy the instance first');
-    errorHandle(typeof url === 'string' || url instanceof File, "The 'url' option is not a string or file");
+    errorHandle(typeof url === 'string' || url instanceof File, 'The \'url\' option is not a string or file');
   }
 
   var Debug = function Debug(flv) {
@@ -554,6 +554,7 @@
       read.index = index;
       return tempUint8;
     }
+
     read.index = 0;
     return read;
   }
@@ -729,6 +730,11 @@
       classCallCheck(this, AAC);
 
       this.flv = flv;
+      this.AudioSpecificConfig = {
+        audioObjectType: 0,
+        samplingFrequencyIndex: 0,
+        channelConfiguration: 0
+      };
     }
 
     createClass(AAC, [{
@@ -739,11 +745,6 @@
         var packetType = packet[0];
         var frame = null;
         var header = null;
-        this.AudioSpecificConfig = {
-          audioObjectType: 0,
-          samplingFrequencyIndex: 0,
-          channelConfiguration: 0
-        };
 
         if (packetType === 0) {
           var packetData = packet.slice(1);
@@ -780,7 +781,6 @@
         result.audioObjectType = (packetData[0] & 0xf8) >> 3;
         result.samplingFrequencyIndex = ((packetData[0] & 7) << 1) + ((packetData[1] & 0x80) >> 7 & 1);
         result.channelConfiguration = (packetData[1] & 0x7f) >> 3;
-        console.log(result);
         return result;
       }
     }, {

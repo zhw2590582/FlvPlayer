@@ -1,6 +1,9 @@
 export default function mozXhrRequest(flv, url) {
     flv.emit('streamStart');
-    const { events: { proxy }, options: { headers } } = flv;
+    const {
+        events: { proxy },
+        options: { headers },
+    } = flv;
     const xhr = new XMLHttpRequest();
     xhr.open('GET', url, true);
     xhr.responseType = 'moz-chunked-arraybuffer';

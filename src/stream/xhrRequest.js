@@ -1,6 +1,9 @@
 export default function xhrRequest(flv, url) {
     flv.emit('streamStart');
-    const { events: { proxy }, options: { headers } } = flv;
+    const {
+        events: { proxy },
+        options: { headers },
+    } = flv;
     const textEncoder = new TextEncoder();
     const xhr = new XMLHttpRequest();
     xhr.open('GET', url, true);

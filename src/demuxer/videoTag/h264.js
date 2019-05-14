@@ -50,7 +50,7 @@ export default class H264 {
         [result.profile_compatibility] = readDcr(1);
         [result.AVCLevelIndication] = readDcr(1);
         result.lengthSizeMinusOne = (readDcr(1)[0] & 3) + 1;
-        
+
         result.numOfSequenceParameterSets = readDcr(1)[0] & 31;
         for (let index = 0; index < result.numOfSequenceParameterSets; index += 1) {
             result.sequenceParameterSetLength = readBufferSum(readDcr(2));
@@ -121,13 +121,7 @@ export default class H264 {
     }
 
     download() {
-        const buffer = mergeBuffer(
-            this.frameHeader,
-            this.SPS,
-            this.frameHeader,
-            this.PPS,
-            ...this.frames
-        );
+        const buffer = mergeBuffer(this.frameHeader, this.SPS, this.frameHeader, this.PPS, ...this.frames);
         const url = URL.createObjectURL(new Blob([buffer]));
         download(url, `videoTrack.h264`);
     }

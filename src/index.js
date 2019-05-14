@@ -40,7 +40,7 @@ class FlvPlayer extends Emitter {
             live: false,
             width: null,
             height: null,
-            header: {}
+            header: {},
         };
     }
 
@@ -61,7 +61,7 @@ class FlvPlayer extends Emitter {
 }
 
 Object.defineProperty(FlvPlayer, 'instances', {
-    value: []
+    value: [],
 });
 
 export default FlvPlayer;

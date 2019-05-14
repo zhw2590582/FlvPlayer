@@ -19,7 +19,7 @@ module.exports = {
     input: 'src/index.js',
     output: {
         name: 'FlvPlayer',
-        file: isProd ? `dist/flvPlayer.js` : `docs/uncompiled-flvPlayer.js`,
+        file: isProd ? 'dist/flvPlayer.js' : 'docs/uncompiled-flvPlayer.js',
         format: 'umd',
         sourcemap: !isProd,
     },
@@ -33,9 +33,12 @@ module.exports = {
             runtimeHelpers: true,
             exclude: 'node_modules/**',
             presets: [
-                ['@babel/env', {
-                    modules: false,
-                }],
+                [
+                    '@babel/env',
+                    {
+                        modules: false,
+                    },
+                ],
             ],
             plugins: ['@babel/plugin-external-helpers', '@babel/plugin-transform-runtime'],
         }),
@@ -45,10 +48,10 @@ module.exports = {
             __VERSION__: version,
         }),
         isProd &&
-        uglify({
-            output: {
-                preamble: banner,
-            },
-        }),
+            uglify({
+                output: {
+                    preamble: banner,
+                },
+            }),
     ],
 };

@@ -1,7 +1,7 @@
 export default function fetchRequest(flv, url) {
     flv.emit('streamStart');
     fetch(url, {
-        headers: flv.options.headers
+        headers: flv.options.headers,
     }).then(response => {
         const reader = response.body.getReader();
 

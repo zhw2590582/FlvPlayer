@@ -30,13 +30,7 @@ export default {
         'videoTracks',
         'volume',
     ],
-    methods: [
-        'addTextTrack',
-        'canPlayType',
-        'load',
-        'play',
-        'pause',
-    ],
+    methods: ['addTextTrack', 'canPlayType', 'load', 'play', 'pause'],
     events: [
         'abort',
         'canplay',

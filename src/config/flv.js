@@ -70,7 +70,8 @@ export default {
                             0x0c: 'Long string',
                         },
                         name: {
-                            audiocodecid: 'Audio codec ID used in the file (see E.4.2.1 for available SoundFormat values)',
+                            audiocodecid:
+                                'Audio codec ID used in the file (see E.4.2.1 for available SoundFormat values)',
                             audiodatarate: 'Audio bit rate in kilobits per second',
                             audiodelay: 'Delay introduced by the audio codec in seconds',
                             audiosamplerate: 'Frequency at which the audio stream is replayed',

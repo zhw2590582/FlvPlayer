@@ -132,7 +132,7 @@ export default class H264 {
         let frame = new Uint8Array(0);
         while (readVideo.index < packetData.length) {
             const length = readBufferSum(readVideo(lengthSizeMinusOne));
-            frame = mergeBuffer(frame, this.SPS, this.PPS, readVideo(length));
+            frame = mergeBuffer(frame, readVideo(length));
         }
         return mergeBuffer(this.nalStart, frame);
     }

@@ -3,11 +3,7 @@ import { mergeBuffer } from '../../utils/buffer';
 export default class AAC {
     constructor(flv) {
         this.flv = flv;
-        this.AudioSpecificConfig = {
-            audioObjectType: 0,
-            samplingFrequencyIndex: 0,
-            channelConfiguration: 0,
-        };
+        this.AudioSpecificConfig = null;
     }
 
     static get SAMPLERATES() {
@@ -53,6 +49,7 @@ export default class AAC {
 
         if (packetType === 0) {
             const packetData = packet.subarray(1);
+            debug.warn(!this.AudioSpecificConfig, '[aac] Find another one AudioSpecificConfig');
             this.AudioSpecificConfig = this.getAudioSpecificConfig(packetData);
             this.flv.emit('AudioSpecificConfig', this.AudioSpecificConfig);
             debug.log('audio-specific-config', this.AudioSpecificConfig);

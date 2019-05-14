@@ -14,7 +14,7 @@ export default class H264 {
 
     demuxer(tag, requestHeader) {
         const { debug } = this.flv;
-        const packet = tag.body.subarray(1);
+        const packet = tag.body.slice(1);
         debug.error(packet.length >= 4, '[H264] Invalid AVC packet, missing AVCPacketType or/and CompositionTime');
         let frame = null;
         let header = null;
@@ -22,7 +22,7 @@ export default class H264 {
         const view = new DataView(packet.buffer);
         const packetType = view.getUint8(0);
         const cts = ((view.getUint32(0) & 0x00ffffff) << 8) >> 8;
-        const packetData = packet.subarray(4);
+        const packetData = packet.slice(4);
 
         if (packetType === 0) {
             this.AVCDecoderConfigurationRecord = this.getAVCDecoderConfigurationRecord(packetData);
@@ -123,6 +123,6 @@ export default class H264 {
     download() {
         const buffer = mergeBuffer(this.frameHeader, this.SPS, this.frameHeader, this.PPS, ...this.frames);
         const url = URL.createObjectURL(new Blob([buffer]));
-        download(url, `videoTrack.h264`);
+        download(url, 'videoTrack.h264');
     }
 }

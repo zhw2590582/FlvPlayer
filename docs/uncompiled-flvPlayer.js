@@ -730,11 +730,7 @@
       classCallCheck(this, AAC);
 
       this.flv = flv;
-      this.AudioSpecificConfig = {
-        audioObjectType: 0,
-        samplingFrequencyIndex: 0,
-        channelConfiguration: 0
-      };
+      this.AudioSpecificConfig = null;
     }
 
     createClass(AAC, [{
@@ -748,6 +744,7 @@
 
         if (packetType === 0) {
           var packetData = packet.subarray(1);
+          debug.warn(!this.AudioSpecificConfig, '[aac] Find another one AudioSpecificConfig');
           this.AudioSpecificConfig = this.getAudioSpecificConfig(packetData);
           this.flv.emit('AudioSpecificConfig', this.AudioSpecificConfig);
           debug.log('audio-specific-config', this.AudioSpecificConfig);
@@ -1093,14 +1090,14 @@
       key: "demuxer",
       value: function demuxer(tag, requestHeader) {
         var debug = this.flv.debug;
-        var packet = tag.body.subarray(1);
+        var packet = tag.body.slice(1);
         debug.error(packet.length >= 4, '[H264] Invalid AVC packet, missing AVCPacketType or/and CompositionTime');
         var frame = null;
         var header = null;
         var view = new DataView(packet.buffer);
         var packetType = view.getUint8(0);
         var cts = (view.getUint32(0) & 0x00ffffff) << 8 >> 8;
-        var packetData = packet.subarray(4);
+        var packetData = packet.slice(4);
 
         if (packetType === 0) {
           this.AVCDecoderConfigurationRecord = this.getAVCDecoderConfigurationRecord(packetData);
@@ -1210,7 +1207,7 @@
         var buffer = mergeBuffer.apply(void 0, [this.frameHeader, this.SPS, this.frameHeader, this.PPS].concat(toConsumableArray(this.frames)));
         var url = URL.createObjectURL(new Blob([buffer]));
 
-        download(url, "videoTrack.h264");
+        download(url, 'videoTrack.h264');
       }
     }]);
 

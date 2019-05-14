@@ -741,20 +741,20 @@
       key: "demuxer",
       value: function demuxer(tag, requestHeader) {
         var debug = this.flv.debug;
-        var packet = tag.body.slice(1);
+        var packet = tag.body.subarray(1);
         var packetType = packet[0];
         var frame = null;
         var header = null;
 
         if (packetType === 0) {
-          var packetData = packet.slice(1);
+          var packetData = packet.subarray(1);
           this.AudioSpecificConfig = this.getAudioSpecificConfig(packetData);
           this.flv.emit('AudioSpecificConfig', this.AudioSpecificConfig);
           debug.log('audio-specific-config', this.AudioSpecificConfig);
         } else {
           var ADTSLen = tag.dataSize - 2 + 7;
           var ADTSHeader = this.getADTSHeader(ADTSLen);
-          var ADTSBody = tag.body.slice(2);
+          var ADTSBody = tag.body.subarray(2);
           frame = mergeBuffer(ADTSHeader, ADTSBody);
         }
 
@@ -866,7 +866,7 @@
       key: "demuxer",
       value: function demuxer(tag, requestHeader) {
         var debug = this.flv.debug;
-        var packet = tag.body.slice(1);
+        var packet = tag.body.subarray(1);
         var header = null;
 
         if (requestHeader) {
@@ -1093,14 +1093,14 @@
       key: "demuxer",
       value: function demuxer(tag, requestHeader) {
         var debug = this.flv.debug;
-        var packet = tag.body.slice(1);
+        var packet = tag.body.subarray(1);
         debug.error(packet.length >= 4, '[H264] Invalid AVC packet, missing AVCPacketType or/and CompositionTime');
         var frame = null;
         var header = null;
         var view = new DataView(packet.buffer);
         var packetType = view.getUint8(0);
         var cts = (view.getUint32(0) & 0x00ffffff) << 8 >> 8;
-        var packetData = packet.slice(4);
+        var packetData = packet.subarray(4);
 
         if (packetType === 0) {
           this.AVCDecoderConfigurationRecord = this.getAVCDecoderConfigurationRecord(packetData);
@@ -1511,6 +1511,10 @@
           type: "audio/".concat(this.audioHeader.format)
         }));
         download(url, "audioTrack.".concat(this.audioHeader.format));
+      }
+    }, {
+      key: "downloadVideo",
+      value: function downloadVideo() {//
       }
     }]);
 

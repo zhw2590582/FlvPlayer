@@ -65,4 +65,8 @@ export default class Demuxer {
         );
         download(url, `audioTrack.${this.audioHeader.format}`);
     }
+
+    downloadVideo() {
+        //
+    }
 }

@@ -1014,6 +1014,44 @@
     return AudioTag;
   }();
 
+  function _defineProperty(obj, key, value) {
+    if (key in obj) {
+      Object.defineProperty(obj, key, {
+        value: value,
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
+    } else {
+      obj[key] = value;
+    }
+
+    return obj;
+  }
+
+  var defineProperty = _defineProperty;
+
+  function _objectSpread(target) {
+    for (var i = 1; i < arguments.length; i++) {
+      var source = arguments[i] != null ? arguments[i] : {};
+      var ownKeys = Object.keys(source);
+
+      if (typeof Object.getOwnPropertySymbols === 'function') {
+        ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) {
+          return Object.getOwnPropertyDescriptor(source, sym).enumerable;
+        }));
+      }
+
+      ownKeys.forEach(function (key) {
+        defineProperty(target, key, source[key]);
+      });
+    }
+
+    return target;
+  }
+
+  var objectSpread = _objectSpread;
+
   var SPSParser =
   /*#__PURE__*/
   function () {
@@ -1083,34 +1121,42 @@
       classCallCheck(this, H264);
 
       this.flv = flv;
-      this.frameHeader = new Uint8Array([0x00, 0x00, 0x00, 0x01]);
+      this.nalStart = new Uint8Array([0x00, 0x00, 0x00, 0x01]);
+      this.frameHeader = new Uint8Array(0);
+      this.mate = {};
       this.SPS = new Uint8Array(0);
       this.PPS = new Uint8Array(0);
-      this.AVCDecoderConfigurationRecord = {};
-      this.frames = [];
+      this.AVCDecoderConfigurationRecord = null;
     }
 
     createClass(H264, [{
       key: "demuxer",
       value: function demuxer(tag, requestHeader) {
         var debug = this.flv.debug;
-        var packet = tag.body.slice(1);
+        var packet = tag.body.slice(1, 5);
         debug.error(packet.length >= 4, '[H264] Invalid AVC packet, missing AVCPacketType or/and CompositionTime');
         var frame = null;
         var header = null;
         var view = new DataView(packet.buffer);
-        var packetType = view.getUint8(0);
-        var cts = (view.getUint32(0) & 0x00ffffff) << 8 >> 8;
-        var packetData = packet.slice(4);
+        var AVCPacketType = view.getUint8(0);
+        var CompositionTime = (view.getUint32(0) & 0x00ffffff) << 8 >> 8;
+        var packetData = tag.body.subarray(5);
 
-        if (packetType === 0) {
+        if (AVCPacketType === 0) {
+          debug.warn(!this.AVCDecoderConfigurationRecord, '[h264] Find another one AVCDecoderConfigurationRecord');
           this.AVCDecoderConfigurationRecord = this.getAVCDecoderConfigurationRecord(packetData);
           this.flv.emit('AVCDecoderConfigurationRecord', this.AVCDecoderConfigurationRecord);
           debug.log('avc-decoder-configuration-record', this.AVCDecoderConfigurationRecord);
-        } else if (packetType === 1) {
-          frame = this.getAVCVideoData(packetData, cts);
+        } else if (AVCPacketType === 1) {
+          frame = this.getAVCVideoData(packetData, CompositionTime);
         } else {
-          debug.error(packetType === 2, "[H264] Invalid video packet type ".concat(packetType));
+          debug.error(AVCPacketType === 2, "[H264] Invalid video packet type ".concat(AVCPacketType));
+        }
+
+        if (requestHeader) {
+          header = objectSpread({
+            format: 'h264'
+          }, this.mate);
         }
 
         return {
@@ -1160,6 +1206,20 @@
 
             if (index === 0) {
               result.sequenceParameterSetNALUnit = SPSParser.parser(this.SPS);
+              var codecArray = this.SPS.subarray(1, 4);
+              var codecString = 'avc1.';
+
+              for (var j = 0; j < 3; j += 1) {
+                var h = codecArray[j].toString(16);
+
+                if (h.length < 2) {
+                  h = "0".concat(h);
+                }
+
+                codecString += h;
+              }
+
+              this.mate.codec = codecString;
             }
           }
         }
@@ -1174,7 +1234,7 @@
           result.pictureParameterSetLength = readBufferSum(readDcr(2));
 
           if (result.pictureParameterSetLength > 0) {
-            readDcr(result.pictureParameterSetLength);
+            this.PPS = readDcr(result.pictureParameterSetLength);
           }
         }
 
@@ -1190,28 +1250,16 @@
     }, {
       key: "getAVCVideoData",
       value: function getAVCVideoData(packetData) {
-        var _this$frames;
-
         var lengthSizeMinusOne = this.AVCDecoderConfigurationRecord.lengthSizeMinusOne;
         var readVideo = readBuffer(packetData);
-        var frames = [];
+        var frame = new Uint8Array(0);
 
         while (readVideo.index < packetData.length) {
           var length = readBufferSum(readVideo(lengthSizeMinusOne));
-          frames.push(mergeBuffer(this.frameHeader, readVideo(length)));
+          frame = mergeBuffer(frame, this.SPS, this.PPS, readVideo(length));
         }
 
-        (_this$frames = this.frames).push.apply(_this$frames, frames);
-
-        return frames;
-      }
-    }, {
-      key: "download",
-      value: function download$1() {
-        var buffer = mergeBuffer.apply(void 0, [this.frameHeader, this.SPS, this.frameHeader, this.PPS].concat(toConsumableArray(this.frames)));
-        var url = URL.createObjectURL(new Blob([buffer]));
-
-        download(url, 'videoTrack.h264');
+        return mergeBuffer(this.nalStart, frame);
       }
     }]);
 
@@ -1443,8 +1491,8 @@
       this.scripMeta = null;
       this.audioHeader = null;
       this.videoHeader = null;
-      this.audioFrames = [];
-      this.videoFrames = [];
+      this.audioTrack = [];
+      this.videoTrack = [];
       this.scripTag = new ScripTag(flv);
       this.videoTag = new VideoTag(flv);
       this.audioTag = new AudioTag(flv);
@@ -1465,10 +1513,10 @@
               if (frame) {
                 var result = {
                   timestamp: tag.timestamp,
-                  frame: frame
+                  data: frame
                 };
 
-                _this.videoFrames.push(result);
+                _this.videoTrack.push(result);
 
                 flv.emit('videoFrame', result);
               }
@@ -1491,10 +1539,10 @@
               if (_frame) {
                 var _result = {
                   timestamp: tag.timestamp,
-                  frame: _frame
+                  data: _frame
                 };
 
-                _this.audioFrames.push(_result);
+                _this.audioTrack.push(_result);
 
                 flv.emit('audioFrame', _result);
               }
@@ -1518,14 +1566,18 @@
     createClass(Demuxer, [{
       key: "downloadAudio",
       value: function downloadAudio() {
-        var url = URL.createObjectURL(new Blob([mergeBuffer.apply(void 0, toConsumableArray(this.audioFrames))], {
-          type: "audio/".concat(this.audioHeader.format)
-        }));
+        var url = URL.createObjectURL(new Blob([mergeBuffer.apply(void 0, toConsumableArray(this.audioTrack.map(function (item) {
+          return item.data;
+        })))]));
         download(url, "audioTrack.".concat(this.audioHeader.format));
       }
     }, {
       key: "downloadVideo",
-      value: function downloadVideo() {//
+      value: function downloadVideo() {
+        var url = URL.createObjectURL(new Blob([mergeBuffer.apply(void 0, toConsumableArray(this.videoTrack.map(function (item) {
+          return item.data;
+        })))]));
+        download(url, "videoTrack.".concat(this.videoHeader.format));
       }
     }]);
 

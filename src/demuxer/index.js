@@ -10,8 +10,8 @@ export default class Demuxer {
         this.scripMeta = null;
         this.audioHeader = null;
         this.videoHeader = null;
-        this.audioFrames = [];
-        this.videoFrames = [];
+        this.audioTrack = [];
+        this.videoTrack = [];
 
         this.scripTag = new ScripTag(flv);
         this.videoTag = new VideoTag(flv);
@@ -29,9 +29,9 @@ export default class Demuxer {
                     if (frame) {
                         const result = {
                             timestamp: tag.timestamp,
-                            frame,
+                            data: frame,
                         };
-                        this.videoFrames.push(result);
+                        this.videoTrack.push(result);
                         flv.emit('videoFrame', result);
                     }
                     if (!this.videoHeader && header) {
@@ -46,9 +46,9 @@ export default class Demuxer {
                     if (frame) {
                         const result = {
                             timestamp: tag.timestamp,
-                            frame,
+                            data: frame,
                         };
-                        this.audioFrames.push(result);
+                        this.audioTrack.push(result);
                         flv.emit('audioFrame', result);
                     }
                     if (!this.audioHeader && header) {
@@ -67,14 +67,15 @@ export default class Demuxer {
 
     downloadAudio() {
         const url = URL.createObjectURL(
-            new Blob([mergeBuffer(...this.audioFrames)], {
-                type: `audio/${this.audioHeader.format}`,
-            }),
+            new Blob([mergeBuffer(...this.audioTrack.map(item => item.data))]),
         );
         download(url, `audioTrack.${this.audioHeader.format}`);
     }
 
     downloadVideo() {
-        //
+        const url = URL.createObjectURL(
+            new Blob([mergeBuffer(...this.videoTrack.map(item => item.data))]),
+        );
+        download(url, `videoTrack.${this.videoHeader.format}`);
     }
 }

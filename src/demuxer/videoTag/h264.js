@@ -1,37 +1,45 @@
-import { readBuffer, readBufferSum, mergeBuffer, decimalToHex } from '../../utils/buffer';
-import { download } from '../../utils';
+import { readBuffer, readBufferSum, mergeBuffer } from '../../utils/buffer';
 import SPSParser from './sps-parser';
 
 export default class H264 {
     constructor(flv) {
         this.flv = flv;
-        this.frameHeader = new Uint8Array([0x00, 0x00, 0x00, 0x01]);
+        this.nalStart = new Uint8Array([0x00, 0x00, 0x00, 0x01]);
+        this.frameHeader = new Uint8Array(0);
+        this.mate = {};
         this.SPS = new Uint8Array(0);
         this.PPS = new Uint8Array(0);
-        this.AVCDecoderConfigurationRecord = {};
-        this.frames = [];
+        this.AVCDecoderConfigurationRecord = null;
     }
 
     demuxer(tag, requestHeader) {
         const { debug } = this.flv;
-        const packet = tag.body.slice(1);
+        const packet = tag.body.slice(1, 5);
         debug.error(packet.length >= 4, '[H264] Invalid AVC packet, missing AVCPacketType or/and CompositionTime');
         let frame = null;
         let header = null;
 
         const view = new DataView(packet.buffer);
-        const packetType = view.getUint8(0);
-        const cts = ((view.getUint32(0) & 0x00ffffff) << 8) >> 8;
-        const packetData = packet.slice(4);
+        const AVCPacketType = view.getUint8(0);
+        const CompositionTime = ((view.getUint32(0) & 0x00ffffff) << 8) >> 8;
+        const packetData = tag.body.subarray(5);
 
-        if (packetType === 0) {
+        if (AVCPacketType === 0) {
+            debug.warn(!this.AVCDecoderConfigurationRecord, '[h264] Find another one AVCDecoderConfigurationRecord');
             this.AVCDecoderConfigurationRecord = this.getAVCDecoderConfigurationRecord(packetData);
             this.flv.emit('AVCDecoderConfigurationRecord', this.AVCDecoderConfigurationRecord);
             debug.log('avc-decoder-configuration-record', this.AVCDecoderConfigurationRecord);
-        } else if (packetType === 1) {
-            frame = this.getAVCVideoData(packetData, cts);
+        } else if (AVCPacketType === 1) {
+            frame = this.getAVCVideoData(packetData, CompositionTime);
         } else {
-            debug.error(packetType === 2, `[H264] Invalid video packet type ${packetType}`);
+            debug.error(AVCPacketType === 2, `[H264] Invalid video packet type ${AVCPacketType}`);
+        }
+
+        if (requestHeader) {
+            header = {
+                format: 'h264',
+                ...this.mate,
+            };
         }
 
         return {
@@ -58,6 +66,16 @@ export default class H264 {
                 this.SPS = readDcr(result.sequenceParameterSetLength);
                 if (index === 0) {
                     result.sequenceParameterSetNALUnit = SPSParser.parser(this.SPS);
+                    const codecArray = this.SPS.subarray(1, 4);
+                    let codecString = 'avc1.';
+                    for (let j = 0; j < 3; j += 1) {
+                        let h = codecArray[j].toString(16);
+                        if (h.length < 2) {
+                            h = `0${h}`;
+                        }
+                        codecString += h;
+                    }
+                    this.mate.codec = codecString;
                 }
             }
         }
@@ -66,7 +84,7 @@ export default class H264 {
         for (let index = 0; index < result.numOfPictureParameterSets; index += 1) {
             result.pictureParameterSetLength = readBufferSum(readDcr(2));
             if (result.pictureParameterSetLength > 0) {
-                readDcr(result.pictureParameterSetLength);
+                this.PPS = readDcr(result.pictureParameterSetLength);
             }
         }
 
@@ -111,18 +129,11 @@ export default class H264 {
     getAVCVideoData(packetData) {
         const { lengthSizeMinusOne } = this.AVCDecoderConfigurationRecord;
         const readVideo = readBuffer(packetData);
-        const frames = [];
+        let frame = new Uint8Array(0);
         while (readVideo.index < packetData.length) {
             const length = readBufferSum(readVideo(lengthSizeMinusOne));
-            frames.push(mergeBuffer(this.frameHeader, readVideo(length)));
+            frame = mergeBuffer(frame, this.SPS, this.PPS, readVideo(length));
         }
-        this.frames.push(...frames);
-        return frames;
-    }
-
-    download() {
-        const buffer = mergeBuffer(this.frameHeader, this.SPS, this.frameHeader, this.PPS, ...this.frames);
-        const url = URL.createObjectURL(new Blob([buffer]));
-        download(url, 'videoTrack.h264');
+        return mergeBuffer(this.nalStart, frame);
     }
 }

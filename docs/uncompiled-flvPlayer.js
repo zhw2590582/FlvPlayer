@@ -678,7 +678,11 @@
 
             tag.tagType = _this$read6[0];
             tag.dataSize = readBufferSum(this.read(3));
-            tag.timestamp = readBufferSum(this.read(4));
+            var ts2 = this.read(1);
+            var ts1 = this.read(1);
+            var ts0 = this.read(1);
+            var ts3 = this.read(1);
+            tag.timestamp = ts0 | ts1 << 8 | ts2 << 16 | ts3 << 24;
             tag.streamID = readBufferSum(this.read(3));
             debug.error(tag.streamID === 0, "streamID should be equal to 0, but got ".concat(tag.streamID));
           } else {
@@ -1459,9 +1463,14 @@
                   header = _this$videoTag$demuxe.header;
 
               if (frame) {
-                _this.videoFrames.push(frame);
+                var result = {
+                  timestamp: tag.timestamp,
+                  frame: frame
+                };
 
-                flv.emit('videoFrame', frame);
+                _this.videoFrames.push(result);
+
+                flv.emit('videoFrame', result);
               }
 
               if (!_this.videoHeader && header) {
@@ -1480,9 +1489,14 @@
                   _header = _this$audioTag$demuxe.header;
 
               if (_frame) {
-                _this.audioFrames.push(_frame);
+                var _result = {
+                  timestamp: tag.timestamp,
+                  frame: _frame
+                };
 
-                flv.emit('audioFrame', _frame);
+                _this.audioFrames.push(_result);
+
+                flv.emit('audioFrame', _result);
               }
 
               if (!_this.audioHeader && _header) {
@@ -1715,6 +1729,13 @@
       _this.remuxer = new Remuxer(assertThisInitialized(_this));
       _this.stream = new Stream(assertThisInitialized(_this));
       _this.player = new Player(assertThisInitialized(_this));
+
+      _this.le = function le() {
+        var buf = new ArrayBuffer(2);
+        new DataView(buf).setInt16(0, 256, true);
+        return new Int16Array(buf)[0] === 256;
+      }();
+
       id += 1;
       _this.id = id;
       FlvPlayer.instances.push(assertThisInitialized(_this));

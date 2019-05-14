@@ -27,6 +27,12 @@ class FlvPlayer extends Emitter {
         this.stream = new Stream(this);
         this.player = new Player(this);
 
+        this.le = (function le() {
+            const buf = new ArrayBuffer(2);
+            new DataView(buf).setInt16(0, 256, true);
+            return new Int16Array(buf)[0] === 256;
+        })();
+
         id += 1;
         this.id = id;
         FlvPlayer.instances.push(this);

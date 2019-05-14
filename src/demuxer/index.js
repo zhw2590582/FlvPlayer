@@ -27,8 +27,12 @@ export default class Demuxer {
                 case 9: {
                     const { frame, header } = this.videoTag.demuxer(tag, !this.videoHeader);
                     if (frame) {
-                        this.videoFrames.push(frame);
-                        flv.emit('videoFrame', frame);
+                        const result = {
+                            timestamp: tag.timestamp,
+                            frame,
+                        };
+                        this.videoFrames.push(result);
+                        flv.emit('videoFrame', result);
                     }
                     if (!this.videoHeader && header) {
                         this.videoHeader = header;
@@ -40,8 +44,12 @@ export default class Demuxer {
                 case 8: {
                     const { frame, header } = this.audioTag.demuxer(tag, !this.audioHeader);
                     if (frame) {
-                        this.audioFrames.push(frame);
-                        flv.emit('audioFrame', frame);
+                        const result = {
+                            timestamp: tag.timestamp,
+                            frame,
+                        };
+                        this.audioFrames.push(result);
+                        flv.emit('audioFrame', result);
                     }
                     if (!this.audioHeader && header) {
                         this.audioHeader = header;

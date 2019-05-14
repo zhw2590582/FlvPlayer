@@ -58,7 +58,11 @@ export default class Parse {
             if (this.readable(11)) {
                 [tag.tagType] = this.read(1);
                 tag.dataSize = readBufferSum(this.read(3));
-                tag.timestamp = readBufferSum(this.read(4));
+                const ts2 = this.read(1);
+                const ts1 = this.read(1);
+                const ts0 = this.read(1);
+                const ts3 = this.read(1);
+                tag.timestamp = ts0 | (ts1 << 8) | (ts2 << 16) | (ts3 << 24);
                 tag.streamID = readBufferSum(this.read(3));
                 debug.error(tag.streamID === 0, `streamID should be equal to 0, but got ${tag.streamID}`);
             } else {

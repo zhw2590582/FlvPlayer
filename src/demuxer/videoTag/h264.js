@@ -5,7 +5,6 @@ export default class H264 {
     constructor(flv) {
         this.flv = flv;
         this.nalStart = new Uint8Array([0x00, 0x00, 0x00, 0x01]);
-        this.frameHeader = new Uint8Array(0);
         this.mate = {};
         this.SPS = new Uint8Array(0);
         this.PPS = new Uint8Array(0);
@@ -29,6 +28,7 @@ export default class H264 {
             this.AVCDecoderConfigurationRecord = this.getAVCDecoderConfigurationRecord(packetData);
             this.flv.emit('AVCDecoderConfigurationRecord', this.AVCDecoderConfigurationRecord);
             debug.log('avc-decoder-configuration-record', this.AVCDecoderConfigurationRecord);
+            frame = mergeBuffer(this.nalStart, this.SPS, this.nalStart, this.PPS);
         } else if (AVCPacketType === 1) {
             frame = this.getAVCVideoData(packetData, CompositionTime);
         } else {
@@ -132,8 +132,8 @@ export default class H264 {
         let frame = new Uint8Array(0);
         while (readVideo.index < packetData.length) {
             const length = readBufferSum(readVideo(lengthSizeMinusOne));
-            frame = mergeBuffer(frame, readVideo(length));
+            frame = mergeBuffer(frame, this.nalStart, readVideo(length));
         }
-        return mergeBuffer(this.nalStart, frame);
+        return frame;
     }
 }

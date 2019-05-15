@@ -5,7 +5,7 @@ export default class Debug {
         const { debug } = flv.options;
         this.log = (name, ...args) => {
             if (debug) {
-                console.log(`Flv: [${name}]`, ...args);
+                console.log(`FlvPlayer: [${name}]`, ...args);
             }
         };
 

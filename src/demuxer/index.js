@@ -6,6 +6,7 @@ import ScripTag from './scripTag';
 
 export default class Demuxer {
     constructor(flv) {
+        this.flv = flv;
         const { debug } = flv;
         this.scripMeta = null;
         this.audioHeader = null;
@@ -66,6 +67,8 @@ export default class Demuxer {
     }
 
     downloadAudio() {
+        const { parse, debug } = this.flv;
+        debug.error(parse.loaded, 'Stream not loaded yet complete');
         const url = URL.createObjectURL(
             new Blob([mergeBuffer(...this.audioTrack.map(item => item.data))]),
         );
@@ -73,6 +76,8 @@ export default class Demuxer {
     }
 
     downloadVideo() {
+        const { parse, debug } = this.flv;
+        debug.error(parse.loaded, 'Stream not loaded yet complete');
         const url = URL.createObjectURL(
             new Blob([mergeBuffer(...this.videoTrack.map(item => item.data))]),
         );

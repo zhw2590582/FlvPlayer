@@ -44,8 +44,9 @@ class FlvPlayer extends Emitter {
             canvas: null,
             debug: false,
             live: false,
-            width: null,
-            height: null,
+            width: 400,
+            height: 300,
+            autoSize: false,
             header: {},
         };
     }

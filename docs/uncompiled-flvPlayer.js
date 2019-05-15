@@ -330,7 +330,7 @@
           args[_key - 1] = arguments[_key];
         }
 
-        (_console = console).log.apply(_console, ["Flv: [".concat(name, "]")].concat(args));
+        (_console = console).log.apply(_console, ["FlvPlayer: [".concat(name, "]")].concat(args));
       }
     };
 
@@ -1487,6 +1487,7 @@
 
       classCallCheck(this, Demuxer);
 
+      this.flv = flv;
       var debug = flv.debug;
       this.scripMeta = null;
       this.audioHeader = null;
@@ -1566,6 +1567,10 @@
     createClass(Demuxer, [{
       key: "downloadAudio",
       value: function downloadAudio() {
+        var _this$flv = this.flv,
+            parse = _this$flv.parse,
+            debug = _this$flv.debug;
+        debug.error(parse.loaded, 'Stream not loaded yet complete');
         var url = URL.createObjectURL(new Blob([mergeBuffer.apply(void 0, toConsumableArray(this.audioTrack.map(function (item) {
           return item.data;
         })))]));
@@ -1574,6 +1579,10 @@
     }, {
       key: "downloadVideo",
       value: function downloadVideo() {
+        var _this$flv2 = this.flv,
+            parse = _this$flv2.parse,
+            debug = _this$flv2.debug;
+        debug.error(parse.loaded, 'Stream not loaded yet complete');
         var url = URL.createObjectURL(new Blob([mergeBuffer.apply(void 0, toConsumableArray(this.videoTrack.map(function (item) {
           return item.data;
         })))]));
@@ -1584,9 +1593,10 @@
     return Demuxer;
   }();
 
-  var Remuxer = function Remuxer(flv) {//
-
+  var Remuxer = function Remuxer(flv) {
     classCallCheck(this, Remuxer);
+
+    this.flv = flv;
   };
 
   function fetchRequest(flv, url) {
@@ -1753,8 +1763,17 @@
 
   var Player = function Player(flv) {
     classCallCheck(this, Player);
-
-    this.flv = flv;
+    var _flv$options = flv.options,
+        canvas = _flv$options.canvas,
+        width = _flv$options.width,
+        height = _flv$options.height;
+    canvas.width = width;
+    canvas.style.width = "".concat(width, "px");
+    canvas.height = height;
+    canvas.style.height = "".concat(height, "px");
+    var ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, width, height);
   };
 
   var id = 0;
@@ -1810,8 +1829,9 @@
           canvas: null,
           debug: false,
           live: false,
-          width: null,
-          height: null,
+          width: 400,
+          height: 300,
+          autoSize: false,
           header: {}
         };
       }

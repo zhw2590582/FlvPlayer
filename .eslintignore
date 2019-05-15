@@ -1,4 +1,5 @@
 /dist
 /test
 /node_modules
+/src/broadway
 ./rollup-config.js

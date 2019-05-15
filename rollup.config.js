@@ -25,7 +25,7 @@ module.exports = {
     },
     plugins: [
         eslint({
-            exclude: ['node_modules/**'],
+            exclude: ['node_modules/**', 'src/broadway/**'],
         }),
         nodeResolve(),
         commonjs(),

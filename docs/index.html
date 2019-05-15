@@ -15,19 +15,20 @@
             box-sizing: border-box;
         }
 
-        #canvas {
-            display: block;
-            margin: 20px auto 0;
+        #flvPlayer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
     </style>
 </head>
 <body>
-    <canvas id="canvas"></canvas>
+    <div id="flvPlayer"></div>
     <script src="./uncompiled-flvPlayer.js"></script>
     <script>
         var flv = new FlvPlayer({
             url: 'https://zhw2590582.github.io/assets-cdn/video/you-name-h264-aac.flv',
-            canvas: document.getElementById('canvas'),
+            element: document.getElementById('flvPlayer'),
             debug: true,
         });
     </script>

@@ -22,11 +22,11 @@ class FlvPlayer extends Emitter {
         this.debug = new Debug(this);
         this.events = new Events(this);
         this.workers = new Workers(this);
+        this.player = new Player(this);
         this.parse = new Parse(this);
         this.demuxer = new Demuxer(this);
         this.remuxer = new Remuxer(this);
         this.stream = new Stream(this);
-        this.player = new Player(this);
         this.controls = new Controls(this);
 
         this.le = (function le() {
@@ -43,12 +43,12 @@ class FlvPlayer extends Emitter {
     static get options() {
         return {
             url: '',
-            canvas: null,
+            element: null,
             debug: false,
             live: false,
+            controls: true,
             width: 400,
             height: 300,
-            controls: false,
             header: {},
         };
     }

@@ -15,15 +15,15 @@ export default class AudioTag {
         };
     }
 
-    demuxer(tag, requestHeader) {
+    demuxer(tag, requestMeta) {
         const { debug } = this.flv;
         const { soundFormat } = this.getAudioMeta(tag);
         debug.error(soundFormat === 10 || soundFormat === 2, `[audioTrack] unsupported audio format: ${soundFormat}`);
         const format = AudioTag.SOUND_FORMATS[soundFormat];
-        const { frame, header } = this[format].demuxer(tag, requestHeader);
+        const { data, meta } = this[format].demuxer(tag, requestMeta);
         return {
-            header,
-            frame,
+            meta,
+            data,
         };
     }
 

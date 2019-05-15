@@ -19,12 +19,12 @@ export default class MP3 {
         };
     }
 
-    demuxer(tag, requestHeader) {
+    demuxer(tag, requestMeta) {
         const { debug } = this.flv;
         const packet = tag.body.subarray(1);
-        let header = null;
+        let meta = null;
 
-        if (requestHeader) {
+        if (requestMeta) {
             debug.error(packet.length >= 4, 'MP3 header missing');
             debug.error(packet[0] === 0xff, 'MP3 header mismatch');
             const ver = (packet[1] >>> 3) & 0x03;
@@ -66,7 +66,7 @@ export default class MP3 {
                     break;
             }
 
-            header = {
+            meta = {
                 ver,
                 layer,
                 bitRate,
@@ -78,8 +78,8 @@ export default class MP3 {
         }
 
         return {
-            header,
-            frame: packet,
+            meta,
+            data: packet,
         };
     }
 }

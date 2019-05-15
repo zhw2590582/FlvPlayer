@@ -9,6 +9,7 @@ import Demuxer from './demuxer';
 import Remuxer from './remuxer';
 import Stream from './stream';
 import Player from './player';
+import Controls from './controls';
 
 let id = 0;
 class FlvPlayer extends Emitter {
@@ -26,6 +27,7 @@ class FlvPlayer extends Emitter {
         this.remuxer = new Remuxer(this);
         this.stream = new Stream(this);
         this.player = new Player(this);
+        this.controls = new Controls(this);
 
         this.le = (function le() {
             const buf = new ArrayBuffer(2);
@@ -46,7 +48,7 @@ class FlvPlayer extends Emitter {
             live: false,
             width: 400,
             height: 300,
-            autoSize: false,
+            controls: false,
             header: {},
         };
     }

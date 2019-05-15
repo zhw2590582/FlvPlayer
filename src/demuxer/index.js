@@ -9,8 +9,8 @@ export default class Demuxer {
         this.flv = flv;
         const { debug } = flv;
         this.scripMeta = null;
-        this.audioHeader = null;
-        this.videoHeader = null;
+        this.audioMeta = null;
+        this.videoMeta = null;
         this.audioTrack = [];
         this.videoTrack = [];
 
@@ -26,36 +26,36 @@ export default class Demuxer {
                     debug.log('scrip-meta', this.scripMeta);
                     break;
                 case 9: {
-                    const { frame, header } = this.videoTag.demuxer(tag, !this.videoHeader);
-                    if (frame) {
+                    const { data, meta } = this.videoTag.demuxer(tag, !this.videoMeta);
+                    if (data) {
                         const result = {
                             timestamp: tag.timestamp,
-                            data: frame,
+                            data,
                         };
                         this.videoTrack.push(result);
-                        flv.emit('videoFrame', result);
+                        flv.emit('videoTrack', result);
                     }
-                    if (!this.videoHeader && header) {
-                        this.videoHeader = header;
-                        flv.emit('videoHeader', header);
-                        debug.log('video-header', header);
+                    if (!this.videoMeta && meta) {
+                        this.videoMeta = meta;
+                        flv.emit('videoMeta', meta);
+                        debug.log('video-meta', meta);
                     }
                     break;
                 }
                 case 8: {
-                    const { frame, header } = this.audioTag.demuxer(tag, !this.audioHeader);
-                    if (frame) {
+                    const { data, meta } = this.audioTag.demuxer(tag, !this.audioMeta);
+                    if (data) {
                         const result = {
                             timestamp: tag.timestamp,
-                            data: frame,
+                            data,
                         };
                         this.audioTrack.push(result);
-                        flv.emit('audioFrame', result);
+                        flv.emit('audioTrack', result);
                     }
-                    if (!this.audioHeader && header) {
-                        this.audioHeader = header;
-                        flv.emit('audioHeader', header);
-                        debug.log('audio-header', header);
+                    if (!this.audioMeta && meta) {
+                        this.audioMeta = meta;
+                        flv.emit('audioMeta', meta);
+                        debug.log('audio-meta', meta);
                     }
                     break;
                 }
@@ -72,7 +72,7 @@ export default class Demuxer {
         const url = URL.createObjectURL(
             new Blob([mergeBuffer(...this.audioTrack.map(item => item.data))]),
         );
-        download(url, `audioTrack.${this.audioHeader.format}`);
+        download(url, `audioTrack.${this.audioMeta.format}`);
     }
 
     downloadVideo() {
@@ -81,6 +81,6 @@ export default class Demuxer {
         const url = URL.createObjectURL(
             new Blob([mergeBuffer(...this.videoTrack.map(item => item.data))]),
         );
-        download(url, `videoTrack.${this.videoHeader.format}`);
+        download(url, `videoTrack.${this.videoMeta.format}`);
     }
 }

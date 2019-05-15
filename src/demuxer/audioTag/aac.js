@@ -40,12 +40,12 @@ export default class AAC {
         };
     }
 
-    demuxer(tag, requestHeader) {
+    demuxer(tag, requestMeta) {
         const { debug } = this.flv;
         const packet = tag.body.subarray(1);
         const packetType = packet[0];
-        let frame = null;
-        let header = null;
+        let data = null;
+        let meta = null;
 
         if (packetType === 0) {
             const packetData = packet.subarray(1);
@@ -57,11 +57,11 @@ export default class AAC {
             const ADTSLen = tag.dataSize - 2 + 7;
             const ADTSHeader = this.getADTSHeader(ADTSLen);
             const ADTSBody = tag.body.subarray(2);
-            frame = mergeBuffer(ADTSHeader, ADTSBody);
+            data = mergeBuffer(ADTSHeader, ADTSBody);
         }
 
-        if (requestHeader) {
-            header = {
+        if (requestMeta) {
+            meta = {
                 format: 'aac',
                 sampleRate: AAC.SAMPLERATES[this.AudioSpecificConfig.samplingFrequencyIndex],
                 channels: AAC.CHANNELS[this.AudioSpecificConfig.channelConfiguration],
@@ -70,8 +70,8 @@ export default class AAC {
         }
 
         return {
-            header,
-            frame,
+            meta,
+            data,
         };
     }
 

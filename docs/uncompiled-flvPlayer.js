@@ -739,12 +739,12 @@
 
     createClass(AAC, [{
       key: "demuxer",
-      value: function demuxer(tag, requestHeader) {
+      value: function demuxer(tag, requestMeta) {
         var debug = this.flv.debug;
         var packet = tag.body.subarray(1);
         var packetType = packet[0];
-        var frame = null;
-        var header = null;
+        var data = null;
+        var meta = null;
 
         if (packetType === 0) {
           var packetData = packet.subarray(1);
@@ -756,11 +756,11 @@
           var ADTSLen = tag.dataSize - 2 + 7;
           var ADTSHeader = this.getADTSHeader(ADTSLen);
           var ADTSBody = tag.body.subarray(2);
-          frame = mergeBuffer(ADTSHeader, ADTSBody);
+          data = mergeBuffer(ADTSHeader, ADTSBody);
         }
 
-        if (requestHeader) {
-          header = {
+        if (requestMeta) {
+          meta = {
             format: 'aac',
             sampleRate: AAC.SAMPLERATES[this.AudioSpecificConfig.samplingFrequencyIndex],
             channels: AAC.CHANNELS[this.AudioSpecificConfig.channelConfiguration],
@@ -769,8 +769,8 @@
         }
 
         return {
-          header: header,
-          frame: frame
+          meta: meta,
+          data: data
         };
       }
     }, {
@@ -865,12 +865,12 @@
 
     createClass(MP3, [{
       key: "demuxer",
-      value: function demuxer(tag, requestHeader) {
+      value: function demuxer(tag, requestMeta) {
         var debug = this.flv.debug;
         var packet = tag.body.subarray(1);
-        var header = null;
+        var meta = null;
 
-        if (requestHeader) {
+        if (requestMeta) {
           debug.error(packet.length >= 4, 'MP3 header missing');
           debug.error(packet[0] === 0xff, 'MP3 header mismatch');
           var ver = packet[1] >>> 3 & 0x03;
@@ -918,7 +918,7 @@
               break;
           }
 
-          header = {
+          meta = {
             ver: ver,
             layer: layer,
             bitRate: bitRate,
@@ -930,8 +930,8 @@
         }
 
         return {
-          header: header,
-          frame: packet
+          meta: meta,
+          data: packet
         };
       }
     }], [{
@@ -970,7 +970,7 @@
 
     createClass(AudioTag, [{
       key: "demuxer",
-      value: function demuxer(tag, requestHeader) {
+      value: function demuxer(tag, requestMeta) {
         var debug = this.flv.debug;
 
         var _this$getAudioMeta = this.getAudioMeta(tag),
@@ -979,13 +979,13 @@
         debug.error(soundFormat === 10 || soundFormat === 2, "[audioTrack] unsupported audio format: ".concat(soundFormat));
         var format = AudioTag.SOUND_FORMATS[soundFormat];
 
-        var _this$format$demuxer = this[format].demuxer(tag, requestHeader),
-            frame = _this$format$demuxer.frame,
-            header = _this$format$demuxer.header;
+        var _this$format$demuxer = this[format].demuxer(tag, requestMeta),
+            data = _this$format$demuxer.data,
+            meta = _this$format$demuxer.meta;
 
         return {
-          header: header,
-          frame: frame
+          meta: meta,
+          data: data
         };
       }
     }, {
@@ -1130,12 +1130,12 @@
 
     createClass(H264, [{
       key: "demuxer",
-      value: function demuxer(tag, requestHeader) {
+      value: function demuxer(tag, requestMeta) {
         var debug = this.flv.debug;
         var packet = tag.body.slice(1, 5);
         debug.error(packet.length >= 4, '[H264] Invalid AVC packet, missing AVCPacketType or/and CompositionTime');
-        var frame = null;
-        var header = null;
+        var data = null;
+        var meta = null;
         var view = new DataView(packet.buffer);
         var AVCPacketType = view.getUint8(0);
         var CompositionTime = (view.getUint32(0) & 0x00ffffff) << 8 >> 8;
@@ -1146,22 +1146,22 @@
           this.AVCDecoderConfigurationRecord = this.getAVCDecoderConfigurationRecord(packetData);
           this.flv.emit('AVCDecoderConfigurationRecord', this.AVCDecoderConfigurationRecord);
           debug.log('avc-decoder-configuration-record', this.AVCDecoderConfigurationRecord);
-          frame = mergeBuffer(this.nalStart, this.SPS, this.nalStart, this.PPS);
+          data = mergeBuffer(this.nalStart, this.SPS, this.nalStart, this.PPS);
         } else if (AVCPacketType === 1) {
-          frame = this.getAVCVideoData(packetData, CompositionTime);
+          data = this.getAVCVideoData(packetData, CompositionTime);
         } else {
           debug.error(AVCPacketType === 2, "[H264] Invalid video packet type ".concat(AVCPacketType));
         }
 
-        if (requestHeader) {
-          header = objectSpread({
+        if (requestMeta) {
+          meta = objectSpread({
             format: 'h264'
           }, this.mate);
         }
 
         return {
-          header: header,
-          frame: frame
+          meta: meta,
+          data: data
         };
       }
     }, {
@@ -1278,7 +1278,7 @@
 
     createClass(VideoTag, [{
       key: "demuxer",
-      value: function demuxer(tag, requestHeader) {
+      value: function demuxer(tag, requestMeta) {
         var debug = this.flv.debug;
 
         var _this$getVideoMeta = this.getVideoMeta(tag),
@@ -1286,13 +1286,13 @@
 
         debug.error(codecID === 7, "[videoTrack] Unsupported codec in video frame: ".concat(codecID));
 
-        var _this$h264$demuxer = this.h264.demuxer(tag, requestHeader),
-            frame = _this$h264$demuxer.frame,
-            header = _this$h264$demuxer.header;
+        var _this$h264$demuxer = this.h264.demuxer(tag, requestMeta),
+            data = _this$h264$demuxer.data,
+            meta = _this$h264$demuxer.meta;
 
         return {
-          header: header,
-          frame: frame
+          meta: meta,
+          data: data
         };
       }
     }, {
@@ -1490,8 +1490,8 @@
       this.flv = flv;
       var debug = flv.debug;
       this.scripMeta = null;
-      this.audioHeader = null;
-      this.videoHeader = null;
+      this.audioMeta = null;
+      this.videoMeta = null;
       this.audioTrack = [];
       this.videoTrack = [];
       this.scripTag = new ScripTag(flv);
@@ -1507,25 +1507,25 @@
 
           case 9:
             {
-              var _this$videoTag$demuxe = _this.videoTag.demuxer(tag, !_this.videoHeader),
-                  frame = _this$videoTag$demuxe.frame,
-                  header = _this$videoTag$demuxe.header;
+              var _this$videoTag$demuxe = _this.videoTag.demuxer(tag, !_this.videoMeta),
+                  data = _this$videoTag$demuxe.data,
+                  meta = _this$videoTag$demuxe.meta;
 
-              if (frame) {
+              if (data) {
                 var result = {
                   timestamp: tag.timestamp,
-                  data: frame
+                  data: data
                 };
 
                 _this.videoTrack.push(result);
 
-                flv.emit('videoFrame', result);
+                flv.emit('videoTrack', result);
               }
 
-              if (!_this.videoHeader && header) {
-                _this.videoHeader = header;
-                flv.emit('videoHeader', header);
-                debug.log('video-header', header);
+              if (!_this.videoMeta && meta) {
+                _this.videoMeta = meta;
+                flv.emit('videoMeta', meta);
+                debug.log('video-meta', meta);
               }
 
               break;
@@ -1533,25 +1533,25 @@
 
           case 8:
             {
-              var _this$audioTag$demuxe = _this.audioTag.demuxer(tag, !_this.audioHeader),
-                  _frame = _this$audioTag$demuxe.frame,
-                  _header = _this$audioTag$demuxe.header;
+              var _this$audioTag$demuxe = _this.audioTag.demuxer(tag, !_this.audioMeta),
+                  _data = _this$audioTag$demuxe.data,
+                  _meta = _this$audioTag$demuxe.meta;
 
-              if (_frame) {
+              if (_data) {
                 var _result = {
                   timestamp: tag.timestamp,
-                  data: _frame
+                  data: _data
                 };
 
                 _this.audioTrack.push(_result);
 
-                flv.emit('audioFrame', _result);
+                flv.emit('audioTrack', _result);
               }
 
-              if (!_this.audioHeader && _header) {
-                _this.audioHeader = _header;
-                flv.emit('audioHeader', _header);
-                debug.log('audio-header', _header);
+              if (!_this.audioMeta && _meta) {
+                _this.audioMeta = _meta;
+                flv.emit('audioMeta', _meta);
+                debug.log('audio-meta', _meta);
               }
 
               break;
@@ -1574,7 +1574,7 @@
         var url = URL.createObjectURL(new Blob([mergeBuffer.apply(void 0, toConsumableArray(this.audioTrack.map(function (item) {
           return item.data;
         })))]));
-        download(url, "audioTrack.".concat(this.audioHeader.format));
+        download(url, "audioTrack.".concat(this.audioMeta.format));
       }
     }, {
       key: "downloadVideo",
@@ -1586,7 +1586,7 @@
         var url = URL.createObjectURL(new Blob([mergeBuffer.apply(void 0, toConsumableArray(this.videoTrack.map(function (item) {
           return item.data;
         })))]));
-        download(url, "videoTrack.".concat(this.videoHeader.format));
+        download(url, "videoTrack.".concat(this.videoMeta.format));
       }
     }]);
 
@@ -1776,6 +1776,12 @@
     ctx.fillRect(0, 0, width, height);
   };
 
+  var Controls = function Controls(flv) {
+    classCallCheck(this, Controls);
+
+    this.flv = flv;
+  };
+
   var id = 0;
 
   var FlvPlayer =
@@ -1800,6 +1806,7 @@
       _this.remuxer = new Remuxer(assertThisInitialized(_this));
       _this.stream = new Stream(assertThisInitialized(_this));
       _this.player = new Player(assertThisInitialized(_this));
+      _this.controls = new Controls(assertThisInitialized(_this));
 
       _this.le = function le() {
         var buf = new ArrayBuffer(2);
@@ -1831,7 +1838,7 @@
           live: false,
           width: 400,
           height: 300,
-          autoSize: false,
+          controls: false,
           header: {}
         };
       }

@@ -611,7 +611,6 @@
       this.index = 0;
       this.header = null;
       this.loaded = false;
-      this.tags = [];
       flv.on('streamStart', function () {
         debug.log('stream-start', options.url);
       });
@@ -627,7 +626,6 @@
           _this.uint8 = uint8;
           _this.index = 0;
           _this.header = null;
-          _this.tags = [];
 
           _this.parse();
         }
@@ -701,7 +699,6 @@
             break;
           }
 
-          this.tags.push(tag);
           this.flv.emit('parseTag', tag);
         }
       }

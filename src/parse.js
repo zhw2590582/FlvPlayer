@@ -8,7 +8,6 @@ export default class Parse {
         this.index = 0;
         this.header = null;
         this.loaded = false;
-        this.tags = [];
 
         flv.on('streamStart', () => {
             debug.log('stream-start', options.url);
@@ -25,7 +24,6 @@ export default class Parse {
                 this.uint8 = uint8;
                 this.index = 0;
                 this.header = null;
-                this.tags = [];
                 this.parse();
             }
 
@@ -79,7 +77,6 @@ export default class Parse {
                 break;
             }
 
-            this.tags.push(tag);
             this.flv.emit('parseTag', tag);
         }
     }

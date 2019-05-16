@@ -64,6 +64,7 @@ export default class H264 {
             result.sequenceParameterSetLength = readBufferSum(readDcr(2));
             if (result.sequenceParameterSetLength > 0) {
                 this.SPS = readDcr(result.sequenceParameterSetLength);
+                this.flv.emit('sequenceParameterSet', this.SPS);
                 if (index === 0) {
                     result.sequenceParameterSetNALUnit = SPSParser.parser(this.SPS);
                     const codecArray = this.SPS.subarray(1, 4);
@@ -85,6 +86,7 @@ export default class H264 {
             result.pictureParameterSetLength = readBufferSum(readDcr(2));
             if (result.pictureParameterSetLength > 0) {
                 this.PPS = readDcr(result.pictureParameterSetLength);
+                this.flv.emit('pictureParameterSet', this.PPS);
             }
         }
 
@@ -129,11 +131,13 @@ export default class H264 {
     getAVCVideoData(packetData) {
         const { lengthSizeMinusOne } = this.AVCDecoderConfigurationRecord;
         const readVideo = readBuffer(packetData);
-        let frame = new Uint8Array(0);
+        let frames = new Uint8Array(0);
         while (readVideo.index < packetData.length) {
             const length = readBufferSum(readVideo(lengthSizeMinusOne));
-            frame = mergeBuffer(frame, this.nalStart, readVideo(length));
+            const nalu = readVideo(length);
+            this.flv.emit('nalu', nalu);
+            frames = mergeBuffer(frames, this.nalStart, nalu);
         }
-        return frame;
+        return frames;
     }
 }

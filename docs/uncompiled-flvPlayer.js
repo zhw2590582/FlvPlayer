@@ -1200,6 +1200,7 @@
 
           if (result.sequenceParameterSetLength > 0) {
             this.SPS = readDcr(result.sequenceParameterSetLength);
+            this.flv.emit('sequenceParameterSet', this.SPS);
 
             if (index === 0) {
               result.sequenceParameterSetNALUnit = SPSParser.parser(this.SPS);
@@ -1232,6 +1233,7 @@
 
           if (result.pictureParameterSetLength > 0) {
             this.PPS = readDcr(result.pictureParameterSetLength);
+            this.flv.emit('pictureParameterSet', this.PPS);
           }
         }
 
@@ -1249,14 +1251,16 @@
       value: function getAVCVideoData(packetData) {
         var lengthSizeMinusOne = this.AVCDecoderConfigurationRecord.lengthSizeMinusOne;
         var readVideo = readBuffer(packetData);
-        var frame = new Uint8Array(0);
+        var frames = new Uint8Array(0);
 
         while (readVideo.index < packetData.length) {
           var length = readBufferSum(readVideo(lengthSizeMinusOne));
-          frame = mergeBuffer(frame, this.nalStart, readVideo(length));
+          var nalu = readVideo(length);
+          this.flv.emit('nalu', nalu);
+          frames = mergeBuffer(frames, this.nalStart, nalu);
         }
 
-        return frame;
+        return frames;
       }
     }]);
 
@@ -1590,10 +1594,18 @@
     return Demuxer;
   }();
 
+  function naluToYuv(nal) {}
+
+  function yuvToRgba(yuv) {}
+
   var Remuxer = function Remuxer(flv) {
     classCallCheck(this, Remuxer);
 
-    this.flv = flv;
+    flv.on('nalu', function (nalu) {
+      var yuv = naluToYuv(nalu);
+      var rgba = yuvToRgba(yuv);
+      flv.emit('rgba', rgba);
+    });
   };
 
   function fetchRequest(flv, url) {

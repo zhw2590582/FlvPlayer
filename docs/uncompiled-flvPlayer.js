@@ -1057,7 +1057,7 @@
       classCallCheck(this, H264);
 
       this.flv = flv;
-      this.mate = {};
+      this.meta = {};
       this.AVCDecoderConfigurationRecord = null;
     }
 
@@ -1074,7 +1074,7 @@
 
         if (AVCPacketType === 0) {
           debug.warn(!this.AVCDecoderConfigurationRecord, '[h264] Find another one AVCDecoderConfigurationRecord');
-          this.mate = {
+          this.meta = {
             format: 'h264'
           };
           this.AVCDecoderConfigurationRecord = this.getAVCDecoderConfigurationRecord(packetData);
@@ -1144,7 +1144,7 @@
                 codecString += h;
               }
 
-              this.mate.codec = codecString;
+              this.meta.codec = codecString;
             }
           }
         }
@@ -1449,7 +1449,7 @@
 
         case 5:
           // IDR
-          console.log(nalu);
+          // 
           break;
 
         case 6: // SEI

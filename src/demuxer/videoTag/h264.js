@@ -5,7 +5,7 @@ const nalStart = new Uint8Array([0x00, 0x00, 0x00, 0x01]);
 export default class H264 {
     constructor(flv) {
         this.flv = flv;
-        this.mate = {};
+        this.meta = {};
         this.AVCDecoderConfigurationRecord = null;
     }
 
@@ -21,7 +21,7 @@ export default class H264 {
 
         if (AVCPacketType === 0) {
             debug.warn(!this.AVCDecoderConfigurationRecord, '[h264] Find another one AVCDecoderConfigurationRecord');
-            this.mate = {
+            this.meta = {
                 format: 'h264',
             };
             this.AVCDecoderConfigurationRecord = this.getAVCDecoderConfigurationRecord(packetData);
@@ -64,7 +64,7 @@ export default class H264 {
                         }
                         codecString += h;
                     }
-                    this.mate.codec = codecString;
+                    this.meta.codec = codecString;
                 }
             }
         }

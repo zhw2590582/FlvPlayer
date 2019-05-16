@@ -15,7 +15,7 @@ export default class Remuxer {
                     //
                     break;
                 case 5: // IDR
-                    console.log(nalu);
+                    // 
                     break;
                 case 6: // SEI
                 case 7: // SPS

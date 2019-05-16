@@ -11,7 +11,7 @@ export default class Remuxer {
             const naluType = nalHeader & 31;
 
             switch (naluType) {
-                case 1:
+                case 1: // Non IDR
                     //
                     break;
                 case 5: // IDR

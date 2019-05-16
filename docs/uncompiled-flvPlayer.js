@@ -1443,6 +1443,7 @@
 
       switch (naluType) {
         case 1:
+          // Non IDR
           //
           break;
 

@@ -3,6 +3,7 @@ import { readBuffer, readDouble, readBoolean, readString, readBufferSum } from '
 export default class ScripTag {
     constructor(flv) {
         this.flv = flv;
+        this.meta = null;
     }
 
     demuxer(tag) {
@@ -111,9 +112,8 @@ export default class ScripTag {
         debug.error(readScripTag.index === tag.body.length, 'AMF: Seems to be incompletely parsed');
         debug.error(amf2.size === Object.keys(amf2.metaData).length, 'AMF: [amf2] length does not match');
 
-        return {
-            amf1,
-            amf2,
-        };
+        this.meta = { amf1, amf2 };
+        this.flv.emit('scripMeta', this.meta);
+        debug.log('scrip-meta', this.meta);
     }
 }

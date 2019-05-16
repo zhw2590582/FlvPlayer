@@ -6,15 +6,11 @@ export default class VideoTag {
         this.h264 = new H264(flv);
     }
 
-    demuxer(tag, requestMeta) {
+    demuxer(tag) {
         const { debug } = this.flv;
         const { codecID } = this.getVideoMeta(tag);
         debug.error(codecID === 7, `[videoTrack] Unsupported codec in video frame: ${codecID}`);
-        const { data, meta } = this.h264.demuxer(tag, requestMeta);
-        return {
-            meta,
-            data,
-        };
+        this.h264.demuxer(tag);
     }
 
     getVideoMeta(tag) {

@@ -1,6 +1,7 @@
 export default class MP3 {
     constructor(flv) {
         this.flv = flv;
+        this.meta = null;
     }
 
     static get SAMPLERATES() {
@@ -19,12 +20,12 @@ export default class MP3 {
         };
     }
 
-    demuxer(tag, requestMeta) {
+    demuxer(tag) {
         const { debug } = this.flv;
         const packet = tag.body.subarray(1);
-        let meta = null;
-
-        if (requestMeta) {
+        this.flv.emit('audioData', packet);
+        
+        if (!this.meta) {
             debug.error(packet.length >= 4, 'MP3 header missing');
             debug.error(packet[0] === 0xff, 'MP3 header mismatch');
             const ver = (packet[1] >>> 3) & 0x03;
@@ -66,7 +67,7 @@ export default class MP3 {
                     break;
             }
 
-            meta = {
+            this.meta = {
                 ver,
                 layer,
                 bitRate,
@@ -75,11 +76,9 @@ export default class MP3 {
                 format: 'mp3',
                 codec: 'mp3',
             };
-        }
 
-        return {
-            meta,
-            data: packet,
-        };
+            this.flv.emit('audioMeta', this.meta);
+            debug.log('audio-meta', this.meta);
+        }
     }
 }

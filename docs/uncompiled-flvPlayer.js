@@ -308,6 +308,29 @@
     errorHandle(typeof url === 'string' || url instanceof File, 'The \'url\' option is not a string or file');
   }
 
+  var FlvplayerError$1 =
+  /*#__PURE__*/
+  function (_Error) {
+    inherits(FlvplayerError, _Error);
+
+    function FlvplayerError(message, context) {
+      var _this;
+
+      classCallCheck(this, FlvplayerError);
+
+      _this = possibleConstructorReturn(this, getPrototypeOf(FlvplayerError).call(this, message));
+
+      if (typeof Error.captureStackTrace === 'function') {
+        Error.captureStackTrace(assertThisInitialized(_this), context || _this.constructor);
+      }
+
+      _this.name = 'FlvPlayerError';
+      return _this;
+    }
+
+    return FlvplayerError;
+  }(wrapNativeSuper(Error));
+
   var Debug = function Debug(flv) {
     classCallCheck(this, Debug);
 
@@ -339,7 +362,7 @@
 
     this.error = function (condition, msg) {
       if (!condition) {
-        throw new FlvplayerError(msg);
+        throw new FlvplayerError$1(msg);
       }
     };
   };
@@ -986,6 +1009,116 @@
     return AudioTag;
   }();
 
+  var ExpGolomb =
+  /*#__PURE__*/
+  function () {
+    function ExpGolomb(uint8array) {
+      classCallCheck(this, ExpGolomb);
+
+      this.TAG = 'ExpGolomb';
+      this._buffer = uint8array;
+      this._buffer_index = 0;
+      this._total_bytes = uint8array.byteLength;
+      this._total_bits = uint8array.byteLength * 8;
+      this._current_word = 0;
+      this._current_word_bits_left = 0;
+    }
+
+    createClass(ExpGolomb, [{
+      key: "destroy",
+      value: function destroy() {
+        this._buffer = null;
+      }
+    }, {
+      key: "_fillCurrentWord",
+      value: function _fillCurrentWord() {
+        var buffer_bytes_left = this._total_bytes - this._buffer_index;
+        if (buffer_bytes_left <= 0) throw new FlvplayerError('ExpGolomb: _fillCurrentWord() but no bytes available');
+        var bytes_read = Math.min(4, buffer_bytes_left);
+        var word = new Uint8Array(4);
+        word.set(this._buffer.subarray(this._buffer_index, this._buffer_index + bytes_read));
+        this._current_word = new DataView(word.buffer).getUint32(0, false);
+        this._buffer_index += bytes_read;
+        this._current_word_bits_left = bytes_read * 8;
+      }
+    }, {
+      key: "readBits",
+      value: function readBits(bits) {
+        if (bits > 32) throw new FlvplayerError('ExpGolomb: readBits() bits exceeded max 32bits!');
+
+        if (bits <= this._current_word_bits_left) {
+          var _result = this._current_word >>> 32 - bits;
+
+          this._current_word <<= bits;
+          this._current_word_bits_left -= bits;
+          return _result;
+        }
+
+        var result = this._current_word_bits_left ? this._current_word : 0;
+        result = result >>> 32 - this._current_word_bits_left;
+        var bits_need_left = bits - this._current_word_bits_left;
+
+        this._fillCurrentWord();
+
+        var bits_read_next = Math.min(bits_need_left, this._current_word_bits_left);
+        var result2 = this._current_word >>> 32 - bits_read_next;
+        this._current_word <<= bits_read_next;
+        this._current_word_bits_left -= bits_read_next;
+        result = result << bits_read_next | result2;
+        return result;
+      }
+    }, {
+      key: "readBool",
+      value: function readBool() {
+        return this.readBits(1) === 1;
+      }
+    }, {
+      key: "readByte",
+      value: function readByte() {
+        return this.readBits(8);
+      }
+    }, {
+      key: "_skipLeadingZero",
+      value: function _skipLeadingZero() {
+        var zero_count;
+
+        for (zero_count = 0; zero_count < this._current_word_bits_left; zero_count++) {
+          if (0 !== (this._current_word & 0x80000000 >>> zero_count)) {
+            this._current_word <<= zero_count;
+            this._current_word_bits_left -= zero_count;
+            return zero_count;
+          }
+        }
+
+        this._fillCurrentWord();
+
+        return zero_count + this._skipLeadingZero();
+      }
+    }, {
+      key: "readUEG",
+      value: function readUEG() {
+        // unsigned exponential golomb
+        var leading_zeros = this._skipLeadingZero();
+
+        return this.readBits(leading_zeros + 1) - 1;
+      }
+    }, {
+      key: "readSEG",
+      value: function readSEG() {
+        // signed exponential golomb
+        var value = this.readUEG();
+
+        if (value & 0x01) {
+          return value + 1 >>> 1;
+        } else {
+          return -1 * (value >>> 1);
+        }
+      }
+    }]);
+
+    return ExpGolomb;
+  }();
+
   var SPSParser =
   /*#__PURE__*/
   function () {
@@ -994,9 +1127,265 @@
     }
 
     createClass(SPSParser, null, [{
+      key: "_ebsp2rbsp",
+      value: function _ebsp2rbsp(uint8array) {
+        var src = uint8array;
+        var src_length = src.byteLength;
+        var dst = new Uint8Array(src_length);
+        var dst_idx = 0;
+
+        for (var i = 0; i < src_length; i++) {
+          if (i >= 2) {
+            // Unescape: Skip 0x03 after 00 00
+            if (src[i] === 0x03 && src[i - 1] === 0x00 && src[i - 2] === 0x00) {
+              continue;
+            }
+          }
+
+          dst[dst_idx] = src[i];
+          dst_idx++;
+        }
+
+        return new Uint8Array(dst.buffer, 0, dst_idx);
+      }
+    }, {
+      key: "parseSPS",
+      value: function parseSPS(uint8array) {
+        var rbsp = SPSParser._ebsp2rbsp(uint8array);
+
+        var gb = new ExpGolomb(rbsp);
+        gb.readByte();
+        var profile_idc = gb.readByte(); // profile_idc
+
+        gb.readByte(); // constraint_set_flags[5] + reserved_zero[3]
+
+        var level_idc = gb.readByte(); // level_idc
+
+        gb.readUEG(); // seq_parameter_set_id
+
+        var profile_string = SPSParser.getProfileString(profile_idc);
+        var level_string = SPSParser.getLevelString(level_idc);
+        var chroma_format_idc = 1;
+        var chroma_format = 420;
+        var chroma_format_table = [0, 420, 422, 444];
+        var bit_depth = 8;
+
+        if (profile_idc === 100 || profile_idc === 110 || profile_idc === 122 || profile_idc === 244 || profile_idc === 44 || profile_idc === 83 || profile_idc === 86 || profile_idc === 118 || profile_idc === 128 || profile_idc === 138 || profile_idc === 144) {
+          chroma_format_idc = gb.readUEG();
+
+          if (chroma_format_idc === 3) {
+            gb.readBits(1); // separate_colour_plane_flag
+          }
+
+          if (chroma_format_idc <= 3) {
+            chroma_format = chroma_format_table[chroma_format_idc];
+          }
+
+          bit_depth = gb.readUEG() + 8; // bit_depth_luma_minus8
+
+          gb.readUEG(); // bit_depth_chroma_minus8
+
+          gb.readBits(1); // qpprime_y_zero_transform_bypass_flag
+
+          if (gb.readBool()) {
+            // seq_scaling_matrix_present_flag
+            var scaling_list_count = chroma_format_idc !== 3 ? 8 : 12;
+
+            for (var i = 0; i < scaling_list_count; i++) {
+              if (gb.readBool()) {
+                // seq_scaling_list_present_flag
+                if (i < 6) {
+                  SPSParser._skipScalingList(gb, 16);
+                } else {
+                  SPSParser._skipScalingList(gb, 64);
+                }
+              }
+            }
+          }
+        }
+
+        gb.readUEG(); // log2_max_frame_num_minus4
+
+        var pic_order_cnt_type = gb.readUEG();
+
+        if (pic_order_cnt_type === 0) {
+          gb.readUEG(); // log2_max_pic_order_cnt_lsb_minus_4
+        } else if (pic_order_cnt_type === 1) {
+          gb.readBits(1); // delta_pic_order_always_zero_flag
+
+          gb.readSEG(); // offset_for_non_ref_pic
+
+          gb.readSEG(); // offset_for_top_to_bottom_field
+
+          var num_ref_frames_in_pic_order_cnt_cycle = gb.readUEG();
+
+          for (var _i = 0; _i < num_ref_frames_in_pic_order_cnt_cycle; _i++) {
+            gb.readSEG(); // offset_for_ref_frame
+          }
+        }
+
+        var ref_frames = gb.readUEG(); // max_num_ref_frames
+
+        gb.readBits(1); // gaps_in_frame_num_value_allowed_flag
+
+        var pic_width_in_mbs_minus1 = gb.readUEG();
+        var pic_height_in_map_units_minus1 = gb.readUEG();
+        var frame_mbs_only_flag = gb.readBits(1);
+
+        if (frame_mbs_only_flag === 0) {
+          gb.readBits(1); // mb_adaptive_frame_field_flag
+        }
+
+        gb.readBits(1); // direct_8x8_inference_flag
+
+        var frame_crop_left_offset = 0;
+        var frame_crop_right_offset = 0;
+        var frame_crop_top_offset = 0;
+        var frame_crop_bottom_offset = 0;
+        var frame_cropping_flag = gb.readBool();
+
+        if (frame_cropping_flag) {
+          frame_crop_left_offset = gb.readUEG();
+          frame_crop_right_offset = gb.readUEG();
+          frame_crop_top_offset = gb.readUEG();
+          frame_crop_bottom_offset = gb.readUEG();
+        }
+
+        var sar_width = 1,
+            sar_height = 1;
+        var fps = 0,
+            fps_fixed = true,
+            fps_num = 0,
+            fps_den = 0;
+        var vui_parameters_present_flag = gb.readBool();
+
+        if (vui_parameters_present_flag) {
+          if (gb.readBool()) {
+            // aspect_ratio_info_present_flag
+            var aspect_ratio_idc = gb.readByte();
+            var sar_w_table = [1, 12, 10, 16, 40, 24, 20, 32, 80, 18, 15, 64, 160, 4, 3, 2];
+            var sar_h_table = [1, 11, 11, 11, 33, 11, 11, 11, 33, 11, 11, 33, 99, 3, 2, 1];
+
+            if (aspect_ratio_idc > 0 && aspect_ratio_idc < 16) {
+              sar_width = sar_w_table[aspect_ratio_idc - 1];
+              sar_height = sar_h_table[aspect_ratio_idc - 1];
+            } else if (aspect_ratio_idc === 255) {
+              sar_width = gb.readByte() << 8 | gb.readByte();
+              sar_height = gb.readByte() << 8 | gb.readByte();
+            }
+          }
+
+          if (gb.readBool()) {
+            // overscan_info_present_flag
+            gb.readBool(); // overscan_appropriate_flag
+          }
+
+          if (gb.readBool()) {
+            // video_signal_type_present_flag
+            gb.readBits(4); // video_format & video_full_range_flag
+
+            if (gb.readBool()) {
+              // colour_description_present_flag
+              gb.readBits(24); // colour_primaries & transfer_characteristics & matrix_coefficients
+            }
+          }
+
+          if (gb.readBool()) {
+            // chroma_loc_info_present_flag
+            gb.readUEG(); // chroma_sample_loc_type_top_field
+
+            gb.readUEG(); // chroma_sample_loc_type_bottom_field
+          }
+
+          if (gb.readBool()) {
+            // timing_info_present_flag
+            var num_units_in_tick = gb.readBits(32);
+            var time_scale = gb.readBits(32);
+            fps_fixed = gb.readBool(); // fixed_frame_rate_flag
+
+            fps_num = time_scale;
+            fps_den = num_units_in_tick * 2;
+            fps = fps_num / fps_den;
+          }
+        }
+
+        var sarScale = 1;
+
+        if (sar_width !== 1 || sar_height !== 1) {
+          sarScale = sar_width / sar_height;
+        }
+
+        var crop_unit_x = 0,
+            crop_unit_y = 0;
+
+        if (chroma_format_idc === 0) {
+          crop_unit_x = 1;
+          crop_unit_y = 2 - frame_mbs_only_flag;
+        } else {
+          var sub_wc = chroma_format_idc === 3 ? 1 : 2;
+          var sub_hc = chroma_format_idc === 1 ? 2 : 1;
+          crop_unit_x = sub_wc;
+          crop_unit_y = sub_hc * (2 - frame_mbs_only_flag);
+        }
+
+        var codec_width = (pic_width_in_mbs_minus1 + 1) * 16;
+        var codec_height = (2 - frame_mbs_only_flag) * ((pic_height_in_map_units_minus1 + 1) * 16);
+        codec_width -= (frame_crop_left_offset + frame_crop_right_offset) * crop_unit_x;
+        codec_height -= (frame_crop_top_offset + frame_crop_bottom_offset) * crop_unit_y;
+        var present_width = Math.ceil(codec_width * sarScale);
+        gb.destroy();
+        gb = null;
+        return {
+          profile_string: profile_string,
+          // baseline, high, high10, ...
+          level_string: level_string,
+          // 3, 3.1, 4, 4.1, 5, 5.1, ...
+          bit_depth: bit_depth,
+          // 8bit, 10bit, ...
+          ref_frames: ref_frames,
+          chroma_format: chroma_format,
+          // 4:2:0, 4:2:2, ...
+          chroma_format_string: SPSParser.getChromaFormatString(chroma_format),
+          frame_rate: {
+            fixed: fps_fixed,
+            fps: fps,
+            fps_den: fps_den,
+            fps_num: fps_num
+          },
+          sar_ratio: {
+            width: sar_width,
+            height: sar_height
+          },
+          codec_size: {
+            width: codec_width,
+            height: codec_height
+          },
+          present_size: {
+            width: present_width,
+            height: codec_height
+          }
+        };
+      }
+    }, {
+      key: "_skipScalingList",
+      value: function _skipScalingList(gb, count) {
+        var last_scale = 8,
+            next_scale = 8;
+        var delta_scale = 0;
+
+        for (var i = 0; i < count; i++) {
+          if (next_scale !== 0) {
+            delta_scale = gb.readSEG();
+            next_scale = (last_scale + delta_scale + 256) % 256;
+          }
+
+          last_scale = next_scale === 0 ? last_scale : next_scale;
+        }
+      }
+    }, {
       key: "getProfileString",
-      value: function getProfileString(profileIdc) {
-        switch (profileIdc) {
+      value: function getProfileString(profile_idc) {
+        switch (profile_idc) {
           case 66:
             return 'Baseline';
 
@@ -1023,25 +1412,26 @@
         }
       }
     }, {
-      key: "parser",
-      value: function parser(uint8) {
-        var result = {};
-        var readSPS = readBuffer(uint8);
-        readSPS(1);
+      key: "getLevelString",
+      value: function getLevelString(level_idc) {
+        return (level_idc / 10).toFixed(1);
+      }
+    }, {
+      key: "getChromaFormatString",
+      value: function getChromaFormatString(chroma) {
+        switch (chroma) {
+          case 420:
+            return '4:2:0';
 
-        var _readSPS = readSPS(1);
+          case 422:
+            return '4:2:2';
 
-        var _readSPS2 = slicedToArray(_readSPS, 1);
+          case 444:
+            return '4:4:4';
 
-        result.profile_idc = _readSPS2[0];
-        readSPS(1);
-
-        var _readSPS3 = readSPS(1);
-
-        var _readSPS4 = slicedToArray(_readSPS3, 1);
-
-        result.level_idc = _readSPS4[0];
-        return result;
+          default:
+            return 'Unknown';
+        }
       }
     }]);
 
@@ -1130,7 +1520,7 @@
             this.flv.emit('nalu', mergeBuffer(nalStart, SPS));
 
             if (index === 0) {
-              result.sequenceParameterSetNALUnit = SPSParser.parser(SPS);
+              result.sequenceParameterSetNALUnit = SPSParser.parseSPS(SPS);
               var codecArray = SPS.subarray(1, 4);
               var codecString = 'avc1.';
 

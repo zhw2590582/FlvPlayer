@@ -54,7 +54,7 @@ export default class H264 {
                 const SPS = readDcr(result.sequenceParameterSetLength);
                 this.flv.emit('nalu', mergeBuffer(nalStart, SPS));
                 if (index === 0) {
-                    result.sequenceParameterSetNALUnit = SPSParser.parser(SPS);
+                    result.sequenceParameterSetNALUnit = SPSParser.parseSPS(SPS);
                     const codecArray = SPS.subarray(1, 4);
                     let codecString = 'avc1.';
                     for (let j = 0; j < 3; j += 1) {

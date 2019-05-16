@@ -1,13 +1,11 @@
 import { readBuffer, readBufferSum, mergeBuffer } from '../../utils/buffer';
 import SPSParser from './sps-parser';
 
+const nalStart = new Uint8Array([0x00, 0x00, 0x00, 0x01]);
 export default class H264 {
     constructor(flv) {
         this.flv = flv;
-        this.nalStart = new Uint8Array([0x00, 0x00, 0x00, 0x01]);
         this.mate = {};
-        this.SPS = new Uint8Array(0);
-        this.PPS = new Uint8Array(0);
         this.AVCDecoderConfigurationRecord = null;
     }
 
@@ -53,11 +51,11 @@ export default class H264 {
         for (let index = 0; index < result.numOfSequenceParameterSets; index += 1) {
             result.sequenceParameterSetLength = readBufferSum(readDcr(2));
             if (result.sequenceParameterSetLength > 0) {
-                this.SPS = readDcr(result.sequenceParameterSetLength);
-                this.flv.emit('nalu', mergeBuffer(this.nalStart, this.SPS));
+                const SPS = readDcr(result.sequenceParameterSetLength);
+                this.flv.emit('nalu', mergeBuffer(nalStart, SPS));
                 if (index === 0) {
-                    result.sequenceParameterSetNALUnit = SPSParser.parser(this.SPS);
-                    const codecArray = this.SPS.subarray(1, 4);
+                    result.sequenceParameterSetNALUnit = SPSParser.parser(SPS);
+                    const codecArray = SPS.subarray(1, 4);
                     let codecString = 'avc1.';
                     for (let j = 0; j < 3; j += 1) {
                         let h = codecArray[j].toString(16);
@@ -75,8 +73,8 @@ export default class H264 {
         for (let index = 0; index < result.numOfPictureParameterSets; index += 1) {
             result.pictureParameterSetLength = readBufferSum(readDcr(2));
             if (result.pictureParameterSetLength > 0) {
-                this.PPS = readDcr(result.pictureParameterSetLength);
-                this.flv.emit('nalu', mergeBuffer(this.nalStart, this.PPS));
+                const PPS = readDcr(result.pictureParameterSetLength);
+                this.flv.emit('nalu', mergeBuffer(nalStart, PPS));
             }
         }
 
@@ -123,7 +121,7 @@ export default class H264 {
         const readVideo = readBuffer(packetData);
         while (readVideo.index < packetData.length) {
             const length = readBufferSum(readVideo(lengthSizeMinusOne));
-            const nalu = mergeBuffer(this.nalStart, readVideo(length));
+            const nalu = mergeBuffer(nalStart, readVideo(length));
             this.flv.emit('nalu', nalu);
         }
     }

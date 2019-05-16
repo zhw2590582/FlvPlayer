@@ -1048,6 +1048,8 @@
     return SPSParser;
   }();
 
+  var nalStart = new Uint8Array([0x00, 0x00, 0x00, 0x01]);
+
   var H264 =
   /*#__PURE__*/
   function () {
@@ -1055,10 +1057,7 @@
       classCallCheck(this, H264);
 
       this.flv = flv;
-      this.nalStart = new Uint8Array([0x00, 0x00, 0x00, 0x01]);
       this.mate = {};
-      this.SPS = new Uint8Array(0);
-      this.PPS = new Uint8Array(0);
       this.AVCDecoderConfigurationRecord = null;
     }
 
@@ -1127,12 +1126,12 @@
           result.sequenceParameterSetLength = readBufferSum(readDcr(2));
 
           if (result.sequenceParameterSetLength > 0) {
-            this.SPS = readDcr(result.sequenceParameterSetLength);
-            this.flv.emit('nalu', mergeBuffer(this.nalStart, this.SPS));
+            var SPS = readDcr(result.sequenceParameterSetLength);
+            this.flv.emit('nalu', mergeBuffer(nalStart, SPS));
 
             if (index === 0) {
-              result.sequenceParameterSetNALUnit = SPSParser.parser(this.SPS);
-              var codecArray = this.SPS.subarray(1, 4);
+              result.sequenceParameterSetNALUnit = SPSParser.parser(SPS);
+              var codecArray = SPS.subarray(1, 4);
               var codecString = 'avc1.';
 
               for (var j = 0; j < 3; j += 1) {
@@ -1160,8 +1159,8 @@
           result.pictureParameterSetLength = readBufferSum(readDcr(2));
 
           if (result.pictureParameterSetLength > 0) {
-            this.PPS = readDcr(result.pictureParameterSetLength);
-            this.flv.emit('nalu', mergeBuffer(this.nalStart, this.PPS));
+            var PPS = readDcr(result.pictureParameterSetLength);
+            this.flv.emit('nalu', mergeBuffer(nalStart, PPS));
           }
         }
 
@@ -1182,7 +1181,7 @@
 
         while (readVideo.index < packetData.length) {
           var length = readBufferSum(readVideo(lengthSizeMinusOne));
-          var nalu = mergeBuffer(this.nalStart, readVideo(length));
+          var nalu = mergeBuffer(nalStart, readVideo(length));
           this.flv.emit('nalu', nalu);
         }
       }
@@ -1443,6 +1442,15 @@
       var naluType = nalHeader & 31;
 
       switch (naluType) {
+        case 1:
+          //
+          break;
+
+        case 5:
+          // IDR
+          console.log(nalu);
+          break;
+
         case 6: // SEI
 
         case 7: // SPS
@@ -1451,17 +1459,8 @@
           // PPS
           break;
 
-        case 5:
-          // IDR
-          //
-          break;
-
-        case 1:
-          //
-          break;
-
         default:
-          debug.warn(false, "[NALU]: unknown nalu type ".concat(naluType));
+          debug.warn(false, "[NALU]: Found extra nalu type ".concat(naluType));
           break;
       }
     });

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import FlvPlayerError from '../../utils/FlvplayerError';
+import FlvPlayerError from '../../utils/FlvPlayerError';
 
 // Exponential-Golomb buffer decoder
 class ExpGolomb {

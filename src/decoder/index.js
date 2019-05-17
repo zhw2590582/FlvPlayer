@@ -4,7 +4,7 @@ export default class Decoder {
     constructor(flv) {
         const { debug } = flv;
 
-        flv.on('nalu', nalu => {
+        flv.on('videoData', nalu => {
             const readNalu = readBuffer(nalu);
             readNalu(4);
             const nalHeader = readNalu(1)[0];

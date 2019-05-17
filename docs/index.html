@@ -1,36 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>flvPlayer.js</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-        }
+    <head>
+        <meta charset="UTF-8" />
+        <title>flvPlayer.js</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <style>
+            html,
+            body {
+                margin: 0;
+                padding: 0;
+            }
 
-        * {
-            box-sizing: border-box;
-        }
+            * {
+                box-sizing: border-box;
+            }
 
-        #flvPlayer {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-    </style>
-</head>
-<body>
-    <div id="flvPlayer"></div>
-    <script src="./uncompiled-flvPlayer.js"></script>
-    <script>
-        var flv = new FlvPlayer({
-            url: 'https://zhw2590582.github.io/assets-cdn/video/you-name-h264-aac.flv',
-            element: document.getElementById('flvPlayer'),
-            debug: true,
-        });
-    </script>
-</body>
+            #flvPlayer {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin-top: 20px;
+            }
+
+            .btns {
+                text-align: center;
+                margin: 10px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="flvPlayer"></div>
+        <div class="btns">
+            <input id="downloadVideo" type="button" value="下载视频" disabled />
+            <input id="downloadAudio" type="button" value="下载音频" disabled />
+        </div>
+        <script src="./uncompiled-flvPlayer.js"></script>
+        <script>
+            var flv = new FlvPlayer({
+                url: 'https://zhw2590582.github.io/assets-cdn/video/you-name-h264-aac.flv',
+                element: document.getElementById('flvPlayer'),
+                debug: true,
+            });
+
+            var videoDatas = new Uint8Array();
+            var audioDatas = new Uint8Array();
+            flv.on('videoData', videoData => {
+                const bufferLength = videoDatas.length + videoData.length;
+                const buffer = new Uint8Array(bufferLength);
+                buffer.set(videoDatas, 0);
+                buffer.set(videoData, videoDatas.length);
+                videoDatas = buffer;
+            });
+
+            flv.on('audioData', audioData => {
+                const bufferLength = audioDatas.length + audioData.length;
+                const buffer = new Uint8Array(bufferLength);
+                buffer.set(audioDatas, 0);
+                buffer.set(audioData, audioDatas.length);
+                audioDatas = buffer;
+            });
+
+            function download(buffer, name) {
+                const elink = document.createElement('a');
+                elink.style.display = 'none';
+                elink.href = URL.createObjectURL(new Blob([buffer]));
+                elink.download = name;
+                document.body.appendChild(elink);
+                elink.click();
+                document.body.removeChild(elink);
+            }
+
+            document.getElementById('downloadVideo').onclick = function() {
+                download(videoDatas, 'video.h264');
+            };
+
+            document.getElementById('downloadAudio').onclick = function() {
+                download(audioDatas, 'audio.aac');
+            };
+
+            flv.on('parseDone', () => {
+                document.getElementById('downloadVideo').disabled = false;
+                document.getElementById('downloadAudio').disabled = false;
+            });
+        </script>
+    </body>
 </html>

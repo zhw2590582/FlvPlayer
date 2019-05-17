@@ -1,4 +1,4 @@
-import FlvPlayerError from './FlvplayerError';
+import FlvPlayerError from './FlvPlayerError';
 
 export function errorHandle(condition, msg) {
     if (!condition) {

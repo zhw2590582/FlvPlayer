@@ -52,7 +52,7 @@ export default class H264 {
             result.sequenceParameterSetLength = readBufferSum(readDcr(2));
             if (result.sequenceParameterSetLength > 0) {
                 const SPS = readDcr(result.sequenceParameterSetLength);
-                this.flv.emit('nalu', mergeBuffer(nalStart, SPS));
+                this.flv.emit('videoData', mergeBuffer(nalStart, SPS));
                 if (index === 0) {
                     result.sequenceParameterSetNALUnit = SPSParser.parseSPS(SPS);
                     const codecArray = SPS.subarray(1, 4);
@@ -74,7 +74,7 @@ export default class H264 {
             result.pictureParameterSetLength = readBufferSum(readDcr(2));
             if (result.pictureParameterSetLength > 0) {
                 const PPS = readDcr(result.pictureParameterSetLength);
-                this.flv.emit('nalu', mergeBuffer(nalStart, PPS));
+                this.flv.emit('videoData', mergeBuffer(nalStart, PPS));
             }
         }
 
@@ -122,7 +122,7 @@ export default class H264 {
         while (readVideo.index < packetData.length) {
             const length = readBufferSum(readVideo(lengthSizeMinusOne));
             const nalu = mergeBuffer(nalStart, readVideo(length));
-            this.flv.emit('nalu', nalu);
+            this.flv.emit('videoData', nalu);
         }
     }
 }

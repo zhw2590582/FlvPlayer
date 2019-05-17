@@ -308,29 +308,6 @@
     errorHandle(typeof url === 'string' || url instanceof File, 'The \'url\' option is not a string or file');
   }
 
-  var FlvplayerError$1 =
-  /*#__PURE__*/
-  function (_Error) {
-    inherits(FlvplayerError, _Error);
-
-    function FlvplayerError(message, context) {
-      var _this;
-
-      classCallCheck(this, FlvplayerError);
-
-      _this = possibleConstructorReturn(this, getPrototypeOf(FlvplayerError).call(this, message));
-
-      if (typeof Error.captureStackTrace === 'function') {
-        Error.captureStackTrace(assertThisInitialized(_this), context || _this.constructor);
-      }
-
-      _this.name = 'FlvPlayerError';
-      return _this;
-    }
-
-    return FlvplayerError;
-  }(wrapNativeSuper(Error));
-
   var Debug = function Debug(flv) {
     classCallCheck(this, Debug);
 
@@ -362,7 +339,7 @@
 
     this.error = function (condition, msg) {
       if (!condition) {
-        throw new FlvplayerError$1(msg);
+        throw new FlvplayerError(msg);
       }
     };
   };
@@ -1517,7 +1494,7 @@
 
           if (result.sequenceParameterSetLength > 0) {
             var SPS = readDcr(result.sequenceParameterSetLength);
-            this.flv.emit('nalu', mergeBuffer(nalStart, SPS));
+            this.flv.emit('videoData', mergeBuffer(nalStart, SPS));
 
             if (index === 0) {
               result.sequenceParameterSetNALUnit = SPSParser.parseSPS(SPS);
@@ -1550,7 +1527,7 @@
 
           if (result.pictureParameterSetLength > 0) {
             var PPS = readDcr(result.pictureParameterSetLength);
-            this.flv.emit('nalu', mergeBuffer(nalStart, PPS));
+            this.flv.emit('videoData', mergeBuffer(nalStart, PPS));
           }
         }
 
@@ -1572,7 +1549,7 @@
         while (readVideo.index < packetData.length) {
           var length = readBufferSum(readVideo(lengthSizeMinusOne));
           var nalu = mergeBuffer(nalStart, readVideo(length));
-          this.flv.emit('nalu', nalu);
+          this.flv.emit('videoData', nalu);
         }
       }
     }]);
@@ -1821,11 +1798,11 @@
     });
   };
 
-  var Remuxer = function Remuxer(flv) {
-    classCallCheck(this, Remuxer);
+  var Decoder = function Decoder(flv) {
+    classCallCheck(this, Decoder);
 
     var debug = flv.debug;
-    flv.on('nalu', function (nalu) {
+    flv.on('videoData', function (nalu) {
       var readNalu = readBuffer(nalu);
       readNalu(4);
       var nalHeader = readNalu(1)[0];
@@ -2060,7 +2037,7 @@
       _this.player = new Player(assertThisInitialized(_this));
       _this.parse = new Parse(assertThisInitialized(_this));
       _this.demuxer = new Demuxer(assertThisInitialized(_this));
-      _this.remuxer = new Remuxer(assertThisInitialized(_this));
+      _this.decoder = new Decoder(assertThisInitialized(_this));
       _this.stream = new Stream(assertThisInitialized(_this));
       _this.controls = new Controls(assertThisInitialized(_this));
 

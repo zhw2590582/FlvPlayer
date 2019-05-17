@@ -1833,13 +1833,8 @@
 
       switch (naluType) {
         case 1:
-          // Non IDR
-          //
-          break;
-
         case 5:
-          // IDR
-          // 
+          // console.log(++index);
           break;
 
         case 6: // SEI

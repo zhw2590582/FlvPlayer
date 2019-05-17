@@ -6,7 +6,7 @@ import Events from './events';
 import Workers from './workers';
 import Parse from './parse';
 import Demuxer from './demuxer';
-import Remuxer from './remuxer';
+import Decoder from './decoder';
 import Stream from './stream';
 import Player from './player';
 import Controls from './controls';
@@ -25,7 +25,7 @@ class FlvPlayer extends Emitter {
         this.player = new Player(this);
         this.parse = new Parse(this);
         this.demuxer = new Demuxer(this);
-        this.remuxer = new Remuxer(this);
+        this.decoder = new Decoder(this);
         this.stream = new Stream(this);
         this.controls = new Controls(this);
 

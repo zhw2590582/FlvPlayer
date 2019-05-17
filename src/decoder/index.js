@@ -1,6 +1,6 @@
 import { readBuffer } from '../utils/buffer';
 
-export default class Remuxer {
+export default class Decoder {
     constructor(flv) {
         const { debug } = flv;
 
@@ -11,11 +11,9 @@ export default class Remuxer {
             const naluType = nalHeader & 31;
 
             switch (naluType) {
-                case 1: // Non IDR
-                    //
-                    break;
-                case 5: // IDR
-                    // 
+                case 1:
+                case 5:
+                    // console.log(++index);
                     break;
                 case 6: // SEI
                 case 7: // SPS

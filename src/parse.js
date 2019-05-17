@@ -1,4 +1,4 @@
-import { mergeBuffer, readBufferSum, readString } from './utils/buffer';
+import { mergeBuffer, readBufferSum, readString } from './utils';
 
 export default class Parse {
     constructor(flv) {

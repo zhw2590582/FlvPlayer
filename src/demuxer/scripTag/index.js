@@ -1,4 +1,4 @@
-import { readBuffer, readDouble, readBoolean, readString, readBufferSum } from '../../utils/buffer';
+import { readBuffer, readDouble, readBoolean, readString, readBufferSum } from '../../utils';
 
 export default class ScripTag {
     constructor(flv) {

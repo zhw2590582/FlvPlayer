@@ -1,4 +1,4 @@
-import { mergeBuffer } from '../../utils/buffer';
+import { mergeBuffer } from '../../utils';
 
 export default class AAC {
     constructor(flv) {

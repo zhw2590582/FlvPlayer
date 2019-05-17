@@ -183,6 +183,36 @@
   var TinyEmitter = E;
   tinyEmitter.TinyEmitter = TinyEmitter;
 
+  function _arrayWithoutHoles(arr) {
+    if (Array.isArray(arr)) {
+      for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) {
+        arr2[i] = arr[i];
+      }
+
+      return arr2;
+    }
+  }
+
+  var arrayWithoutHoles = _arrayWithoutHoles;
+
+  function _iterableToArray(iter) {
+    if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
+  }
+
+  var iterableToArray = _iterableToArray;
+
+  function _nonIterableSpread() {
+    throw new TypeError("Invalid attempt to spread non-iterable instance");
+  }
+
+  var nonIterableSpread = _nonIterableSpread;
+
+  function _toConsumableArray(arr) {
+    return arrayWithoutHoles(arr) || iterableToArray(arr) || nonIterableSpread();
+  }
+
+  var toConsumableArray = _toConsumableArray;
+
   function _isNativeFunction(fn) {
     return Function.toString.call(fn).indexOf("[native code]") !== -1;
   }
@@ -290,6 +320,58 @@
     }
 
     return condition;
+  }
+  function readBuffer(buffer) {
+    var index = 0;
+
+    function read(length) {
+      var tempUint8 = new Uint8Array(length);
+
+      for (var i = 0; i < length; i += 1) {
+        tempUint8[i] = buffer[index];
+        index += 1;
+      }
+
+      read.index = index;
+      return tempUint8;
+    }
+
+    read.index = 0;
+    return read;
+  }
+  function mergeBuffer() {
+    for (var _len = arguments.length, buffers = new Array(_len), _key = 0; _key < _len; _key++) {
+      buffers[_key] = arguments[_key];
+    }
+
+    var Cons = buffers[0].constructor;
+    return buffers.reduce(function (pre, val) {
+      var merge = new Cons((pre.byteLength | 0) + (val.byteLength | 0));
+      merge.set(pre, 0);
+      merge.set(val, pre.byteLength | 0);
+      return merge;
+    }, new Cons());
+  }
+  function readDouble(array) {
+    var view = new DataView(new ArrayBuffer(array.length));
+    array.forEach(function (b, i) {
+      view.setUint8(i, b);
+    });
+    return view.getFloat64(0);
+  }
+  function readBoolean(array) {
+    return array[0] !== 0;
+  }
+  function readString(array) {
+    var _String$fromCharCode;
+
+    return (_String$fromCharCode = String.fromCharCode).call.apply(_String$fromCharCode, [String].concat(toConsumableArray(array)));
+  }
+  function readBufferSum(array) {
+    var uint = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+    return array.reduce(function (totle, num, index) {
+      return totle + (uint ? num : num - 128) * Math.pow(256, array.length - index - 1);
+    }, 0);
   }
 
   function checkSupport () {
@@ -500,92 +582,6 @@
   }
 
   var slicedToArray = _slicedToArray;
-
-  function _arrayWithoutHoles(arr) {
-    if (Array.isArray(arr)) {
-      for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) {
-        arr2[i] = arr[i];
-      }
-
-      return arr2;
-    }
-  }
-
-  var arrayWithoutHoles = _arrayWithoutHoles;
-
-  function _iterableToArray(iter) {
-    if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
-  }
-
-  var iterableToArray = _iterableToArray;
-
-  function _nonIterableSpread() {
-    throw new TypeError("Invalid attempt to spread non-iterable instance");
-  }
-
-  var nonIterableSpread = _nonIterableSpread;
-
-  function _toConsumableArray(arr) {
-    return arrayWithoutHoles(arr) || iterableToArray(arr) || nonIterableSpread();
-  }
-
-  var toConsumableArray = _toConsumableArray;
-
-  function readBuffer(buffer) {
-    var index = 0;
-
-    function read(length) {
-      var tempUint8 = new Uint8Array(length);
-
-      for (var i = 0; i < length; i += 1) {
-        tempUint8[i] = buffer[index];
-        index += 1;
-      }
-
-      read.index = index;
-      return tempUint8;
-    }
-
-    read.index = 0;
-    return read;
-  }
-  function mergeBuffer() {
-    for (var _len = arguments.length, buffers = new Array(_len), _key = 0; _key < _len; _key++) {
-      buffers[_key] = arguments[_key];
-    }
-
-    var bufferLength = buffers.reduce(function (pre, val) {
-      return pre + val.length;
-    }, 0);
-    var buffer = new buffers[0].constructor(bufferLength);
-    var offset = 0;
-    buffers.forEach(function (buf) {
-      buffer.set(buf, offset);
-      offset += buf.length;
-    });
-    return buffer;
-  }
-  function readDouble(array) {
-    var view = new DataView(new ArrayBuffer(array.length));
-    array.forEach(function (b, i) {
-      view.setUint8(i, b);
-    });
-    return view.getFloat64(0);
-  }
-  function readBoolean(array) {
-    return array[0] !== 0;
-  }
-  function readString(array) {
-    var _String$fromCharCode;
-
-    return (_String$fromCharCode = String.fromCharCode).call.apply(_String$fromCharCode, [String].concat(toConsumableArray(array)));
-  }
-  function readBufferSum(array) {
-    var uint = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
-    return array.reduce(function (totle, num, index) {
-      return totle + (uint ? num : num - 128) * Math.pow(256, array.length - index - 1);
-    }, 0);
-  }
 
   var Parse =
   /*#__PURE__*/
@@ -1811,7 +1807,7 @@
       switch (naluType) {
         case 1:
         case 5:
-          // console.log(++index);
+          // TODO
           break;
 
         case 6: // SEI
@@ -1993,20 +1989,8 @@
 
   var Player = function Player(flv) {
     classCallCheck(this, Player);
-    var canvas = document.createElement('canvas');
-    var _flv$options = flv.options,
-        element = _flv$options.element,
-        width = _flv$options.width,
-        height = _flv$options.height;
-    canvas.width = width;
-    canvas.style.width = "".concat(width, "px");
-    canvas.height = height;
-    canvas.style.height = "".concat(height, "px");
-    var ctx = canvas.getContext('2d');
-    ctx.fillStyle = 'black';
-    ctx.fillRect(0, 0, width, height);
-    element.appendChild(canvas);
-    this.canvas = canvas;
+
+    this.flv = flv;
   };
 
   var Controls = function Controls(flv) {

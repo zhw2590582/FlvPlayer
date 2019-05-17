@@ -1,4 +1,4 @@
-import { readBuffer } from '../utils/buffer';
+import { readBuffer } from '../utils';
 
 export default class Decoder {
     constructor(flv) {
@@ -13,7 +13,7 @@ export default class Decoder {
             switch (naluType) {
                 case 1:
                 case 5:
-                    // console.log(++index);
+                    // TODO
                     break;
                 case 6: // SEI
                 case 7: // SPS

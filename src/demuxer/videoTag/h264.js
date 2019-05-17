@@ -1,4 +1,4 @@
-import { readBuffer, readBufferSum, mergeBuffer } from '../../utils/buffer';
+import { readBuffer, readBufferSum, mergeBuffer } from '../../utils';
 import SPSParser from './sps-parser';
 
 const nalStart = new Uint8Array([0x00, 0x00, 0x00, 0x01]);

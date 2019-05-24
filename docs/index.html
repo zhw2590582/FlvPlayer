@@ -31,11 +31,13 @@
     </head>
     <body>
         <div id="flvPlayer"></div>
+        <canvas id="canvas"></canvas>
         <div class="btns">
             <input id="downloadVideo" type="button" value="下载视频" disabled />
             <input id="downloadAudio" type="button" value="下载音频" disabled />
         </div>
         <script src="./uncompiled-flvPlayer.js"></script>
+        <script src="./mini-decoder.js"></script>
         <script>
             var flv = new FlvPlayer({
                 url: 'https://zhw2590582.github.io/assets-cdn/video/you-name-h264-aac.flv',
@@ -45,12 +47,34 @@
 
             var videoDatas = new Uint8Array();
             var audioDatas = new Uint8Array();
+
+            function mergeBuffer(...buffers) {
+                const Cons = buffers[0].constructor;
+                return buffers.reduce((pre, val) => {
+                    let merge = new Cons((pre.byteLength | 0) + (val.byteLength | 0));
+                    merge.set(pre, 0);
+                    merge.set(val, pre.byteLength | 0);
+                    return merge;
+                }, new Cons());
+            }
+
+            let sps = null;
+            let pps = null;
+
+            let id = 0;
             flv.on('videoData', videoData => {
-                const bufferLength = videoDatas.length + videoData.length;
-                const buffer = new Uint8Array(bufferLength);
-                buffer.set(videoDatas, 0);
-                buffer.set(videoData, videoDatas.length);
-                videoDatas = buffer;
+                id += 1;
+                if (id === 1) {
+                    sps = videoData;
+                    return;
+                }
+
+                if (id === 2) {
+                    pps = videoData;
+                    return;
+                }
+
+                decodeAndRenderH264('canvas', 1280, 720, mergeBuffer(sps, pps, videoData));
             });
 
             flv.on('audioData', audioData => {

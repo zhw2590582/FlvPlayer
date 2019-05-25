@@ -1,4 +1,12 @@
-import FlvPlayerError from './FlvPlayerError';
+export class FlvPlayerError extends Error {
+    constructor(message, context) {
+        super(message);
+        if (typeof Error.captureStackTrace === 'function') {
+            Error.captureStackTrace(this, context || this.constructor);
+        }
+        this.name = 'FlvPlayerError';
+    }
+}
 
 export function errorHandle(condition, msg) {
     if (!condition) {

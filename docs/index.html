@@ -31,81 +31,12 @@
     </head>
     <body>
         <div id="flvPlayer"></div>
-        <canvas id="canvas"></canvas>
-        <div class="btns">
-            <input id="downloadVideo" type="button" value="下载视频" disabled />
-            <input id="downloadAudio" type="button" value="下载音频" disabled />
-        </div>
         <script src="./uncompiled-flvPlayer.js"></script>
-        <script src="./mini-decoder.js"></script>
         <script>
             var flv = new FlvPlayer({
                 url: 'https://zhw2590582.github.io/assets-cdn/video/you-name-h264-aac.flv',
                 element: document.getElementById('flvPlayer'),
                 debug: true,
-            });
-
-            var videoDatas = new Uint8Array();
-            var audioDatas = new Uint8Array();
-
-            function mergeBuffer(...buffers) {
-                const Cons = buffers[0].constructor;
-                return buffers.reduce((pre, val) => {
-                    let merge = new Cons((pre.byteLength | 0) + (val.byteLength | 0));
-                    merge.set(pre, 0);
-                    merge.set(val, pre.byteLength | 0);
-                    return merge;
-                }, new Cons());
-            }
-
-            let sps = null;
-            let pps = null;
-
-            let id = 0;
-            flv.on('videoData', videoData => {
-                id += 1;
-                if (id === 1) {
-                    sps = videoData;
-                    return;
-                }
-
-                if (id === 2) {
-                    pps = videoData;
-                    return;
-                }
-
-                decodeAndRenderH264('canvas', 1280, 720, mergeBuffer(sps, pps, videoData));
-            });
-
-            flv.on('audioData', audioData => {
-                const bufferLength = audioDatas.length + audioData.length;
-                const buffer = new Uint8Array(bufferLength);
-                buffer.set(audioDatas, 0);
-                buffer.set(audioData, audioDatas.length);
-                audioDatas = buffer;
-            });
-
-            function download(buffer, name) {
-                const elink = document.createElement('a');
-                elink.style.display = 'none';
-                elink.href = URL.createObjectURL(new Blob([buffer]));
-                elink.download = name;
-                document.body.appendChild(elink);
-                elink.click();
-                document.body.removeChild(elink);
-            }
-
-            document.getElementById('downloadVideo').onclick = function() {
-                download(videoDatas, 'video.h264');
-            };
-
-            document.getElementById('downloadAudio').onclick = function() {
-                download(audioDatas, 'audio.aac');
-            };
-
-            flv.on('parseDone', () => {
-                document.getElementById('downloadVideo').disabled = false;
-                document.getElementById('downloadAudio').disabled = false;
             });
         </script>
     </body>

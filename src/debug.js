@@ -1,4 +1,4 @@
-import FlvPlayerError from './utils/FlvPlayerError';
+import { FlvPlayerError } from './utils';
 
 export default class Debug {
     constructor(flv) {

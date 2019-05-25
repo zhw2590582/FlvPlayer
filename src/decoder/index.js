@@ -1,7 +1,8 @@
-import { mergeBuffer, readBuffer } from '../utils';
+import { mergeBuffer } from '../utils';
 import create_parser from './bsparser';
 import Renderer from './renderer';
 
+const nalStart = new Uint8Array([0x00, 0x00, 0x00, 0x01]);
 export default class Decoder {
     constructor(flv) {
         const { debug, options, player } = flv;
@@ -12,44 +13,57 @@ export default class Decoder {
         let sps = null;
         let pps = null;
         flv.on('videoData', nalu => {
-            const readNalu = readBuffer(nalu);
-            readNalu(4);
-            const nalHeader = readNalu(1)[0];
-            const naluType = nalHeader & 31;
-            if (naluType === 7) {
-                sps = nalu;
-            } else if (naluType === 8) {
-                pps = nalu;
-            } else {
-                const rawdata = mergeBuffer(sps, pps, nalu);
-                const packet = { data: rawdata, frame_type: 255 };
-                if (!this.h264DecoderInitialized) {
-                    this.h264DecoderInitialized = true;
-                    this.renderer = new Renderer(player.canvas);
-                    this.h264setup(options.h264Configuration, packet).then(
-                        frame => {
-                            if (frame.data) {
-                                const videoFrame = this.renderer.converter(frame);
-                                flv.emit('videoFrame', videoFrame);
-                            }
-                        },
-                        err => {
-                            debug.warn(false, '[h264]: decode failed', err);
-                        },
-                    );
-                } else {
-                    this.h264decode(packet).then(
-                        frame => {
-                            if (frame.data) {
-                                const videoFrame = this.renderer.converter(frame);
-                                flv.emit('videoFrame', videoFrame);
-                            }
-                        },
-                        err => {
-                            debug.warn(false, '[h264]: decode failed', err);
-                        },
-                    );
+            this.h264Parser.parse(nalu);
+            let naluInfo = this.h264Parser.next();
+            if (!naluInfo) return;
+            let rawdata = null;
+            switch (naluInfo['@type']) {
+                case 'IDR':
+                case 'I':
+                case 'B':
+                case 'P': {
+                    rawdata = mergeBuffer(sps, pps, nalStart, naluInfo['@data']);
+                    break;
                 }
+                case 'SPS':
+                    sps = mergeBuffer(nalStart, naluInfo['@data']);
+                    break;
+                case 'PPS':
+                    pps = mergeBuffer(nalStart, naluInfo['@data']);
+                    break;
+                default:
+                    break;
+            }
+
+            if (!rawdata) return;
+            const packet = { data: rawdata, frame_type: 255 };
+            if (!this.h264DecoderInitialized) {
+                this.h264DecoderInitialized = true;
+                this.renderer = new Renderer(player.canvas);
+                this.h264setup(options.h264Configuration, packet).then(
+                    frame => {
+                        if (frame.data) {
+                            const videoFrame = this.renderer.converter(frame);
+                            flv.emit('videoFrame', videoFrame);
+                        }
+                    },
+                    err => {
+                        debug.warn(false, '[h264]: decode failed', err);
+                    },
+                );
+            } else {
+                this.h264decode(packet).then(
+                    frame => {
+                        if (frame.data) {
+                            const videoFrame = this.renderer.converter(frame);
+                            flv.emit('videoFrame', videoFrame);
+                        }
+                    },
+                    err => {
+                        console.log(naluInfo);
+                        debug.warn(false, '[h264]: decode failed', err);
+                    },
+                );
             }
         });
     }

@@ -1,12 +1,12 @@
 import { errorHandle } from './index';
 
 export default function(flv) {
-    const { element, url } = flv.options;
+    const { container, url } = flv.options;
 
-    errorHandle(element instanceof HTMLDivElement, 'The \'element\' option is not a \'HTMLDivElement\'');
+    errorHandle(container instanceof HTMLDivElement, 'The \'container\' option is not a \'HTMLDivElement\'');
 
     errorHandle(
-        flv.constructor.instances.every(item => item.options.element !== element),
+        flv.constructor.instances.every(item => item.options.container !== container),
         'Cannot mount multiple instances on the same div element, please destroy the instance first',
     );
 

@@ -1,6 +1,7 @@
 import Emitter from 'tiny-emitter';
 import optionValidator from './utils/optionValidator';
 import Debug from './debug';
+import Player from './player';
 import Demuxer from './demuxer';
 import Decoder from './decoder';
 import Stream from './stream';
@@ -13,6 +14,7 @@ class FlvPlayer extends Emitter {
         optionValidator(this);
 
         this.debug = new Debug(this);
+        this.player = new Player(this);
         this.decoder = new Decoder(this);
         this.demuxer = new Demuxer(this);
         this.stream = new Stream(this);
@@ -25,13 +27,14 @@ class FlvPlayer extends Emitter {
     static get options() {
         return {
             url: '',
-            element: null,
+            container: null,
             debug: false,
             live: false,
             controls: true,
             width: 400,
             height: 300,
-            header: {},
+            workerPath: 'openh264_decoder.js',
+            h264Configuration: {},
         };
     }
 

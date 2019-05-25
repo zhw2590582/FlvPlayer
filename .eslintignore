@@ -1,5 +1,6 @@
 /dist
 /docs
 /test
+/src/decoder/bsparser.js
 /node_modules
 ./rollup-config.js

@@ -1,5 +1,8 @@
 const babel = require('rollup-plugin-babel');
 const commonjs = require('rollup-plugin-commonjs');
+const postcss = require('rollup-plugin-postcss');
+const autoprefixer = require('autoprefixer');
+const cssnano = require('cssnano');
 const nodeResolve = require('rollup-plugin-node-resolve');
 const { eslint } = require('rollup-plugin-eslint');
 const replace = require('rollup-plugin-replace');
@@ -25,7 +28,19 @@ module.exports = {
     },
     plugins: [
         eslint({
-            exclude: ['node_modules/**', 'src/broadway/**'],
+            exclude: ['node_modules/**', 'src/player/style.scss'],
+        }),
+        postcss({
+            plugins: [
+                autoprefixer({
+                    browsers: ['last 2 versions'],
+                }),
+                cssnano({
+                    preset: 'default',
+                }),
+            ],
+            sourceMap: isProd,
+            extract: isProd ? 'dist/flvPlayer.css' : 'docs/uncompiled-flvPlayer.css',
         }),
         nodeResolve(),
         commonjs(),

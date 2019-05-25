@@ -5,6 +5,7 @@
         <title>flvPlayer.js</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <link rel="stylesheet" href="./uncompiled-flvPlayer.css">
         <style>
             html,
             body {
@@ -17,15 +18,7 @@
             }
 
             #flvPlayer {
-                display: flex;
-                justify-content: center;
-                align-items: center;
                 margin-top: 20px;
-            }
-
-            .btns {
-                text-align: center;
-                margin: 10px 0;
             }
         </style>
     </head>
@@ -35,7 +28,7 @@
         <script>
             var flv = new FlvPlayer({
                 url: 'https://zhw2590582.github.io/assets-cdn/video/you-name-h264-aac.flv',
-                element: document.getElementById('flvPlayer'),
+                container: document.getElementById('flvPlayer'),
                 debug: true,
             });
         </script>

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>video-codec.js</title>
+    <meta charset="UTF-8">
+    <script src="test.js" type="text/javascript"></script>
+    <style>
+      fieldset { display: inline; padding: 1ex; margin-bottom: 1ex; vertical-align: top }
+      fieldset > fieldset { margin-bottom: 0ex; }
+    </style>
+  </head>
+  <body>
+    <div>
+      <fieldset>
+        <legend>Input</legend>
+        <div>
+          <input type="radio" name="input-type" id="input-camera" checked>Camera
+          <select id="camera-resolution">
+            <optgroup label="4:3">
+              <option>320x240</option>
+              <option>640x480</option>
+              <option>800x600</option>
+              <option>1024x768</option>
+              <option>1280x960</option>
+              <option>1600x1200</option>
+            </optgroup>
+            <optgroup label="16:9">
+              <option>320x180</option>
+              <option>640x360</option>
+              <option>960x540</option>
+              <option>1024x576</option>
+              <option>1280x720</option>
+              <option>1600x900</option>
+              <option>1920x1080</option>
+            </optgroup>
+          </select>
+          <select id="camera-framerate">
+            <option value="1">1 fps</option>
+            <option value="2">2 fps</option>
+            <option value="3">3 fps</option>
+            <option value="4">4 fps</option>
+            <option value="5">5 fps</option>
+            <option value="10">10 fps</option>
+            <option value="15">15 fps</option>
+            <option value="20">20 fps</option>
+            <option value="25">25 fps</option>
+            <option value="30">30 fps</option>
+          </select>
+        </div>
+        <!--<div>
+          <input type="radio" name="input-type" id="input-file">File
+          <input type="file" id="file-data">
+        </div>-->
+      </fieldset>
+      <fieldset>
+        <legend>Codec</legend>
+        <div style="margin-bottom: 1ex">
+          <select id="codec_type">
+            <option>daala</option>
+            <option>libvpx</option>
+            <option>openH264</option>
+            <!--<option>libde265</option>-->
+            <option>image</option>
+          </select>
+        </div>
+        <fieldset style="display: none" id="daala_config">
+          <legend>daala config</legend>
+          <div>
+            <label for="daala_config_kf">Key Frame Rate:</label>
+            <select id="daala_config_kf">
+              <option value="1">1 (I picture only, fastest)</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="10">10</option>
+            </select>
+          </div>
+          <div>
+            <label for="daala_config_quant">Quality:</label>
+            <select id="daala_config_quant"></select>
+          </div>
+          <div>
+            <label for="daala_config_complexity">Complexity:</label>
+            <select id="daala_config_complexity">
+              <option value="0" selected>0 (fast)</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+              <option>6</option><option>7</option><option>8</option><option>9</option>
+              <option value="10">10 (slow)</option>
+            </select>
+          </div>
+          <div>
+            <input type="checkbox" id="daala_config_activity_masking" checked>
+            <label for="daala_config_activity_masking">Use Activity Masking</label>
+          </div>
+          <div>
+            <label for="daala_config_qm">Quantization Matrix:</label>
+            <select id="daala_config_qm">
+              <option value="0">flat</option>
+              <option value="1" selected>HVS</option>
+            </select>
+          </div>
+          <div>
+            <input type="checkbox" id="daala_config_mc_use_chroma" checked>
+            <label for="daala_config_mc_use_chroma">Use chroma in the motion compensation search</label>
+          </div>
+          <div>
+            <label for="daala_config_mv_res_min">Min motion vectors resolution</label>
+            <select id="daala_config_mv_res_min">
+              <option value="0" selected>1/8 pel</option>
+              <option value="1">1/4 pel</option>
+              <option value="2">1/2 pel</option>
+            </select>
+          </div>
+          <div>
+            <label for="daala_config_mv_level_min">Min motion vectors level</label>
+            <select id="daala_config_mv_level_min">
+              <option selected>0</option><option>1</option><option>2</option><option>3</option><option>4</option>
+            </select>
+          </div>
+          <div>
+            <label for="daala_config_mv_level_max">Max motion vectors level</label>
+            <select id="daala_config_mv_level_max">
+              <option>0</option><option>1</option><option>2</option><option>3</option><option selected>4</option>
+            </select>
+          </div>
+          <div>
+            <input type="checkbox" id="daala_config_mc_use_satd">
+            <label for="daala_config_mc_use_satd">Use SATD metric in the motion compensation</label>
+          </div>
+        </fieldset>
+        <fieldset style="display: none" id="libvpx_config">
+          <legend>libvpx config</legend>
+          <div>
+            <label for="libvpx_config_codec">Version:</label>
+            <select id="libvpx_config_codec">
+              <option value="8">vp8</option>
+              <option value="9">vp9</option>
+              <option value="10">vp10</option>
+            </select>
+          </div>
+          <div>
+            <label for="libvpx_config_cpuused">Speed:</label>
+            <select id="libvpx_config_cpuused"></select>
+          </div>
+          <div>
+            <label for="libvpx_config_lag">Lag:</label>
+            <select id="libvpx_config_lag"></select>
+          </div>
+          <div>
+            <label for="libvpx_config_kf_max">KeyFrame Interval:</label>
+            <input type="text" size="3" id="libvpx_config_kf_max" value="100">
+          </div>
+          <fieldset style="display: block; margin: 1ex 0ex">
+            <legend>Rate-control</legend>
+            <div>
+              <label for="libvpx_config_rc_mode">mode</label>
+              <select id="libvpx_config_rc_mode">
+                <option value="0">Variable Bit Rate</option>
+                <option value="1">Constant Bit Rate</option>
+                <option value="2">Constrained Quality</option>
+                <option value="3">Constant Quality</option>
+              </select>
+            </div>
+            <div>
+              <label for="libvpx_config_rc_bitrate">Bitrate[kbps]:</label>
+              <input type="text" id="libvpx_config_rc_bitrate" size="5" value="10">
+            </div>
+            <div>
+              <label for="libvpx_config_rc_quality_level">Quality:</label>
+              <select id="libvpx_config_rc_quality_level"></select>
+            </div>
+            <div>
+              <label for="libvpx_config_rc_min_quantizer">Min Quantizer:</label>
+              <select id="libvpx_config_rc_min_quantizer"></select>
+            </div>
+            <div>
+              <label for="libvpx_config_rc_max_quantizer">Max Quantizer:</label>
+              <select id="libvpx_config_rc_max_quantizer"></select>
+            </div>
+          </fieldset>
+        </fieldset>
+        <fieldset style="display: none" id="openh264_config">
+          <legend>openH264 config</legend>
+          <div>
+            <label for="openh264_config_usage">Usage:</label>
+            <select id="openh264_config_usage">
+              <option value="0">Camera (realtime)</option>
+              <option value="1">Screen (realtime)</option>
+            </select>
+          </div>
+          <div>
+            <label for="openh264_config_complexity">Complexity:</label>
+            <select id="openh264_config_complexity">
+              <option value="0">Low</option>
+              <option value="1">Medium</option>
+              <option value="2">High</option>
+            </select>
+          </div>
+          <div>
+            <label for="openh264_config_kf">KeyFrame Interval:</label>
+            <input type="text" size="3" id="openh264_config_kf" value="100">
+          </div>
+          <div>
+            <label for="openh264_config_rc_mode">Rate-Control Mode:</label>
+            <select id="openh264_config_rc_mode">
+              <option value="0">Quality</option>
+              <option value="1">Bitrate</option>
+              <option value="2">Buffer-based</option>
+              <option value="3">Timestamp</option>
+            </select>
+          </div>
+          <div>
+            <label for="openh264_config_bitrate">Bitrate:</label>
+            <input type="text" id="openh264_config_bitrate" size="5" value="10000">
+          </div>
+          <div>
+            <label for="openh264_config_ref_frames">Ref Frames:</label>
+            <input type="text" id="openh264_config_ref_frames" size="5" value="-1">
+          </div>
+          <div>
+            <label for="openh264_config_entropy">Entropy Coding:</label>
+            <select id="openh264_config_entropy">
+              <option value="0">CAVLC</option>
+              <option value="1">CABAC</option>
+            </select>
+          </div>
+          <div>
+            <input type="checkbox" id="openh264_config_denoise">
+            <label for="openh264_config_denoise">Enable Denoise</label>
+          </div>
+          <div>
+            <input type="checkbox" id="openh264_config_bg_detect" checked>
+            <label for="openh264_config_bg_detect">Enable Background Detection</label>
+          </div>
+          <div>
+            <input type="checkbox" id="openh264_config_adaptive_quant" checked>
+            <label for="openh264_config_adaptive_quant">Enable Adaptive Quant</label>
+          </div>
+          <div>
+            <input type="checkbox" id="openh264_config_scene_detect" checked>
+            <label for="openh264_config_scene_detect">Enable Scene Change Detection</label>
+          </div>
+        </fieldset>
+        <fieldset style="display: none" id="image_config">
+          <legend>config</legend>
+          <div>
+            <label for="image_config_type">Type:</label>
+            <select id="image_config_type">
+              <option value="image/png">PNG</option>
+              <option value="image/jpeg">JPEG</option>
+              <option value="image/webp">WebP</option>
+            </select>
+          </div>
+          <div>
+            <label for="image_config_quality">Quality(0.0-1.0):</label>
+            <input id="image_config_quality" type="text" value="1.0" size="3">
+          </div>
+        </fieldset>
+      </fieldset>
+    </div>
+    <div>
+      <fieldset>
+        <legend>Action</legend>
+        <button id="play">Play</button>
+        <button id="encdec">Encode &amp; Decode</button>
+        <button id="drop_packet">Drop Packet</button>
+      </fieldset>
+      <fieldset>
+        <legend>Statistics</legend>
+        <div style="font-size: 80%">
+          <span>Frame Size: </span>
+          <span id="stat_frame_size">-</span>
+          <span>Cur FrameRate: </span>
+          <span id="stat_cur_fps">- [fps]</span>
+          <span>Avg FrameRate: </span>
+          <span id="stat_avg_fps">- [fps]</span>
+        </div>
+        <div style="font-size: 80%">
+          <span>Source Timestamp: </span>
+          <span id="stat_in_ts">--:--.---</span>
+          <span>Decoded Timestamp: </span>
+          <span id="stat_out_ts">--:--.---</span>
+        </div>
+        <div style="font-size: 80%">
+          <span>Cur Bitrate: </span>
+          <span id="stat_cur_bitrate">- [kbps] / - [kbits/frame]</span>
+          <span>Avg Bitrate: </span>
+          <span id="stat_avg_bitrate">- [kbps] / - [kbits/frame]</span>
+        </div>
+        <div style="font-size: 80%">
+          <span>Encoded Frames: </span>
+          <span id="stat_enc_frames">-</span>
+          <span>Decoded Frames: </span>
+          <span id="stat_dec_frames">-</span>
+        </div>
+      </fieldset>
+    </div>
+    <div>
+      <fieldset>
+        <legend>Source</legend>
+        <canvas id="source"></canvas>
+      </fieldset>
+      <fieldset>
+        <legend>Decoded</legend>
+        <canvas id="decoded"></canvas>
+      </fieldset>
+    </div>
+  </body>
+</html>

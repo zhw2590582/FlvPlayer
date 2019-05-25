@@ -27,6 +27,7 @@ export default class Player {
         this.videoFrames = [];
         flv.on('videoFrame', videoFrame => {
             this.videoFrames.push(videoFrame);
+            this.context.putImageData(videoFrame, 0, 0);
         });
     }
 }

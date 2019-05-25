@@ -452,6 +452,8 @@
     this.videoFrames = [];
     flv.on('videoFrame', function (videoFrame) {
       _this.videoFrames.push(videoFrame);
+
+      _this.context.putImageData(videoFrame, 0, 0);
     });
   };
 
@@ -4724,6 +4726,17 @@
     return Renderer;
   }();
 
+  var FrameType;
+
+  (function FrameTypeFn(FrameType) {
+    FrameType[FrameType['Key'] = 1] = 'Key';
+    FrameType[FrameType['IDR'] = 1] = 'IDR';
+    FrameType[FrameType['I'] = 2] = 'I';
+    FrameType[FrameType['P'] = 3] = 'P';
+    FrameType[FrameType['B'] = 4] = 'B';
+    FrameType[FrameType['Unknown'] = 255] = 'Unknown';
+  })(FrameType || (FrameType = {}));
+
   var nalStart$1 = new Uint8Array([0x00, 0x00, 0x00, 0x01]);
 
   var Decoder =
@@ -4742,11 +4755,75 @@
       this.h264DecoderInitialized = false;
       var sps = null;
       var pps = null;
+      var nalus = [];
       flv.on('videoData', function (nalu) {
-        _this.h264Parser.parse(nalu);
+        var readNalu = readBuffer(nalu);
+        readNalu(4);
+        var nalHeader = readNalu(1)[0];
+        var naluType = nalHeader & 31;
 
-        var naluInfo = _this.h264Parser.next();
+        switch (naluType) {
+          case 1:
+          case 5:
+            {
+              var rawdata = mergeBuffer(sps, pps, nalStart$1, nalu);
+              var packet = {
+                status: 0,
+                data: rawdata.buffer,
+                frame_type: 255
+              };
 
+              if (!_this.h264DecoderInitialized) {
+                _this.h264DecoderInitialized = true;
+                _this.renderer = new Renderer(player.canvas);
+
+                _this.h264setup(options.h264Configuration, packet).then(function (frame) {
+                  console.log(frame);
+
+                  if (frame.data) {
+                    var videoFrame = _this.renderer.converter(frame);
+
+                    flv.emit('videoFrame', videoFrame);
+                  }
+                }, function (err) {
+                  debug.warn(false, '[h264]: decode failed', err);
+                });
+              } else {
+                _this.h264decode(packet).then(function (frame) {
+                  console.log(frame);
+
+                  if (frame.data) {
+                    var videoFrame = _this.renderer.converter(frame);
+
+                    flv.emit('videoFrame', videoFrame);
+                  }
+                }, function (err) {
+                  debug.warn(false, '[h264]: decode failed', err);
+                });
+              }
+
+              break;
+            }
+
+          case 7:
+            sps = nalu;
+            break;
+
+          case 8:
+            pps = nalu;
+            break;
+
+          default:
+            debug.warn(false, "[NALU]: Found extra nalu type ".concat(naluType));
+            break;
+        }
+      });
+
+      this.test = function test() {
+        var data = nalus.shift();
+        console.log(data);
+        this.h264Parser.parse(data);
+        var naluInfo = this.h264Parser.next();
         if (!naluInfo) return;
         var rawdata = null;
 
@@ -4762,48 +4839,20 @@
 
           case 'SPS':
             sps = mergeBuffer(nalStart$1, naluInfo['@data']);
+            console.log('sps', sps);
             break;
 
           case 'PPS':
             pps = mergeBuffer(nalStart$1, naluInfo['@data']);
+            console.log('pps', pps);
             break;
 
           default:
             break;
-        }
+        } // console.log(rawdata);
+        // if (!rawdata) return;
 
-        if (!rawdata) return;
-        var packet = {
-          data: rawdata,
-          frame_type: 255
-        };
-
-        if (!_this.h264DecoderInitialized) {
-          _this.h264DecoderInitialized = true;
-          _this.renderer = new Renderer(player.canvas);
-
-          _this.h264setup(options.h264Configuration, packet).then(function (frame) {
-            if (frame.data) {
-              var videoFrame = _this.renderer.converter(frame);
-
-              flv.emit('videoFrame', videoFrame);
-            }
-          }, function (err) {
-            debug.warn(false, '[h264]: decode failed', err);
-          });
-        } else {
-          _this.h264decode(packet).then(function (frame) {
-            if (frame.data) {
-              var videoFrame = _this.renderer.converter(frame);
-
-              flv.emit('videoFrame', videoFrame);
-            }
-          }, function (err) {
-            console.log(naluInfo);
-            debug.warn(false, '[h264]: decode failed', err);
-          });
-        }
-      });
+      };
     }
 
     createClass(Decoder, [{
@@ -4840,7 +4889,7 @@
             }
           };
 
-          _this3.worker.postMessage(packet);
+          _this3.worker.postMessage(packet, [packet.data]);
         });
       }
     }]);

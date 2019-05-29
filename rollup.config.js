@@ -28,7 +28,7 @@ module.exports = {
     },
     plugins: [
         eslint({
-            exclude: ['node_modules/**', 'src/player/style.scss'],
+            exclude: ['node_modules/**', 'src/decoder/scheme', 'src/player/style.scss'],
         }),
         postcss({
             plugins: [

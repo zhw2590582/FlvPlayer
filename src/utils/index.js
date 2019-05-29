@@ -33,7 +33,7 @@ export function readBuffer(buffer) {
 export function mergeBuffer(...buffers) {
     const Cons = buffers[0].constructor;
     return buffers.reduce((pre, val) => {
-        let merge = new Cons((pre.byteLength | 0) + (val.byteLength | 0));
+        const merge = new Cons((pre.byteLength | 0) + (val.byteLength | 0));
         merge.set(pre, 0);
         merge.set(val, pre.byteLength | 0);
         return merge;
@@ -66,21 +66,4 @@ export function string2Buffer(string) {
 
 export function readBufferSum(array, uint = true) {
     return array.reduce((totle, num, index) => totle + (uint ? num : num - 128) * 256 ** (array.length - index - 1), 0);
-}
-
-export function hexToBuffer(hexString) {
-    const result = new Uint8Array(hexString.length / 2);
-    const bytes = hexString.split('');
-    for (let i = 0, j = 0, iz = bytes.length; i < iz; i += 2, j += 1) {
-        result[j] = parseInt(bytes[i] + bytes[i + 1], 16);
-    }
-    return result;
-}
-
-export function decimalToBinary(decimalArr) {
-    return Array.from(decimalArr).map(item => (Array(8).join(0) + item.toString(2)).toUpperCase().slice(-8));
-}
-
-export function decimalToHex(decimalArr) {
-    return Array.from(decimalArr).map(item => (Array(2).join(0) + item.toString(16)).toUpperCase().slice(-2));
 }

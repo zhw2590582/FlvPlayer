@@ -4,3 +4,4 @@ test
 .DS_Store
 package-lock.json
 yarn.lock
+docs/*.flv

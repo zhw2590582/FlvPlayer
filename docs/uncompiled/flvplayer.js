@@ -377,6 +377,16 @@
       type: 'application/javascript'
     })));
   }
+  function secondToTime(second) {
+    var add0 = function add0(num) {
+      return num < 10 ? "0".concat(num) : String(num);
+    };
+
+    var hour = Math.floor(second / 3600);
+    var min = Math.floor((second - hour * 3600) / 60);
+    var sec = Math.floor(second - hour * 3600 - min * 60);
+    return (hour > 0 ? [hour, min, sec] : [min, sec]).map(add0).join(':');
+  }
 
   function optionValidator (flv) {
     var _flv$options = flv.options,
@@ -486,7 +496,7 @@
   function templateInit(flv, player) {
     var options = flv.options;
     options.container.classList.add('flv-player-container');
-    options.container.innerHTML = "\n        <div class=\"flv-player-inner\">\n            <canvas class=\"flv-player-canvas\" width=\"".concat(options.width, "\" height=\"").concat(options.height, "\"></canvas>\n            <div class=\"flv-player-controls\">\n                <div class=\"flv-player-controls-top\">\n                    <div class=\"flv-player-controls-left\">\n                        <div class=\"flv-player-controls-item flv-player-state\">\n                            <div class=\"flv-player-play\">").concat(flv.icons.play, "</div>\n                            <div class=\"flv-player-pause\">").concat(flv.icons.pause, "</div>\n                        </div>\n                        <div class=\"flv-player-controls-item flv-player-time\">00:00 / 00:00</div>\n                    </div>\n                    <div class=\"flv-player-controls-right\">\n                        <div class=\"flv-player-controls-item flv-player-volume\">").concat(flv.icons.volume, "</div>\n                        <div class=\"flv-player-controls-item flv-player-fullscreen\">").concat(flv.icons.fullscreen, "</div>\n                    </div>\n                </div>\n                <div class=\"flv-player-controls-progress\">\n                    <div class=\"flv-player-loaded\"></div>\n                    <div class=\"flv-player-played\">\n                        <div class=\"flv-player-indicator\"></div>\n                    </div>\n                </div>\n            </div>\n        </div>\n    ");
+    options.container.innerHTML = "\n        <div class=\"flv-player-inner\">\n            <canvas class=\"flv-player-canvas\" width=\"".concat(options.width, "\" height=\"").concat(options.height, "\"></canvas>\n            <div class=\"flv-player-controls\">\n                <div class=\"flv-player-controls-top\">\n                    <div class=\"flv-player-controls-left\">\n                        <div class=\"flv-player-controls-item flv-player-state\">\n                            <div class=\"flv-player-play\">").concat(flv.icons.play, "</div>\n                            <div class=\"flv-player-pause\">").concat(flv.icons.pause, "</div>\n                        </div>\n                        <div class=\"flv-player-controls-item flv-player-time\">\n                            <span class=\"flv-player-current\">00:00</span> / <span class=\"flv-player-duration\">00:00</span>\n                        </div>\n                    </div>\n                    <div class=\"flv-player-controls-right\">\n                        <div class=\"flv-player-controls-item flv-player-volume\">").concat(flv.icons.volume, "</div>\n                        <div class=\"flv-player-controls-item flv-player-fullscreen\">").concat(flv.icons.fullscreen, "</div>\n                    </div>\n                </div>\n                <div class=\"flv-player-controls-progress\">\n                    <div class=\"flv-player-loaded\"></div>\n                    <div class=\"flv-player-played\">\n                        <div class=\"flv-player-indicator\"></div>\n                    </div>\n                </div>\n            </div>\n        </div>\n    ");
     Object.defineProperty(player, '$container', {
       value: options.container
     });
@@ -508,8 +518,11 @@
     Object.defineProperty(player, '$pause', {
       value: options.container.querySelector('.flv-player-pause')
     });
-    Object.defineProperty(player, '$time', {
-      value: options.container.querySelector('.flv-player-time')
+    Object.defineProperty(player, '$current', {
+      value: options.container.querySelector('.flv-player-current')
+    });
+    Object.defineProperty(player, '$duration', {
+      value: options.container.querySelector('.flv-player-duration')
     });
     Object.defineProperty(player, '$volume', {
       value: options.container.querySelector('.flv-player-volume')
@@ -522,6 +535,50 @@
     });
     Object.defineProperty(player, '$indicator', {
       value: options.container.querySelector('.flv-player-indicator')
+    });
+  }
+
+  function videoMix(flv, player) {
+    Object.defineProperty(player, 'currentTime', {
+      get: function get() {
+        return true;
+      },
+      set: function set(value) {
+        return value;
+      }
+    });
+    Object.defineProperty(player, 'duration', {
+      get: function get() {
+        return true;
+      }
+    });
+    Object.defineProperty(player, 'volume', {
+      get: function get() {
+        return true;
+      },
+      set: function set(value) {
+        return value;
+      }
+    });
+    Object.defineProperty(player, 'ended', {
+      value: function value() {
+        return true;
+      }
+    });
+    Object.defineProperty(player, 'playing', {
+      value: function value() {
+        return true;
+      }
+    });
+    Object.defineProperty(player, 'play', {
+      value: function value() {
+        return true;
+      }
+    });
+    Object.defineProperty(player, 'pause', {
+      value: function value() {
+        return true;
+      }
     });
   }
 
@@ -580,11 +637,22 @@
     classCallCheck(this, Player);
 
     templateInit(flv, this);
+    videoMix(flv, this);
     propertysMix(flv, this);
     autoSize(flv, this);
-    this.autoSize();
-    flv.on('sizeChange', function () {
-      _this.autoSize();
+    flv.on('scripMeta', function (scripMeta) {
+      var metaData = scripMeta.amf2.metaData;
+
+      if (metaData.width && metaData.height) {
+        _this.$canvas.width = metaData.width;
+        _this.$canvas.height = metaData.height;
+
+        _this.autoSize();
+      }
+
+      if (metaData.duration && !flv.options.live) {
+        _this.$duration.innerText = secondToTime(metaData.duration);
+      }
     });
   };
 
@@ -1260,22 +1328,6 @@
       if (!message.hasOwnProperty('type')) return;
 
       switch (message.type) {
-        case 'pictureParams':
-          {
-            var croppingParams = message.croppingParams;
-
-            if (croppingParams === null) {
-              $canvas.width = message.width;
-              $canvas.height = message.height;
-            } else {
-              $canvas.width = croppingParams.width;
-              $canvas.height = croppingParams.height;
-            }
-
-            flv.emit('sizeChange');
-            break;
-          }
-
         case 'pictureReady':
           _this.renderer.drawNextOutputPicture(message.width, message.height, message.croppingParams, new Uint8Array(message.data));
 
@@ -1533,7 +1585,9 @@
           container: null,
           debug: false,
           live: false,
-          controls: true,
+          muted: false,
+          loop: false,
+          autoplay: false,
           width: 400,
           height: 300
         };

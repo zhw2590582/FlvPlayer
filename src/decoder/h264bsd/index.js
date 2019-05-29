@@ -16,18 +16,6 @@ export default class Decoder {
             const message = event.data;
             if (!message.hasOwnProperty('type')) return;
             switch (message.type) {
-                case 'pictureParams': {
-                    const { croppingParams } = message;
-                    if (croppingParams === null) {
-                        $canvas.width = message.width;
-                        $canvas.height = message.height;
-                    } else {
-                        $canvas.width = croppingParams.width;
-                        $canvas.height = croppingParams.height;
-                    }
-                    flv.emit('sizeChange');
-                    break;
-                }
                 case 'pictureReady':
                     this.renderer.drawNextOutputPicture(
                         message.width,

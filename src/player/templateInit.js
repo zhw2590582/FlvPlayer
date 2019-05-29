@@ -11,7 +11,9 @@ export default function templateInit(flv, player) {
                             <div class="flv-player-play">${flv.icons.play}</div>
                             <div class="flv-player-pause">${flv.icons.pause}</div>
                         </div>
-                        <div class="flv-player-controls-item flv-player-time">00:00 / 00:00</div>
+                        <div class="flv-player-controls-item flv-player-time">
+                            <span class="flv-player-current">00:00</span> / <span class="flv-player-duration">00:00</span>
+                        </div>
                     </div>
                     <div class="flv-player-controls-right">
                         <div class="flv-player-controls-item flv-player-volume">${flv.icons.volume}</div>
@@ -56,8 +58,12 @@ export default function templateInit(flv, player) {
         value: options.container.querySelector('.flv-player-pause'),
     });
 
-    Object.defineProperty(player, '$time', {
-        value: options.container.querySelector('.flv-player-time'),
+    Object.defineProperty(player, '$current', {
+        value: options.container.querySelector('.flv-player-current'),
+    });
+
+    Object.defineProperty(player, '$duration', {
+        value: options.container.querySelector('.flv-player-duration'),
     });
 
     Object.defineProperty(player, '$volume', {

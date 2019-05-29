@@ -486,7 +486,7 @@
   function templateInit(flv, player) {
     var options = flv.options;
     options.container.classList.add('flv-player-container');
-    options.container.innerHTML = "\n        <div class=\"flv-player-inner\">\n            <canvas class=\"flv-player-canvas\" width=\"".concat(options.width, "\" height=\"").concat(options.height, "\"></canvas>\n            <div class=\"flv-player-controls\">\n                <div class=\"flv-player-controls-top\">\n                    <div class=\"flv-player-controls-left\">\n                        <div class=\"flv-player-controls-item flv-player-state\">\n                            <div class=\"flv-player-state-play\">").concat(flv.icons.play, "</div>\n                            <div class=\"flv-player-state-pause\">").concat(flv.icons.pause, "</div>\n                        </div>\n                        <div class=\"flv-player-controls-item flv-player-time\">00:00 / 00:00</div>\n                    </div>\n                    <div class=\"flv-player-controls-right\">\n                        <div class=\"flv-player-controls-item flv-player-volume\">").concat(flv.icons.volume, "</div>\n                        <div class=\"flv-player-controls-item flv-player-fullscreen\">").concat(flv.icons.fullscreen, "</div>\n                    </div>\n                </div>\n                <div class=\"flv-player-controls-progress\">\n                    <div class=\"flv-player-controls-loaded\"></div>\n                    <div class=\"flv-player-controls-played\">\n                        <div class=\"flv-player-controls-indicator\"></div>\n                    </div>\n                </div>\n            </div>\n        </div>\n    ");
+    options.container.innerHTML = "\n        <div class=\"flv-player-inner\">\n            <canvas class=\"flv-player-canvas\" width=\"".concat(options.width, "\" height=\"").concat(options.height, "\"></canvas>\n            <div class=\"flv-player-controls\">\n                <div class=\"flv-player-controls-top\">\n                    <div class=\"flv-player-controls-left\">\n                        <div class=\"flv-player-controls-item flv-player-state\">\n                            <div class=\"flv-player-play\">").concat(flv.icons.play, "</div>\n                            <div class=\"flv-player-pause\">").concat(flv.icons.pause, "</div>\n                        </div>\n                        <div class=\"flv-player-controls-item flv-player-time\">00:00 / 00:00</div>\n                    </div>\n                    <div class=\"flv-player-controls-right\">\n                        <div class=\"flv-player-controls-item flv-player-volume\">").concat(flv.icons.volume, "</div>\n                        <div class=\"flv-player-controls-item flv-player-fullscreen\">").concat(flv.icons.fullscreen, "</div>\n                    </div>\n                </div>\n                <div class=\"flv-player-controls-progress\">\n                    <div class=\"flv-player-loaded\"></div>\n                    <div class=\"flv-player-played\">\n                        <div class=\"flv-player-indicator\"></div>\n                    </div>\n                </div>\n            </div>\n        </div>\n    ");
     Object.defineProperty(player, '$container', {
       value: options.container
     });
@@ -498,6 +498,30 @@
     });
     Object.defineProperty(player, '$controls', {
       value: options.container.querySelector('.flv-player-controls')
+    });
+    Object.defineProperty(player, '$state', {
+      value: options.container.querySelector('.flv-player-state')
+    });
+    Object.defineProperty(player, '$play', {
+      value: options.container.querySelector('.flv-player-play')
+    });
+    Object.defineProperty(player, '$pause', {
+      value: options.container.querySelector('.flv-player-pause')
+    });
+    Object.defineProperty(player, '$time', {
+      value: options.container.querySelector('.flv-player-time')
+    });
+    Object.defineProperty(player, '$volume', {
+      value: options.container.querySelector('.flv-player-volume')
+    });
+    Object.defineProperty(player, '$fullscreen', {
+      value: options.container.querySelector('.flv-player-fullscreen')
+    });
+    Object.defineProperty(player, '$played', {
+      value: options.container.querySelector('.flv-player-played')
+    });
+    Object.defineProperty(player, '$indicator', {
+      value: options.container.querySelector('.flv-player-indicator')
     });
   }
 

@@ -66,7 +66,7 @@
                     display: flex;
                     align-items: center;
                     .flv-player-state {
-                        .flv-player-state-pause {
+                        .flv-player-pause {
                             display: none;
                         }
                     }
@@ -84,30 +84,30 @@
                 border-radius: 3px;
                 background: rgba(255, 255, 255, 0.25);
 
-                .flv-player-controls-loaded {
+                .flv-player-loaded {
                     cursor: pointer;
                     position: absolute;
                     left: 0;
                     top: 0;
                     bottom: 0;
-                    width: 300px;
+                    width: 50%;
                     height: 100%;
                     border-radius: 3px;
                     background: rgba(255, 255, 255, 0.5);
                 }
 
-                .flv-player-controls-played {
+                .flv-player-played {
                     cursor: pointer;
                     position: absolute;
                     left: 0;
                     top: 0;
                     bottom: 0;
-                    width: 100px;
+                    width: 20%;
                     height: 100%;
                     border-radius: 3px;
                     background: rgba(255, 255, 255, 1);
 
-                    .flv-player-controls-indicator {
+                    .flv-player-indicator {
                         position: absolute;
                         top: 50%;
                         right: 0;

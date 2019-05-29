@@ -8,8 +8,8 @@ export default function templateInit(flv, player) {
                 <div class="flv-player-controls-top">
                     <div class="flv-player-controls-left">
                         <div class="flv-player-controls-item flv-player-state">
-                            <div class="flv-player-state-play">${flv.icons.play}</div>
-                            <div class="flv-player-state-pause">${flv.icons.pause}</div>
+                            <div class="flv-player-play">${flv.icons.play}</div>
+                            <div class="flv-player-pause">${flv.icons.pause}</div>
                         </div>
                         <div class="flv-player-controls-item flv-player-time">00:00 / 00:00</div>
                     </div>
@@ -19,9 +19,9 @@ export default function templateInit(flv, player) {
                     </div>
                 </div>
                 <div class="flv-player-controls-progress">
-                    <div class="flv-player-controls-loaded"></div>
-                    <div class="flv-player-controls-played">
-                        <div class="flv-player-controls-indicator"></div>
+                    <div class="flv-player-loaded"></div>
+                    <div class="flv-player-played">
+                        <div class="flv-player-indicator"></div>
                     </div>
                 </div>
             </div>
@@ -42,5 +42,37 @@ export default function templateInit(flv, player) {
 
     Object.defineProperty(player, '$controls', {
         value: options.container.querySelector('.flv-player-controls'),
+    });
+
+    Object.defineProperty(player, '$state', {
+        value: options.container.querySelector('.flv-player-state'),
+    });
+
+    Object.defineProperty(player, '$play', {
+        value: options.container.querySelector('.flv-player-play'),
+    });
+
+    Object.defineProperty(player, '$pause', {
+        value: options.container.querySelector('.flv-player-pause'),
+    });
+
+    Object.defineProperty(player, '$time', {
+        value: options.container.querySelector('.flv-player-time'),
+    });
+
+    Object.defineProperty(player, '$volume', {
+        value: options.container.querySelector('.flv-player-volume'),
+    });
+
+    Object.defineProperty(player, '$fullscreen', {
+        value: options.container.querySelector('.flv-player-fullscreen'),
+    });
+
+    Object.defineProperty(player, '$played', {
+        value: options.container.querySelector('.flv-player-played'),
+    });
+
+    Object.defineProperty(player, '$indicator', {
+        value: options.container.querySelector('.flv-player-indicator'),
     });
 }

@@ -1,8 +1,8 @@
 import { secondToTime } from '../utils';
-import templateInit from './templateInit';
-import videoMix from './videoMix';
-import rectMix from './rectMix';
-import autoSizeMix from './autoSizeMix';
+import templateInit from './template';
+import videoMix from './mixer/videoMix';
+import rectMix from './mixer/rectMix';
+import autoSizeMix from './mixer/autoSizeMix';
 
 export default class Player {
     constructor(flv) {

@@ -1588,6 +1588,7 @@
           muted: false,
           loop: false,
           autoplay: false,
+          headers: {},
           width: 400,
           height: 300
         };

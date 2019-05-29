@@ -12,7 +12,6 @@ export default class Demuxer {
         this.uint8 = new Uint8Array(0);
         this.index = 0;
         this.header = null;
-        this.loaded = false;
 
         flv.on('streamStart', () => {
             debug.log('stream-start', options.url);
@@ -32,7 +31,7 @@ export default class Demuxer {
                 this.parse();
             }
 
-            this.loaded = true;
+            flv.isLoaded = true;
             flv.emit('parseDone');
             debug.log('parse-done');
         });

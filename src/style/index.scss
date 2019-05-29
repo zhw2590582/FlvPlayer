@@ -1,0 +1,124 @@
+.flv-player-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    
+    * {
+        box-sizing: border-box;
+    }
+
+    .flv-player-icon {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        line-height: 1.5;
+        cursor: pointer;
+        svg {
+            fill: #fff;
+        }
+    }
+
+    .flv-player-inner {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        
+        .flv-player-canvas {
+            cursor: pointer;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+        }
+    
+        .flv-player-controls {
+            display: flex;
+            flex-direction: column;
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 100px;
+            padding: 50px 10px 0;
+            font-size: 13px;
+            // opacity: 0;
+            // visibility: hidden;
+            transition: all .2s ease-in-out;
+            background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAADGCAYAAAAT+OqFAAAAdklEQVQoz42QQQ7AIAgEF/T/D+kbq/RWAlnQyyazA4aoAB4FsBSA/bFjuF1EOL7VbrIrBuusmrt4ZZORfb6ehbWdnRHEIiITaEUKa5EJqUakRSaEYBJSCY2dEstQY7AuxahwXFrvZmWl2rh4JZ07z9dLtesfNj5q0FU3A5ObbwAAAABJRU5ErkJggg==) repeat-x bottom;
+            
+            .flv-player-controls-item {
+                padding: 0 5px;
+            }
+
+            .flv-player-controls-top {
+                display: flex;
+                justify-content: space-between;
+                height: 22px;
+                margin-bottom: 10px;
+
+                .flv-player-controls-left {
+                    display: flex;
+                    align-items: center;
+                    .flv-player-state {
+                        .flv-player-state-pause {
+                            display: none;
+                        }
+                    }
+                }
+
+                .flv-player-controls-right {
+                    display: flex;
+                    align-items: center;
+                }
+            }
+
+            .flv-player-controls-progress {
+                position: relative;
+                height: 3px;
+                border-radius: 3px;
+                background: rgba(255, 255, 255, 0.25);
+
+                .flv-player-controls-loaded {
+                    cursor: pointer;
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    bottom: 0;
+                    width: 300px;
+                    height: 100%;
+                    border-radius: 3px;
+                    background: rgba(255, 255, 255, 0.5);
+                }
+
+                .flv-player-controls-played {
+                    cursor: pointer;
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    bottom: 0;
+                    width: 100px;
+                    height: 100%;
+                    border-radius: 3px;
+                    background: rgba(255, 255, 255, 1);
+
+                    .flv-player-controls-indicator {
+                        position: absolute;
+                        top: 50%;
+                        right: 0;
+                        width: 12px;
+                        height: 12px;
+                        margin: -6px -6px 0 0;
+                        border-radius: 50%;
+                        background: rgba(255, 255, 255, 1);
+                    }
+                }
+            }
+        }
+    }
+}

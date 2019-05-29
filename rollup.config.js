@@ -29,7 +29,7 @@ module.exports = {
     },
     plugins: [
         eslint({
-            exclude: ['node_modules/**', 'src/decoder', 'src/player/style.scss'],
+            exclude: ['node_modules/**', 'src/decoder', 'src/style/*.scss', 'src/icons/*.svg'],
         }),
         postcss({
             plugins: [
@@ -44,7 +44,7 @@ module.exports = {
             extract: isProd ? 'dist/flvplayer.css' : 'docs/uncompiled/flvplayer.css',
         }),
         string({
-            include: 'src/decoder/**/*.worker',
+            include: ['src/decoder/**/*.worker', 'src/icons/*.svg'],
         }),
         nodeResolve(),
         commonjs(),

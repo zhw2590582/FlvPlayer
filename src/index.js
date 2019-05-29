@@ -1,7 +1,9 @@
+import './style/index.scss';
 import Emitter from 'tiny-emitter';
 import optionValidator from './utils/optionValidator';
 import Debug from './debug';
 import Events from './events';
+import Icons from './icons';
 import Player from './player';
 import Demuxer from './demuxer';
 import Decoder from './decoder/h264bsd';
@@ -16,6 +18,7 @@ class FlvPlayer extends Emitter {
 
         this.debug = new Debug(this);
         this.events = new Events(this);
+        this.icons = new Icons(this);
         this.player = new Player(this);
         this.decoder = new Decoder(this);
         this.demuxer = new Demuxer(this);
@@ -23,6 +26,8 @@ class FlvPlayer extends Emitter {
 
         id += 1;
         this.id = id;
+        this.isDestroy = false;
+        this.isLoaded = false;
         FlvPlayer.instances.push(this);
     }
 
@@ -33,8 +38,8 @@ class FlvPlayer extends Emitter {
             debug: false,
             live: false,
             controls: true,
-            width: 1280,
-            height: 720,
+            width: 400,
+            height: 300,
         };
     }
 
@@ -48,6 +53,11 @@ class FlvPlayer extends Emitter {
 
     destroy() {
         this.events.destroy();
+        this.decoder.destroy();
+        this.demuxer.destroy();
+        this.stream.destroy();
+        this.options.container.innerHTML = '';
+        this.isDestroy = true;
         FlvPlayer.instances.splice(FlvPlayer.instances.indexOf(this), 1);
         this.emit('destroy');
     }

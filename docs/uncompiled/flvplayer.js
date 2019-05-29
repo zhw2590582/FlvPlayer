@@ -456,17 +456,112 @@
     return Events;
   }();
 
-  var Player = function Player(flv) {
-    classCallCheck(this, Player);
+  var play = "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"22\" width=\"22\" viewBox=\"0 0 22 22\">\n  <path d=\"M17.982 9.275L8.06 3.27A2.013 2.013 0 0 0 5 4.994v12.011a2.017 2.017 0 0 0 3.06 1.725l9.922-6.005a2.017 2.017 0 0 0 0-3.45z\"></path>\n</svg>";
 
-    this.flv = flv;
+  var pause = "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"22\" width=\"22\" viewBox=\"0 0 22 22\">\n    <path d=\"M7 3a2 2 0 0 0-2 2v12a2 2 0 1 0 4 0V5a2 2 0 0 0-2-2zM15 3a2 2 0 0 0-2 2v12a2 2 0 1 0 4 0V5a2 2 0 0 0-2-2z\"></path>\n</svg>";
+
+  var volume = "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"22\" width=\"22\" viewBox=\"0 0 22 22\">\n    <path d=\"M10.188 4.65L6 8H5a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1l4.188 3.35a.5.5 0 0 0 .812-.39V5.04a.498.498 0 0 0-.812-.39zM14.446 3.778a1 1 0 0 0-.862 1.804 6.002 6.002 0 0 1-.007 10.838 1 1 0 0 0 .86 1.806A8.001 8.001 0 0 0 19 11a8.001 8.001 0 0 0-4.554-7.222z\"></path>\n    <path d=\"M15 11a3.998 3.998 0 0 0-2-3.465v6.93A3.998 3.998 0 0 0 15 11z\"></path>\n</svg>";
+
+  var volumeClose = "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"22\" width=\"22\" viewBox=\"0 0 22 22\">\n    <path d=\"M15 11a3.998 3.998 0 0 0-2-3.465v2.636l1.865 1.865A4.02 4.02 0 0 0 15 11z\"></path>\n    <path d=\"M13.583 5.583A5.998 5.998 0 0 1 17 11a6 6 0 0 1-.585 2.587l1.477 1.477a8.001 8.001 0 0 0-3.446-11.286 1 1 0 0 0-.863 1.805zM18.778 18.778l-2.121-2.121-1.414-1.414-1.415-1.415L13 13l-2-2-3.889-3.889-3.889-3.889a.999.999 0 1 0-1.414 1.414L5.172 8H5a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1l4.188 3.35a.5.5 0 0 0 .812-.39v-3.131l2.587 2.587-.01.005a1 1 0 0 0 .86 1.806c.215-.102.424-.214.627-.333l2.3 2.3a1.001 1.001 0 0 0 1.414-1.416zM11 5.04a.5.5 0 0 0-.813-.39L8.682 5.854 11 8.172V5.04z\"></path>\n</svg>";
+
+  var fullscreen = "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"36\" width=\"36\" viewBox=\"0 0 36 36\">\n\t<path d=\"m 10,16 2,0 0,-4 4,0 0,-2 L 10,10 l 0,6 0,0 z\"></path>\n\t<path d=\"m 20,10 0,2 4,0 0,4 2,0 L 26,10 l -6,0 0,0 z\"></path>\n\t<path d=\"m 24,24 -4,0 0,2 L 26,26 l 0,-6 -2,0 0,4 0,0 z\"></path>\n\t<path d=\"M 12,20 10,20 10,26 l 6,0 0,-2 -4,0 0,-4 0,0 z\"></path>\n</svg>";
+
+  var Icons = function Icons() {
+    var _this = this;
+
+    classCallCheck(this, Icons);
+
+    var icons = {
+      play: play,
+      pause: pause,
+      volume: volume,
+      volumeClose: volumeClose,
+      fullscreen: fullscreen
+    };
+    Object.keys(icons).forEach(function (key) {
+      _this[key] = "<i class=\"flv-player-icon flv-player-icon-".concat(key, "\">").concat(icons[key], "</i>");
+    });
+  };
+
+  function templateInit(flv, player) {
     var options = flv.options;
     options.container.classList.add('flv-player-container');
-    this.canvas = document.createElement('canvas');
-    this.canvas.classList.add('flv-player-canvas');
-    this.canvas.width = options.width;
-    this.canvas.height = options.height;
-    options.container.appendChild(this.canvas);
+    options.container.innerHTML = "\n        <div class=\"flv-player-inner\">\n            <canvas class=\"flv-player-canvas\" width=\"".concat(options.width, "\" height=\"").concat(options.height, "\"></canvas>\n            <div class=\"flv-player-controls\">\n                <div class=\"flv-player-controls-top\">\n                    <div class=\"flv-player-controls-left\">\n                        <div class=\"flv-player-controls-item flv-player-state\">\n                            <div class=\"flv-player-state-play\">").concat(flv.icons.play, "</div>\n                            <div class=\"flv-player-state-pause\">").concat(flv.icons.pause, "</div>\n                        </div>\n                        <div class=\"flv-player-controls-item flv-player-time\">00:00 / 00:00</div>\n                    </div>\n                    <div class=\"flv-player-controls-right\">\n                        <div class=\"flv-player-controls-item flv-player-volume\">").concat(flv.icons.volume, "</div>\n                        <div class=\"flv-player-controls-item flv-player-fullscreen\">").concat(flv.icons.fullscreen, "</div>\n                    </div>\n                </div>\n                <div class=\"flv-player-controls-progress\">\n                    <div class=\"flv-player-controls-loaded\"></div>\n                    <div class=\"flv-player-controls-played\">\n                        <div class=\"flv-player-controls-indicator\"></div>\n                    </div>\n                </div>\n            </div>\n        </div>\n    ");
+    Object.defineProperty(player, '$container', {
+      value: options.container
+    });
+    Object.defineProperty(player, '$inner', {
+      value: options.container.querySelector('.flv-player-inner')
+    });
+    Object.defineProperty(player, '$canvas', {
+      value: options.container.querySelector('.flv-player-canvas')
+    });
+    Object.defineProperty(player, '$controls', {
+      value: options.container.querySelector('.flv-player-controls')
+    });
+  }
+
+  function propertysMix(flv, player) {
+    Object.defineProperty(player, 'rect', {
+      get: function get() {
+        return flv.options.container.getBoundingClientRect();
+      }
+    });
+    ['bottom', 'height', 'left', 'right', 'top', 'width'].forEach(function (key) {
+      Object.defineProperty(player, key, {
+        get: function get() {
+          return player.rect[key];
+        }
+      });
+    });
+    Object.defineProperty(player, 'x', {
+      get: function get() {
+        return player.left + window.pageXOffset;
+      }
+    });
+    Object.defineProperty(player, 'y', {
+      get: function get() {
+        return player.top + window.pageYOffset;
+      }
+    });
+  }
+
+  function autoSize(flv, player) {
+    Object.defineProperty(player, 'autoSize', {
+      value: function value() {
+        var playerWidth = player.width;
+        var playerHeight = player.height;
+        var playerRatio = playerWidth / playerHeight;
+        var canvasWidth = player.$canvas.width;
+        var canvasHeight = player.$canvas.height;
+        var canvasRatio = canvasWidth / canvasHeight;
+
+        if (playerRatio > canvasRatio) {
+          var padding = (playerWidth - playerHeight * canvasRatio) / 2;
+          player.$container.style.paddingLeft = "".concat(padding, "px");
+          player.$container.style.paddingRight = "".concat(padding, "px");
+        } else {
+          var _padding = (playerHeight - playerWidth * canvasRatio) / 2;
+
+          player.$container.style.paddingTop = "".concat(_padding, "px");
+          player.$container.style.paddingBottom = "".concat(_padding, "px");
+        }
+      }
+    });
+  }
+
+  var Player = function Player(flv) {
+    var _this = this;
+
+    classCallCheck(this, Player);
+
+    templateInit(flv, this);
+    propertysMix(flv, this);
+    autoSize(flv, this);
+    this.autoSize();
+    flv.on('sizeChange', function () {
+      _this.autoSize();
+    });
   };
 
   var nalStart = new Uint8Array([0x00, 0x00, 0x00, 0x01]);
@@ -488,7 +583,6 @@
       this.uint8 = new Uint8Array(0);
       this.index = 0;
       this.header = null;
-      this.loaded = false;
       flv.on('streamStart', function () {
         debug.log('stream-start', options.url);
       });
@@ -508,7 +602,7 @@
           _this.parse();
         }
 
-        _this.loaded = true;
+        flv.isLoaded = true;
         flv.emit('parseDone');
         debug.log('parse-done');
       });
@@ -1133,10 +1227,10 @@
 
     classCallCheck(this, Decoder);
 
-    var canvas = flv.player.canvas,
+    var $canvas = flv.player.$canvas,
         proxy = flv.events.proxy;
     this.decoder = createWorker(workerString);
-    this.renderer = new H264bsdCanvas(canvas);
+    this.renderer = new H264bsdCanvas($canvas);
     proxy(this.decoder, 'message', function (event) {
       var message = event.data;
       if (!message.hasOwnProperty('type')) return;
@@ -1147,13 +1241,14 @@
             var croppingParams = message.croppingParams;
 
             if (croppingParams === null) {
-              canvas.width = message.width;
-              canvas.height = message.height;
+              $canvas.width = message.width;
+              $canvas.height = message.height;
             } else {
-              canvas.width = croppingParams.width;
-              canvas.height = croppingParams.height;
+              $canvas.width = croppingParams.width;
+              $canvas.height = croppingParams.height;
             }
 
+            flv.emit('sizeChange');
             break;
           }
 
@@ -1381,12 +1476,15 @@
       optionValidator(assertThisInitialized(_this));
       _this.debug = new Debug(assertThisInitialized(_this));
       _this.events = new Events(assertThisInitialized(_this));
+      _this.icons = new Icons(assertThisInitialized(_this));
       _this.player = new Player(assertThisInitialized(_this));
       _this.decoder = new Decoder(assertThisInitialized(_this));
       _this.demuxer = new Demuxer(assertThisInitialized(_this));
       _this.stream = new Stream(assertThisInitialized(_this));
       id += 1;
       _this.id = id;
+      _this.isDestroy = false;
+      _this.isLoaded = false;
       FlvPlayer.instances.push(assertThisInitialized(_this));
       return _this;
     }
@@ -1395,6 +1493,11 @@
       key: "destroy",
       value: function destroy() {
         this.events.destroy();
+        this.decoder.destroy();
+        this.demuxer.destroy();
+        this.stream.destroy();
+        this.options.container.innerHTML = '';
+        this.isDestroy = true;
         FlvPlayer.instances.splice(FlvPlayer.instances.indexOf(this), 1);
         this.emit('destroy');
       }
@@ -1407,8 +1510,8 @@
           debug: false,
           live: false,
           controls: true,
-          width: 1280,
-          height: 720
+          width: 400,
+          height: 300
         };
       }
     }, {

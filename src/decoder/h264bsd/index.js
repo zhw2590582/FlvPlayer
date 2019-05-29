@@ -5,12 +5,12 @@ import workerString from './h264bsd.worker';
 export default class Decoder {
     constructor(flv) {
         const {
-            player: { canvas },
+            player: { $canvas },
             events: { proxy },
         } = flv;
 
         this.decoder = createWorker(workerString);
-        this.renderer = new H264bsdCanvas(canvas);
+        this.renderer = new H264bsdCanvas($canvas);
 
         proxy(this.decoder, 'message', event => {
             const message = event.data;
@@ -19,12 +19,13 @@ export default class Decoder {
                 case 'pictureParams': {
                     const { croppingParams } = message;
                     if (croppingParams === null) {
-                        canvas.width = message.width;
-                        canvas.height = message.height;
+                        $canvas.width = message.width;
+                        $canvas.height = message.height;
                     } else {
-                        canvas.width = croppingParams.width;
-                        canvas.height = croppingParams.height;
+                        $canvas.width = croppingParams.width;
+                        $canvas.height = croppingParams.height;
                     }
+                    flv.emit('sizeChange');
                     break;
                 }
                 case 'pictureReady':

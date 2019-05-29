@@ -2,5 +2,6 @@
 /docs
 /test
 /src/decoder
+/src/icons/*.svg
 /node_modules
 ./rollup-config.js

@@ -1,14 +1,16 @@
-import './style.scss';
+import templateInit from './templateInit';
+import rectMix from './rectMix';
+import autoSizeMix from './autoSizeMix';
 
 export default class Player {
     constructor(flv) {
-        this.flv = flv;
-        const { options } = flv;
-        options.container.classList.add('flv-player-container');
-        this.canvas = document.createElement('canvas');
-        this.canvas.classList.add('flv-player-canvas');
-        this.canvas.width = options.width;
-        this.canvas.height = options.height;
-        options.container.appendChild(this.canvas);
+        templateInit(flv, this);
+        rectMix(flv, this);
+        autoSizeMix(flv, this);
+
+        this.autoSize();
+        flv.on('sizeChange', () => {
+            this.autoSize();
+        });
     }
 }

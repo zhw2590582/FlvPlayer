@@ -1,1 +1,0 @@
-{"version":3,"sources":["style.scss"],"names":[],"mappings":"AAAA,sBACE,iBAAkB,CAClB,mBAAa,CAAb,mBAAa,CAAb,YAAa,CACb,uBAAuB,CAAvB,oBAAuB,CAAvB,sBAAuB,CACvB,wBAAmB,CAAnB,qBAAmB,CAAnB,kBAAqB","file":"flvPlayer.css","sourcesContent":[".flv-player-container {\n  position: relative;\n  display: flex;\n  justify-content: center;\n  align-items: center; }\n"]}

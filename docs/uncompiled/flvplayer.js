@@ -1433,4 +1433,4 @@
   return FlvPlayer;
 
 }));
-//# sourceMappingURL=uncompiled-flvPlayer.js.map
+//# sourceMappingURL=flvplayer.js.map

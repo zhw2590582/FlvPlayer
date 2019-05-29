@@ -23,7 +23,7 @@ module.exports = {
     input: 'src/index.js',
     output: {
         name: 'FlvPlayer',
-        file: isProd ? 'dist/flvPlayer.js' : 'docs/uncompiled-flvPlayer.js',
+        file: isProd ? 'dist/flvplayer.js' : 'docs/uncompiled/flvplayer.js',
         format: 'umd',
         sourcemap: !isProd,
     },
@@ -40,8 +40,8 @@ module.exports = {
                     preset: 'default',
                 }),
             ],
-            sourceMap: isProd,
-            extract: isProd ? 'dist/flvPlayer.css' : 'docs/uncompiled-flvPlayer.css',
+            sourceMap: !isProd,
+            extract: isProd ? 'dist/flvplayer.css' : 'docs/uncompiled/flvplayer.css',
         }),
         string({
             include: 'src/decoder/**/*.worker',

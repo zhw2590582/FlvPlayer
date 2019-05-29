@@ -1,4 +1,4 @@
-import { mergeBuffer, readBuffer } from '../../utils';
+import { mergeBuffer, readBuffer, createWorker } from '../../utils';
 import H264bsdCanvas from './h264bsd_canvas';
 import workerString from './h264bsd.worker';
 
@@ -9,12 +9,10 @@ export default class Decoder {
             events: { proxy },
         } = flv;
 
-        const blobUrl = new Blob([workerString], { type: 'application/javascript' });
-        const workerUrl = URL.createObjectURL(blobUrl);
-        const h264bsdDecoder = new Worker(workerUrl);
-        const h264bsdDisplay = new H264bsdCanvas(canvas);
+        this.decoder = createWorker(workerString);
+        this.renderer = new H264bsdCanvas(canvas);
 
-        proxy(h264bsdDecoder, 'message', event => {
+        proxy(this.decoder, 'message', event => {
             const message = event.data;
             if (!message.hasOwnProperty('type')) return;
             switch (message.type) {
@@ -30,7 +28,7 @@ export default class Decoder {
                     break;
                 }
                 case 'pictureReady':
-                    h264bsdDisplay.drawNextOutputPicture(
+                    this.renderer.drawNextOutputPicture(
                         message.width,
                         message.height,
                         message.croppingParams,
@@ -53,7 +51,7 @@ export default class Decoder {
                 case 1:
                 case 5: {
                     const frame = mergeBuffer(sps, pps, nalu);
-                    h264bsdDecoder.postMessage({ type: 'queueInput', data: frame.buffer }, [frame.buffer]);
+                    this.decoder.postMessage({ type: 'queueInput', data: frame.buffer }, [frame.buffer]);
                     break;
                 }
                 case 7:

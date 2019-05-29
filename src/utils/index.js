@@ -67,3 +67,7 @@ export function string2Buffer(string) {
 export function readBufferSum(array, uint = true) {
     return array.reduce((totle, num, index) => totle + (uint ? num : num - 128) * 256 ** (array.length - index - 1), 0);
 }
+
+export function createWorker(workerString) {
+    return new Worker(URL.createObjectURL(new Blob([workerString], { type: 'application/javascript' })));
+}

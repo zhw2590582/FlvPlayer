@@ -6,6 +6,7 @@ const cssnano = require('cssnano');
 const nodeResolve = require('rollup-plugin-node-resolve');
 const { eslint } = require('rollup-plugin-eslint');
 const replace = require('rollup-plugin-replace');
+const { string } = require('rollup-plugin-string');
 const { uglify } = require('rollup-plugin-uglify');
 const { version, homepage } = require('./package.json');
 
@@ -28,7 +29,7 @@ module.exports = {
     },
     plugins: [
         eslint({
-            exclude: ['node_modules/**', 'src/decoder/scheme', 'src/player/style.scss'],
+            exclude: ['node_modules/**', 'src/decoder', 'src/player/style.scss'],
         }),
         postcss({
             plugins: [
@@ -41,6 +42,9 @@ module.exports = {
             ],
             sourceMap: isProd,
             extract: isProd ? 'dist/flvPlayer.css' : 'docs/uncompiled-flvPlayer.css',
+        }),
+        string({
+            include: 'src/decoder/**/*.worker',
         }),
         nodeResolve(),
         commonjs(),

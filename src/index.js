@@ -1,9 +1,10 @@
 import Emitter from 'tiny-emitter';
 import optionValidator from './utils/optionValidator';
 import Debug from './debug';
+import Events from './events';
 import Player from './player';
 import Demuxer from './demuxer';
-import Decoder from './decoder';
+import Decoder from './decoder/h264bsd';
 import Stream from './stream';
 
 let id = 0;
@@ -14,6 +15,7 @@ class FlvPlayer extends Emitter {
         optionValidator(this);
 
         this.debug = new Debug(this);
+        this.events = new Events(this);
         this.player = new Player(this);
         this.decoder = new Decoder(this);
         this.demuxer = new Demuxer(this);
@@ -31,10 +33,8 @@ class FlvPlayer extends Emitter {
             debug: false,
             live: false,
             controls: true,
-            width: 400,
-            height: 300,
-            workerPath: 'openh264_decoder.js',
-            h264Configuration: {},
+            width: 1280,
+            height: 720,
         };
     }
 
@@ -47,6 +47,7 @@ class FlvPlayer extends Emitter {
     }
 
     destroy() {
+        this.events.destroy();
         FlvPlayer.instances.splice(FlvPlayer.instances.indexOf(this), 1);
         this.emit('destroy');
     }

@@ -1,12 +1,10 @@
-import './style/index.scss';
 import Emitter from 'tiny-emitter';
 import optionValidator from './utils/optionValidator';
 import Debug from './debug';
 import Events from './events';
-import Icons from './icons';
 import Player from './player';
+import Decoder from './decoder';
 import Demuxer from './demuxer';
-import Decoder from './decoder/h264bsd';
 import Stream from './stream';
 
 let id = 0;
@@ -18,7 +16,6 @@ class FlvPlayer extends Emitter {
 
         this.debug = new Debug(this);
         this.events = new Events(this);
-        this.icons = new Icons(this);
         this.player = new Player(this);
         this.decoder = new Decoder(this);
         this.demuxer = new Demuxer(this);

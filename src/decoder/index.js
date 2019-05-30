@@ -7,6 +7,7 @@ export default class Decoder {
         this.ended = false;
         this.playing = false;
         this.playTimer = null;
+        this.waitingTimer = null;
         this.playIndex = 0;
         this.video = new VideoDecoder(flv, this);
         this.audio = new AudioDecoder(flv, this);
@@ -42,7 +43,7 @@ export default class Decoder {
             this.ended = false;
             this.playing = false;
             this.flv.emit('waiting');
-            setTimeout(() => {
+            this.waitingTimer = setTimeout(() => {
                 this.play();
             }, player.frameDuration);
 
@@ -64,7 +65,9 @@ export default class Decoder {
         this.playing = false;
         this.flv.emit('pause');
         clearTimeout(this.playTimer);
+        clearTimeout(this.waitingTimer);
         this.playTimer = null;
+        this.waitingTimer = null;
     }
 
     seeked(time) {

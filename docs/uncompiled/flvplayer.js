@@ -1136,6 +1136,7 @@
       this.ended = false;
       this.playing = false;
       this.playTimer = null;
+      this.waitingTimer = null;
       this.playIndex = 0;
       this.video = new VideoDecoder(flv, this);
       this.audio = new AudioDecoder(flv, this);
@@ -1174,7 +1175,7 @@
           this.ended = false;
           this.playing = false;
           this.flv.emit('waiting');
-          setTimeout(function () {
+          this.waitingTimer = setTimeout(function () {
             _this.play();
           }, player.frameDuration); // Drawing failed because of the end    
         } else {
@@ -1196,7 +1197,9 @@
         this.playing = false;
         this.flv.emit('pause');
         clearTimeout(this.playTimer);
+        clearTimeout(this.waitingTimer);
         this.playTimer = null;
+        this.waitingTimer = null;
       }
     }, {
       key: "seeked",

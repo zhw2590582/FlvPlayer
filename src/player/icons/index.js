@@ -3,6 +3,7 @@ import pause from './pause.svg';
 import volume from './volume.svg';
 import volumeClose from './volume-close.svg';
 import fullscreen from './fullscreen.svg';
+import loading from './loading.svg';
 
 const iconsMap = {
     play,
@@ -10,6 +11,7 @@ const iconsMap = {
     volume,
     volumeClose,
     fullscreen,
+    loading,
 };
 
 const icons = {};

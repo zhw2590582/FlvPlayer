@@ -131,3 +131,7 @@ export function throttle(callback, delay) {
 
     return fn;
 }
+
+export function clamp(num, a, b) {
+    return Math.max(Math.min(num, Math.max(a, b)), Math.min(a, b));
+}

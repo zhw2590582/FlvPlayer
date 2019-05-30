@@ -425,6 +425,9 @@
 
     return fn;
   }
+  function clamp(num, a, b) {
+    return Math.max(Math.min(num, Math.max(a, b)), Math.min(a, b));
+  }
 
   function optionValidator (flv) {
     var _flv$options = flv.options,
@@ -514,12 +517,15 @@
 
   var fullscreen = "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"36\" width=\"36\" viewBox=\"0 0 36 36\">\n\t<path d=\"m 10,16 2,0 0,-4 4,0 0,-2 L 10,10 l 0,6 0,0 z\"></path>\n\t<path d=\"m 20,10 0,2 4,0 0,4 2,0 L 26,10 l -6,0 0,0 z\"></path>\n\t<path d=\"m 24,24 -4,0 0,2 L 26,26 l 0,-6 -2,0 0,4 0,0 z\"></path>\n\t<path d=\"M 12,20 10,20 10,26 l 6,0 0,-2 -4,0 0,-4 0,0 z\"></path>\n</svg>";
 
+  var loading = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"50px\" height=\"50px\" viewBox=\"0 0 100 100\" preserveAspectRatio=\"xMidYMid\" class=\"uil-default\">\n  <rect x=\"0\" y=\"0\" width=\"100\" height=\"100\" fill=\"none\" class=\"bk\"/>\n  <rect x=\"47\" y=\"40\" width=\"6\" height=\"20\" rx=\"5\" ry=\"5\" fill=\"#ffffff\" transform=\"rotate(0 50 50) translate(0 -30)\">\n    <animate attributeName=\"opacity\" from=\"1\" to=\"0\" dur=\"1s\" begin=\"-1s\" repeatCount=\"indefinite\"/>\n  </rect>\n  <rect x=\"47\" y=\"40\" width=\"6\" height=\"20\" rx=\"5\" ry=\"5\" fill=\"#ffffff\" transform=\"rotate(30 50 50) translate(0 -30)\">\n    <animate attributeName=\"opacity\" from=\"1\" to=\"0\" dur=\"1s\" begin=\"-0.9166666666666666s\" repeatCount=\"indefinite\"/>\n  </rect>\n  <rect x=\"47\" y=\"40\" width=\"6\" height=\"20\" rx=\"5\" ry=\"5\" fill=\"#ffffff\" transform=\"rotate(60 50 50) translate(0 -30)\">\n    <animate attributeName=\"opacity\" from=\"1\" to=\"0\" dur=\"1s\" begin=\"-0.8333333333333334s\" repeatCount=\"indefinite\"/>\n  </rect>\n  <rect x=\"47\" y=\"40\" width=\"6\" height=\"20\" rx=\"5\" ry=\"5\" fill=\"#ffffff\" transform=\"rotate(90 50 50) translate(0 -30)\">\n    <animate attributeName=\"opacity\" from=\"1\" to=\"0\" dur=\"1s\" begin=\"-0.75s\" repeatCount=\"indefinite\"/></rect>\n  <rect x=\"47\" y=\"40\" width=\"6\" height=\"20\" rx=\"5\" ry=\"5\" fill=\"#ffffff\" transform=\"rotate(120 50 50) translate(0 -30)\">\n    <animate attributeName=\"opacity\" from=\"1\" to=\"0\" dur=\"1s\" begin=\"-0.6666666666666666s\" repeatCount=\"indefinite\"/>\n  </rect>\n  <rect x=\"47\" y=\"40\" width=\"6\" height=\"20\" rx=\"5\" ry=\"5\" fill=\"#ffffff\" transform=\"rotate(150 50 50) translate(0 -30)\">\n    <animate attributeName=\"opacity\" from=\"1\" to=\"0\" dur=\"1s\" begin=\"-0.5833333333333334s\" repeatCount=\"indefinite\"/>\n  </rect>\n  <rect x=\"47\" y=\"40\" width=\"6\" height=\"20\" rx=\"5\" ry=\"5\" fill=\"#ffffff\" transform=\"rotate(180 50 50) translate(0 -30)\">\n    <animate attributeName=\"opacity\" from=\"1\" to=\"0\" dur=\"1s\" begin=\"-0.5s\" repeatCount=\"indefinite\"/></rect>\n  <rect x=\"47\" y=\"40\" width=\"6\" height=\"20\" rx=\"5\" ry=\"5\" fill=\"#ffffff\" transform=\"rotate(210 50 50) translate(0 -30)\">\n    <animate attributeName=\"opacity\" from=\"1\" to=\"0\" dur=\"1s\" begin=\"-0.4166666666666667s\" repeatCount=\"indefinite\"/>\n  </rect>\n  <rect x=\"47\" y=\"40\" width=\"6\" height=\"20\" rx=\"5\" ry=\"5\" fill=\"#ffffff\" transform=\"rotate(240 50 50) translate(0 -30)\">\n    <animate attributeName=\"opacity\" from=\"1\" to=\"0\" dur=\"1s\" begin=\"-0.3333333333333333s\" repeatCount=\"indefinite\"/>\n  </rect>\n  <rect x=\"47\" y=\"40\" width=\"6\" height=\"20\" rx=\"5\" ry=\"5\" fill=\"#ffffff\" transform=\"rotate(270 50 50) translate(0 -30)\">\n    <animate attributeName=\"opacity\" from=\"1\" to=\"0\" dur=\"1s\" begin=\"-0.25s\" repeatCount=\"indefinite\"/></rect>\n  <rect x=\"47\" y=\"40\" width=\"6\" height=\"20\" rx=\"5\" ry=\"5\" fill=\"#ffffff\" transform=\"rotate(300 50 50) translate(0 -30)\">\n    <animate attributeName=\"opacity\" from=\"1\" to=\"0\" dur=\"1s\" begin=\"-0.16666666666666666s\" repeatCount=\"indefinite\"/>\n  </rect>\n  <rect x=\"47\" y=\"40\" width=\"6\" height=\"20\" rx=\"5\" ry=\"5\" fill=\"#ffffff\" transform=\"rotate(330 50 50) translate(0 -30)\">\n    <animate attributeName=\"opacity\" from=\"1\" to=\"0\" dur=\"1s\" begin=\"-0.08333333333333333s\" repeatCount=\"indefinite\"/>\n  </rect>\n</svg>";
+
   var iconsMap = {
     play: play,
     pause: pause,
     volume: volume,
     volumeClose: volumeClose,
-    fullscreen: fullscreen
+    fullscreen: fullscreen,
+    loading: loading
   };
   var icons = {};
   Object.keys(iconsMap).forEach(function (key) {
@@ -534,7 +540,7 @@
       options.container.classList.add('flv-player-live');
     }
 
-    options.container.innerHTML = "\n        <div class=\"flv-player-inner\">\n            <canvas class=\"flv-player-canvas\" width=\"".concat(options.width, "\" height=\"").concat(options.height, "\"></canvas>\n            <div class=\"flv-player-controls\">\n                <div class=\"flv-player-controls-top\">\n                    <div class=\"flv-player-controls-left\">\n                        <div class=\"flv-player-controls-item flv-player-state\">\n                            <div class=\"flv-player-play\">").concat(icons.play, "</div>\n                            <div class=\"flv-player-pause\">").concat(icons.pause, "</div>\n                        </div>\n                        <div class=\"flv-player-controls-item flv-player-time\">\n                            <span class=\"flv-player-current\">00:00</span> / <span class=\"flv-player-duration\">00:00</span>\n                        </div>\n                    </div>\n                    <div class=\"flv-player-controls-right\">\n                        <div class=\"flv-player-controls-item flv-player-volume\">").concat(icons.volume, "</div>\n                        <div class=\"flv-player-controls-item flv-player-fullscreen\">").concat(icons.fullscreen, "</div>\n                    </div>\n                </div>\n                <div class=\"flv-player-controls-progress\">\n                    <div class=\"flv-player-loaded\"></div>\n                    <div class=\"flv-player-played\">\n                        <div class=\"flv-player-indicator\"></div>\n                    </div>\n                </div>\n            </div>\n        </div>\n    ");
+    options.container.innerHTML = "\n        <div class=\"flv-player-inner\">\n            <canvas class=\"flv-player-canvas\" width=\"".concat(options.width, "\" height=\"").concat(options.height, "\"></canvas>\n            <div class=\"flv-player-loading\">").concat(icons.loading, "</div>\n            <div class=\"flv-player-controls\">\n                <div class=\"flv-player-controls-top\">\n                    <div class=\"flv-player-controls-left\">\n                        <div class=\"flv-player-controls-item flv-player-state\">\n                            <div class=\"flv-player-play\">").concat(icons.play, "</div>\n                            <div class=\"flv-player-pause\">").concat(icons.pause, "</div>\n                        </div>\n                        <div class=\"flv-player-controls-item flv-player-time\">\n                            <span class=\"flv-player-current\">00:00</span> / <span class=\"flv-player-duration\">00:00</span>\n                        </div>\n                    </div>\n                    <div class=\"flv-player-controls-right\">\n                        <div class=\"flv-player-controls-item flv-player-volume\">").concat(icons.volume, "</div>\n                        <div class=\"flv-player-controls-item flv-player-fullscreen\">").concat(icons.fullscreen, "</div>\n                    </div>\n                </div>\n                <div class=\"flv-player-controls-progress\">\n                    <div class=\"flv-player-loaded\"></div>\n                    <div class=\"flv-player-played\">\n                        <div class=\"flv-player-indicator\"></div>\n                    </div>\n                </div>\n            </div>\n        </div>\n    ");
     Object.defineProperty(player, '$container', {
       value: options.container
     });
@@ -543,6 +549,9 @@
     });
     Object.defineProperty(player, '$canvas', {
       value: options.container.querySelector('.flv-player-canvas')
+    });
+    Object.defineProperty(player, '$loading', {
+      value: options.container.querySelector('.flv-player-loading')
     });
     Object.defineProperty(player, '$controls', {
       value: options.container.querySelector('.flv-player-controls')
@@ -576,6 +585,21 @@
     });
     Object.defineProperty(player, '$indicator', {
       value: options.container.querySelector('.flv-player-indicator')
+    });
+  }
+
+  function loadingMix(flv, player) {
+    Object.defineProperty(player, 'loading', {
+      get: function get() {
+        return player.$loading.style.display !== 'none';
+      },
+      set: function set(type) {
+        if (type) {
+          player.$loading.style.display = 'flex';
+        } else {
+          player.$loading.style.display = 'none';
+        }
+      }
     });
   }
 
@@ -670,6 +694,7 @@
   }
 
   function propertyMixer(flv, player) {
+    loadingMix(flv, player);
     propertysMix(flv, player);
     autoSize(flv, player);
     videoMix(flv, player);
@@ -705,7 +730,8 @@
 
   function loadedInit(flv, player) {
     var loadedFn = throttle(function (timestamp) {
-      player.$loaded.style.width = "".concat(timestamp / 1000 / player.duration * 100, "%");
+      var time = clamp(timestamp / 1000 / player.duration, 0, 1);
+      player.$loaded.style.width = "".concat(time * 100, "%");
     }, 500);
     flv.on('timestamp', function (timestamp) {
       if (!flv.options.live) {

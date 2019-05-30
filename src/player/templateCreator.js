@@ -11,6 +11,7 @@ export default function templateCreator(flv, player) {
     options.container.innerHTML = `
         <div class="flv-player-inner">
             <canvas class="flv-player-canvas" width="${options.width}" height="${options.height}"></canvas>
+            <div class="flv-player-loading">${icons.loading}</div>
             <div class="flv-player-controls">
                 <div class="flv-player-controls-top">
                     <div class="flv-player-controls-left">
@@ -47,6 +48,10 @@ export default function templateCreator(flv, player) {
 
     Object.defineProperty(player, '$canvas', {
         value: options.container.querySelector('.flv-player-canvas'),
+    });
+
+    Object.defineProperty(player, '$loading', {
+        value: options.container.querySelector('.flv-player-loading'),
     });
 
     Object.defineProperty(player, '$controls', {

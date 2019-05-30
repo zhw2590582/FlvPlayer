@@ -36,6 +36,7 @@ class FlvPlayer extends Emitter {
             muted: false,
             loop: false,
             autoplay: false,
+            frameRate: 24,
             headers: {},
             width: 400,
             height: 300,

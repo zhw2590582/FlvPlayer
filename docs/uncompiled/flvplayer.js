@@ -591,7 +591,7 @@
   function loadingMix(flv, player) {
     Object.defineProperty(player, 'loading', {
       get: function get() {
-        return player.$loading.style.display !== 'none';
+        return player.$loading.style.display === 'flex';
       },
       set: function set(type) {
         if (type) {
@@ -653,15 +653,26 @@
   function videoMix(flv, player) {
     Object.defineProperty(player, 'currentTime', {
       get: function get() {
-        return true;
+        return flv.decoder.playIndex / player.frameRate;
       },
-      set: function set(value) {
-        return value;
+      set: function set(time) {
+        if (time <= player.loaded) {
+          flv.decoder.seeked(time);
+        }
       }
     });
     Object.defineProperty(player, 'duration', {
       value: 0,
       writable: true
+    });
+    Object.defineProperty(player, 'frameRate', {
+      value: flv.options.frameRate,
+      writable: true
+    });
+    Object.defineProperty(player, 'frameDuration', {
+      get: function get() {
+        return 1000 / player.frameRate | 0;
+      }
     });
     Object.defineProperty(player, 'volume', {
       get: function get() {
@@ -671,24 +682,25 @@
         return value;
       }
     });
-    Object.defineProperty(player, 'ended', {
-      value: function value() {
-        return true;
-      }
+    Object.defineProperty(player, 'loaded', {
+      value: 0,
+      writable: true
     });
     Object.defineProperty(player, 'playing', {
-      value: function value() {
-        return true;
+      get: function get() {
+        return flv.decoder.playing;
       }
     });
     Object.defineProperty(player, 'play', {
       value: function value() {
-        return true;
+        if (!player.playing) {
+          flv.decoder.play();
+        }
       }
     });
     Object.defineProperty(player, 'pause', {
       value: function value() {
-        return true;
+        flv.decoder.pause();
       }
     });
   }
@@ -728,14 +740,38 @@
     });
   }
 
+  function durationInit$1(flv, player) {
+    flv.on('scripMeta', function (scripMeta) {
+      var metaData = scripMeta.amf2.metaData;
+
+      if (metaData.framerate) {
+        player.frameRate = Math.round(metaData.framerate);
+      }
+    });
+  }
+
   function loadedInit(flv, player) {
     var loadedFn = throttle(function (timestamp) {
       var time = clamp(timestamp / 1000 / player.duration, 0, 1);
       player.$loaded.style.width = "".concat(time * 100, "%");
     }, 500);
     flv.on('timestamp', function (timestamp) {
+      player.loaded = timestamp / 1000;
+
       if (!flv.options.live) {
         loadedFn(timestamp);
+      }
+    });
+  }
+
+  function playAndPauseInit(flv, player) {
+    var $canvas = player.$canvas;
+    var proxy = flv.events.proxy;
+    proxy($canvas, 'click', function () {
+      if (player.playing) {
+        player.pause();
+      } else {
+        player.play();
       }
     });
   }
@@ -743,7 +779,9 @@
   function eventsInit(flv, player) {
     resizeInit(flv, player);
     durationInit(flv, player);
+    durationInit$1(flv, player);
     loadedInit(flv, player);
+    playAndPauseInit(flv, player);
   }
 
   var Player = function Player(flv) {
@@ -1014,7 +1052,7 @@
       var $canvas = flv.player.$canvas,
           proxy = flv.events.proxy;
       this.frames = [];
-      this.size = 0;
+      this.byteSize = 0;
       this.decoder = createWorker(workerString);
       this.renderer = new H264bsdCanvas($canvas);
       proxy(this.decoder, 'message', function (event) {
@@ -1023,7 +1061,7 @@
 
         switch (message.type) {
           case 'pictureReady':
-            _this.size += message.data.byteLength;
+            _this.byteSize += message.data.byteLength;
 
             _this.frames.push(message);
 
@@ -1073,8 +1111,9 @@
       key: "draw",
       value: function draw(index) {
         var message = this.frames[index];
-        if (!message) return;
+        if (!message) return false;
         this.renderer.drawNextOutputPicture(message.width, message.height, message.croppingParams, new Uint8Array(message.data));
+        return true;
       }
     }]);
 
@@ -1087,12 +1126,88 @@
     this.flv = flv;
   };
 
-  var Decoder = function Decoder(flv) {
-    classCallCheck(this, Decoder);
+  var Decoder =
+  /*#__PURE__*/
+  function () {
+    function Decoder(flv) {
+      classCallCheck(this, Decoder);
 
-    this.video = new VideoDecoder(flv);
-    this.audio = new AudioDecoder(flv);
-  };
+      this.flv = flv;
+      this.ended = false;
+      this.playing = false;
+      this.playTimer = null;
+      this.playIndex = 0;
+      this.video = new VideoDecoder(flv, this);
+      this.audio = new AudioDecoder(flv, this);
+    }
+
+    createClass(Decoder, [{
+      key: "play",
+      value: function play() {
+        var _this = this;
+
+        var _this$flv = this.flv,
+            stream = _this$flv.stream,
+            options = _this$flv.options,
+            player = _this$flv.player; // Play after the end of playback
+
+        if (this.ended) {
+          this.playIndex = 0;
+        } // Whether to draw successfully
+
+
+        var videoDrawState = this.video.draw(this.playIndex); // Successfully drawn
+
+        if (videoDrawState) {
+          if (!this.playing) {
+            this.playing = true;
+            this.flv.emit('play');
+          }
+
+          this.playIndex += 1;
+          this.ended = false;
+          this.flv.emit('timeupdate');
+          this.playTimer = setTimeout(function () {
+            _this.play();
+          }, player.frameDuration); // Failed to draw because it is not loaded
+        } else if (stream.streaming) {
+          this.ended = false;
+          this.playing = false;
+          this.flv.emit('waiting');
+          this.play(); // Drawing failed because of the end    
+        } else {
+          this.flv.emit('ended');
+          this.ended = true;
+          this.playing = false;
+
+          if (options.loop) {
+            this.playIndex = 0;
+            this.play();
+          } else {
+            this.pause();
+          }
+        }
+      }
+    }, {
+      key: "pause",
+      value: function pause() {
+        this.playing = false;
+        this.flv.emit('pause');
+        clearTimeout(this.playTimer);
+        this.playTimer = null;
+      }
+    }, {
+      key: "seeked",
+      value: function seeked(time) {
+        var player = this.flv.player;
+        this.playIndex = time * player.frameRate;
+        this.flv.emit('seeked');
+        this.video.draw(this.playIndex);
+      }
+    }]);
+
+    return Decoder;
+  }();
 
   var nalStart = new Uint8Array([0x00, 0x00, 0x00, 0x01]);
 
@@ -1742,6 +1857,7 @@
           muted: false,
           loop: false,
           autoplay: false,
+          frameRate: 24,
           headers: {},
           width: 400,
           height: 300

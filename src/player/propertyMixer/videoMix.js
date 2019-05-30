@@ -1,16 +1,29 @@
 export default function videoMix(flv, player) {
     Object.defineProperty(player, 'currentTime', {
         get: () => {
-            return true;
+            return flv.decoder.playIndex / player.frameRate;
         },
-        set: value => {
-            return value;
+        set: time => {
+            if (time <= player.loaded) {
+                flv.decoder.seeked(time);
+            }
         },
     });
 
     Object.defineProperty(player, 'duration', {
         value: 0,
         writable: true,
+    });
+
+    Object.defineProperty(player, 'frameRate', {
+        value: flv.options.frameRate,
+        writable: true,
+    });
+
+    Object.defineProperty(player, 'frameDuration', {
+        get: () => {
+            return (1000 / player.frameRate) | 0;
+        },
     });
 
     Object.defineProperty(player, 'volume', {
@@ -22,27 +35,28 @@ export default function videoMix(flv, player) {
         },
     });
 
-    Object.defineProperty(player, 'ended', {
-        value: () => {
-            return true;
-        },
+    Object.defineProperty(player, 'loaded', {
+        value: 0,
+        writable: true,
     });
 
     Object.defineProperty(player, 'playing', {
-        value: () => {
-            return true;
+        get: () => {
+            return flv.decoder.playing;
         },
     });
 
     Object.defineProperty(player, 'play', {
         value: () => {
-            return true;
+            if (!player.playing) {
+                flv.decoder.play();
+            }
         },
     });
 
     Object.defineProperty(player, 'pause', {
         value: () => {
-            return true;
+            flv.decoder.pause();
         },
     });
 }

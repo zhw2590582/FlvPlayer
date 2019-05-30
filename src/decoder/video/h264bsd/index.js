@@ -10,7 +10,7 @@ export default class VideoDecoder {
         } = flv;
 
         this.frames = [];
-        this.size = 0;
+        this.byteSize = 0;
         this.decoder = createWorker(workerString);
         this.renderer = new H264bsdCanvas($canvas);
 
@@ -19,7 +19,7 @@ export default class VideoDecoder {
             if (!message.hasOwnProperty('type')) return;
             switch (message.type) {
                 case 'pictureReady':
-                    this.size += message.data.byteLength;
+                    this.byteSize += message.data.byteLength;
                     this.frames.push(message);
                     break;
                 default:
@@ -55,12 +55,13 @@ export default class VideoDecoder {
 
     draw(index) {
         const message = this.frames[index];
-        if (!message) return;
+        if (!message) return false;
         this.renderer.drawNextOutputPicture(
             message.width,
             message.height,
             message.croppingParams,
             new Uint8Array(message.data),
         );
+        return true;
     }
 }

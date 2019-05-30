@@ -7,6 +7,7 @@ export default function loadedInit(flv, player) {
     }, 500);
 
     flv.on('timestamp', timestamp => {
+        player.loaded = timestamp / 1000;
         if (!flv.options.live) {
             loadedFn(timestamp);
         }

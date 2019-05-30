@@ -5,41 +5,50 @@ export default class Demuxer {
     constructor(flv) {
         this.flv = flv;
         const { options, debug } = flv;
+        
         this.scripMeta = null;
         this.AVCDecoderConfigurationRecord = null;
         this.AudioSpecificConfig = null;
 
-        this.uint8 = new Uint8Array(0);
         this.index = 0;
+        this.size = 0;
         this.header = null;
+        this.uint8 = new Uint8Array(0);
 
         this.streamStartTime = 0;
         this.streamStartEnd = 0;
 
         flv.on('streamStart', requestType => {
             this.streamStartTime = getNowTime();
-            debug.log('stream-start', requestType, options.url);
+            debug.log('stream-url', options.url);
+            debug.log('stream-request', requestType);
         });
 
         flv.on('streaming', uint8 => {
+            this.size += uint8.byteLength;
             this.uint8 = mergeBuffer(this.uint8, uint8);
             this.demux();
         });
 
         flv.on('streamEnd', uint8 => {
-            this.streamStartEnd = getNowTime();
-            debug.log('stream-end', this.streamStartEnd - this.streamStartTime);
-
             if (uint8) {
-                this.uint8 = uint8;
                 this.index = 0;
+                this.size = uint8.byteLength;
                 this.header = null;
+                this.uint8 = uint8;
                 this.demux();
             }
 
-            this.uint8 = uint8;
+            this.streamStartEnd = getNowTime();
+            const steamTime = this.streamStartEnd - this.streamStartTime;
+            debug.log('stream-time', `Steam take time: ${steamTime} ms`);
+            debug.log('stream-size', `Steam total size: ${this.size} byte`);
+
             this.index = 0;
+            this.size = 0;
             this.header = null;
+            this.uint8 = new Uint8Array(0);
+
             flv.isLoaded = true;
             flv.emit('demuxDone');
             debug.log('demux-done');
@@ -58,8 +67,8 @@ export default class Demuxer {
             this.header = header;
             const prevTagSize = readBufferSum(this.read(4));
             debug.error(prevTagSize === 0, `PrevTagSize0 should be equal to 0, but got ${prevTagSize}`);
-            this.flv.emit('parseHeader', this.header);
-            debug.log('parse-header', this.header);
+            this.flv.emit('flvHeader', this.header);
+            debug.log('flv-header', this.header);
         }
 
         while (this.index < this.uint8.length) {

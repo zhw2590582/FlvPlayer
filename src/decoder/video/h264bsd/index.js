@@ -9,6 +9,8 @@ export default class VideoDecoder {
             events: { proxy },
         } = flv;
 
+        this.frames = [];
+        this.size = 0;
         this.decoder = createWorker(workerString);
         this.renderer = new H264bsdCanvas($canvas);
 
@@ -17,12 +19,8 @@ export default class VideoDecoder {
             if (!message.hasOwnProperty('type')) return;
             switch (message.type) {
                 case 'pictureReady':
-                    this.renderer.drawNextOutputPicture(
-                        message.width,
-                        message.height,
-                        message.croppingParams,
-                        new Uint8Array(message.data),
-                    );
+                    this.size += message.data.byteLength;
+                    this.frames.push(message);
                     break;
                 default:
                     break;
@@ -31,7 +29,7 @@ export default class VideoDecoder {
 
         let sps = null;
         let pps = null;
-        flv.on('videoData', nalu => {
+        flv.on('videoData', (nalu, timestamp) => {
             const readNalu = readBuffer(nalu);
             readNalu(4);
             const nalHeader = readNalu(1)[0];
@@ -53,5 +51,16 @@ export default class VideoDecoder {
                     break;
             }
         });
+    }
+
+    draw(index) {
+        const message = this.frames[index];
+        if (!message) return;
+        this.renderer.drawNextOutputPicture(
+            message.width,
+            message.height,
+            message.croppingParams,
+            new Uint8Array(message.data),
+        );
     }
 }

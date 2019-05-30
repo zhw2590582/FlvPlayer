@@ -53,9 +53,6 @@ class FlvPlayer extends Emitter {
 
     destroy() {
         this.events.destroy();
-        this.decoder.destroy();
-        this.demuxer.destroy();
-        this.stream.destroy();
         this.options.container.innerHTML = '';
         this.isDestroy = true;
         FlvPlayer.instances.splice(FlvPlayer.instances.indexOf(this), 1);

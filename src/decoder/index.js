@@ -42,7 +42,9 @@ export default class Decoder {
             this.ended = false;
             this.playing = false;
             this.flv.emit('waiting');
-            this.play();
+            setTimeout(() => {
+                this.play();
+            }, player.frameDuration);
 
         // Drawing failed because of the end    
         } else {

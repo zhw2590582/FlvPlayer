@@ -1174,7 +1174,9 @@
           this.ended = false;
           this.playing = false;
           this.flv.emit('waiting');
-          this.play(); // Drawing failed because of the end    
+          setTimeout(function () {
+            _this.play();
+          }, player.frameDuration); // Drawing failed because of the end    
         } else {
           this.flv.emit('ended');
           this.ended = true;

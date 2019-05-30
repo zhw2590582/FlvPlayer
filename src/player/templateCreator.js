@@ -3,6 +3,11 @@ import icons from './icons';
 export default function templateCreator(flv, player) {
     const { options } = flv;
     options.container.classList.add('flv-player-container');
+
+    if (options.live) {
+        options.container.classList.add('flv-player-live');
+    }
+
     options.container.innerHTML = `
         <div class="flv-player-inner">
             <canvas class="flv-player-canvas" width="${options.width}" height="${options.height}"></canvas>
@@ -74,6 +79,10 @@ export default function templateCreator(flv, player) {
 
     Object.defineProperty(player, '$fullscreen', {
         value: options.container.querySelector('.flv-player-fullscreen'),
+    });
+
+    Object.defineProperty(player, '$loaded', {
+        value: options.container.querySelector('.flv-player-loaded'),
     });
 
     Object.defineProperty(player, '$played', {

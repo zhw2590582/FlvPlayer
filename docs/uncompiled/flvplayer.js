@@ -394,6 +394,37 @@
 
     return Date.now();
   }
+  function throttle(callback, delay) {
+    var isThrottled = false;
+    var args;
+    var context;
+
+    function fn() {
+      for (var _len3 = arguments.length, args2 = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+        args2[_key3] = arguments[_key3];
+      }
+
+      if (isThrottled) {
+        args = args2;
+        context = this;
+        return;
+      }
+
+      isThrottled = true;
+      callback.apply(this, args2);
+      setTimeout(function () {
+        isThrottled = false;
+
+        if (args) {
+          fn.apply(context, args);
+          args = null;
+          context = null;
+        }
+      }, delay);
+    }
+
+    return fn;
+  }
 
   function optionValidator (flv) {
     var _flv$options = flv.options,
@@ -498,6 +529,11 @@
   function templateCreator(flv, player) {
     var options = flv.options;
     options.container.classList.add('flv-player-container');
+
+    if (options.live) {
+      options.container.classList.add('flv-player-live');
+    }
+
     options.container.innerHTML = "\n        <div class=\"flv-player-inner\">\n            <canvas class=\"flv-player-canvas\" width=\"".concat(options.width, "\" height=\"").concat(options.height, "\"></canvas>\n            <div class=\"flv-player-controls\">\n                <div class=\"flv-player-controls-top\">\n                    <div class=\"flv-player-controls-left\">\n                        <div class=\"flv-player-controls-item flv-player-state\">\n                            <div class=\"flv-player-play\">").concat(icons.play, "</div>\n                            <div class=\"flv-player-pause\">").concat(icons.pause, "</div>\n                        </div>\n                        <div class=\"flv-player-controls-item flv-player-time\">\n                            <span class=\"flv-player-current\">00:00</span> / <span class=\"flv-player-duration\">00:00</span>\n                        </div>\n                    </div>\n                    <div class=\"flv-player-controls-right\">\n                        <div class=\"flv-player-controls-item flv-player-volume\">").concat(icons.volume, "</div>\n                        <div class=\"flv-player-controls-item flv-player-fullscreen\">").concat(icons.fullscreen, "</div>\n                    </div>\n                </div>\n                <div class=\"flv-player-controls-progress\">\n                    <div class=\"flv-player-loaded\"></div>\n                    <div class=\"flv-player-played\">\n                        <div class=\"flv-player-indicator\"></div>\n                    </div>\n                </div>\n            </div>\n        </div>\n    ");
     Object.defineProperty(player, '$container', {
       value: options.container
@@ -531,6 +567,9 @@
     });
     Object.defineProperty(player, '$fullscreen', {
       value: options.container.querySelector('.flv-player-fullscreen')
+    });
+    Object.defineProperty(player, '$loaded', {
+      value: options.container.querySelector('.flv-player-loaded')
     });
     Object.defineProperty(player, '$played', {
       value: options.container.querySelector('.flv-player-played')
@@ -577,13 +616,11 @@
 
         if (playerRatio > canvasRatio) {
           var padding = (playerWidth - playerHeight * canvasRatio) / 2;
-          player.$container.style.paddingLeft = "".concat(padding, "px");
-          player.$container.style.paddingRight = "".concat(padding, "px");
+          player.$container.style.padding = "0 ".concat(padding, "px");
         } else {
-          var _padding = (playerHeight - playerWidth * canvasRatio) / 2;
+          var _padding = (playerHeight - playerWidth / canvasRatio) / 2;
 
-          player.$container.style.paddingTop = "".concat(_padding, "px");
-          player.$container.style.paddingBottom = "".concat(_padding, "px");
+          player.$container.style.padding = "".concat(_padding, "px 0");
         }
       }
     });
@@ -599,9 +636,8 @@
       }
     });
     Object.defineProperty(player, 'duration', {
-      get: function get() {
-        return true;
-      }
+      value: 0,
+      writable: true
     });
     Object.defineProperty(player, 'volume', {
       get: function get() {
@@ -639,7 +675,7 @@
     videoMix(flv, player);
   }
 
-  function eventsInit(flv, player) {
+  function resizeInit(flv, player) {
     flv.on('scripMeta', function (scripMeta) {
       var metaData = scripMeta.amf2.metaData;
 
@@ -648,11 +684,40 @@
         player.$canvas.height = metaData.height;
         player.autoSize();
       }
+    });
+    var resizeObserver = new ResizeObserver(player.autoSize);
+    resizeObserver.observe(player.$container);
+    flv.events.destroyEvents.push(function () {
+      resizeObserver.unobserve(player.$container);
+    });
+  }
+
+  function durationInit(flv, player) {
+    flv.on('scripMeta', function (scripMeta) {
+      var metaData = scripMeta.amf2.metaData;
 
       if (metaData.duration && !flv.options.live) {
+        player.duration = metaData.duration;
         player.$duration.innerText = secondToTime(metaData.duration);
       }
     });
+  }
+
+  function loadedInit(flv, player) {
+    var loadedFn = throttle(function (timestamp) {
+      player.$loaded.style.width = "".concat(timestamp / 1000 / player.duration * 100, "%");
+    }, 500);
+    flv.on('timestamp', function (timestamp) {
+      if (!flv.options.live) {
+        loadedFn(timestamp);
+      }
+    });
+  }
+
+  function eventsInit(flv, player) {
+    resizeInit(flv, player);
+    durationInit(flv, player);
+    loadedInit(flv, player);
   }
 
   var Player = function Player(flv) {
@@ -1019,6 +1084,7 @@
       this.scripMeta = null;
       this.AVCDecoderConfigurationRecord = null;
       this.AudioSpecificConfig = null;
+      this.streaming = false;
       this.index = 0;
       this.size = 0;
       this.header = null;
@@ -1031,6 +1097,7 @@
         debug.log('stream-request', requestType);
       });
       flv.on('streaming', function (uint8) {
+        _this.streaming = true;
         _this.size += uint8.byteLength;
         _this.uint8 = mergeBuffer(_this.uint8, uint8);
 
@@ -1047,14 +1114,13 @@
         }
 
         _this.streamStartEnd = getNowTime();
-        var steamTime = _this.streamStartEnd - _this.streamStartTime;
-        debug.log('stream-time', "Steam take time: ".concat(steamTime, " ms"));
-        debug.log('stream-size', "Steam total size: ".concat(_this.size, " byte"));
+        debug.log('stream-time', "".concat(_this.streamStartEnd - _this.streamStartTime, " ms"));
+        debug.log('stream-size', "".concat(_this.size, " byte"));
+        _this.streaming = false;
         _this.index = 0;
         _this.size = 0;
         _this.header = null;
         _this.uint8 = new Uint8Array(0);
-        flv.isLoaded = true;
         flv.emit('demuxDone');
         debug.log('demux-done');
       });
@@ -1091,6 +1157,7 @@
             var ts0 = this.read(1);
             var ts3 = this.read(1);
             tag.timestamp = ts0 | ts1 << 8 | ts2 << 16 | ts3 << 24;
+            this.flv.emit('timestamp', tag.timestamp);
             tag.streamID = readBufferSum(this.read(3));
             debug.error(tag.streamID === 0, "streamID should be equal to 0, but got ".concat(tag.streamID));
           } else {
@@ -1625,7 +1692,6 @@
       id += 1;
       _this.id = id;
       _this.isDestroy = false;
-      _this.isLoaded = false;
       FlvPlayer.instances.push(assertThisInitialized(_this));
       return _this;
     }

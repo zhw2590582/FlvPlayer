@@ -9,9 +9,8 @@ export default function videoMix(flv, player) {
     });
 
     Object.defineProperty(player, 'duration', {
-        get: () => {
-            return true;
-        },
+        value: 0,
+        writable: true,
     });
 
     Object.defineProperty(player, 'volume', {

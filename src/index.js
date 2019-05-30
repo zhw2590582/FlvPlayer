@@ -24,7 +24,6 @@ class FlvPlayer extends Emitter {
         id += 1;
         this.id = id;
         this.isDestroy = false;
-        this.isLoaded = false;
         FlvPlayer.instances.push(this);
     }
 

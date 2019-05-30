@@ -9,12 +9,10 @@ export default function autoSize(flv, player) {
             const canvasRatio = canvasWidth / canvasHeight;
             if (playerRatio > canvasRatio) {
                 const padding = (playerWidth - playerHeight * canvasRatio) / 2;
-                player.$container.style.paddingLeft = `${padding}px`;
-                player.$container.style.paddingRight = `${padding}px`;
+                player.$container.style.padding = `0 ${padding}px`;
             } else {
-                const padding = (playerHeight - playerWidth * canvasRatio) / 2;
-                player.$container.style.paddingTop = `${padding}px`;
-                player.$container.style.paddingBottom = `${padding}px`;
+                const padding = (playerHeight - playerWidth / canvasRatio) / 2;
+                player.$container.style.padding = `${padding}px 0`;
             }
         },
     });

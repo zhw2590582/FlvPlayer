@@ -1,5 +1,5 @@
 export default function xhrRequest(flv, url) {
-    flv.emit('streamStart');
+    flv.emit('streamStart', 'xhr-request');
     const {
         events: { proxy },
         options: { headers },
@@ -34,11 +34,6 @@ export default function xhrRequest(flv, url) {
 
     flv.on('destroy', () => {
         xhr.abort();
-    });
-
-    flv.on('streamCancel', () => {
-        xhr.abort();
-        flv.debug.log('stream-cancel');
     });
 
     xhr.send();

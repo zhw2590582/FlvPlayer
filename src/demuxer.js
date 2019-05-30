@@ -1,4 +1,4 @@
-import { mergeBuffer, readBufferSum, readString, readBuffer, readDouble, readBoolean } from './utils';
+import { mergeBuffer, readBufferSum, readString, readBuffer, readDouble, readBoolean, getNowTime } from './utils';
 
 const nalStart = new Uint8Array([0x00, 0x00, 0x00, 0x01]);
 export default class Demuxer {
@@ -13,31 +13,40 @@ export default class Demuxer {
         this.index = 0;
         this.header = null;
 
-        flv.on('streamStart', () => {
-            debug.log('stream-start', options.url);
+        this.streamStartTime = 0;
+        this.streamStartEnd = 0;
+
+        flv.on('streamStart', requestType => {
+            this.streamStartTime = getNowTime();
+            debug.log('stream-start', requestType, options.url);
         });
 
         flv.on('streaming', uint8 => {
             this.uint8 = mergeBuffer(this.uint8, uint8);
-            this.parse();
+            this.demux();
         });
 
         flv.on('streamEnd', uint8 => {
-            debug.log('stream-end');
+            this.streamStartEnd = getNowTime();
+            debug.log('stream-end', this.streamStartEnd - this.streamStartTime);
+
             if (uint8) {
                 this.uint8 = uint8;
                 this.index = 0;
                 this.header = null;
-                this.parse();
+                this.demux();
             }
 
+            this.uint8 = uint8;
+            this.index = 0;
+            this.header = null;
             flv.isLoaded = true;
-            flv.emit('parseDone');
-            debug.log('parse-done');
+            flv.emit('demuxDone');
+            debug.log('demux-done');
         });
     }
 
-    parse() {
+    demux() {
         const { debug } = this.flv;
         if (!this.header && this.readable(13)) {
             const header = Object.create(null);

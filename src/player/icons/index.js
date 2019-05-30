@@ -4,18 +4,17 @@ import volume from './volume.svg';
 import volumeClose from './volume-close.svg';
 import fullscreen from './fullscreen.svg';
 
-export default class Icons {
-    constructor() {
-        const icons = {
-            play,
-            pause,
-            volume,
-            volumeClose,
-            fullscreen,
-        };
+const iconsMap = {
+    play,
+    pause,
+    volume,
+    volumeClose,
+    fullscreen,
+};
 
-        Object.keys(icons).forEach(key => {
-            this[key] = `<i class="flv-player-icon flv-player-icon-${key}">${icons[key]}</i>`;
-        });
-    }
-}
+const icons = {};
+Object.keys(iconsMap).forEach(key => {
+    icons[key] = `<i class="flv-player-icon flv-player-icon-${key}">${iconsMap[key]}</i>`;
+});
+
+export default icons;

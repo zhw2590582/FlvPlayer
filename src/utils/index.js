@@ -79,3 +79,10 @@ export function secondToTime(second) {
     const sec = Math.floor(second - hour * 3600 - min * 60);
     return (hour > 0 ? [hour, min, sec] : [min, sec]).map(add0).join(':');
 }
+
+export function getNowTime() {
+    if (performance && typeof performance.now === 'function') {
+        return performance.now();
+    }
+    return Date.now();
+}

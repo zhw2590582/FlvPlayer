@@ -13,7 +13,7 @@ const { version, homepage } = require('./package.json');
 const isProd = process.env.NODE_ENV === 'production';
 const banner =
     '/*!\n' +
-    ` * flvPlayer.js v${version}\n` +
+    ` * FlvPlayer.js v${version}\n` +
     ` * Github: ${homepage}\n` +
     ` * (c) 2017-${new Date().getFullYear()} Harvey Zack\n` +
     ' * Released under the MIT License.\n' +
@@ -29,7 +29,7 @@ module.exports = {
     },
     plugins: [
         eslint({
-            exclude: ['node_modules/**', 'src/decoder', 'src/style/*.scss', 'src/icons/*.svg'],
+            exclude: ['node_modules/**', 'src/decoder/video', 'src/player/style/*.scss', 'src/player/icons/*.svg'],
         }),
         postcss({
             plugins: [
@@ -44,7 +44,7 @@ module.exports = {
             extract: isProd ? 'dist/flvplayer.css' : 'docs/uncompiled/flvplayer.css',
         }),
         string({
-            include: ['src/decoder/**/*.worker', 'src/icons/*.svg'],
+            include: ['src/decoder/video/**/*.worker', 'src/player/icons/*.svg'],
         }),
         nodeResolve(),
         commonjs(),

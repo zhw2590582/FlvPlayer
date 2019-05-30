@@ -1,4 +1,6 @@
-export default function templateInit(flv, player) {
+import icons from './icons';
+
+export default function templateCreator(flv, player) {
     const { options } = flv;
     options.container.classList.add('flv-player-container');
     options.container.innerHTML = `
@@ -8,16 +10,16 @@ export default function templateInit(flv, player) {
                 <div class="flv-player-controls-top">
                     <div class="flv-player-controls-left">
                         <div class="flv-player-controls-item flv-player-state">
-                            <div class="flv-player-play">${flv.icons.play}</div>
-                            <div class="flv-player-pause">${flv.icons.pause}</div>
+                            <div class="flv-player-play">${icons.play}</div>
+                            <div class="flv-player-pause">${icons.pause}</div>
                         </div>
                         <div class="flv-player-controls-item flv-player-time">
                             <span class="flv-player-current">00:00</span> / <span class="flv-player-duration">00:00</span>
                         </div>
                     </div>
                     <div class="flv-player-controls-right">
-                        <div class="flv-player-controls-item flv-player-volume">${flv.icons.volume}</div>
-                        <div class="flv-player-controls-item flv-player-fullscreen">${flv.icons.fullscreen}</div>
+                        <div class="flv-player-controls-item flv-player-volume">${icons.volume}</div>
+                        <div class="flv-player-controls-item flv-player-fullscreen">${icons.fullscreen}</div>
                     </div>
                 </div>
                 <div class="flv-player-controls-progress">

@@ -1,6 +1,7 @@
 import fetchRequest from './fetchRequest';
 import mozXhrRequest from './mozXhrRequest';
 import xhrRequest from './xhrRequest';
+import websocketRequest from './websocketRequest';
 import readFile from './readFile';
 
 function supportsXhrResponseType(type) {
@@ -23,6 +24,10 @@ export default class Stream {
     static getStreamFactory(url) {
         if (url instanceof File) {
             return readFile;
+        }
+
+        if (url.startsWith('ws://')) {
+            return websocketRequest;
         }
 
         if (

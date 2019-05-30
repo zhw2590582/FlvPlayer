@@ -1,8 +1,8 @@
-import { mergeBuffer, readBuffer, createWorker } from '../../utils';
+import { mergeBuffer, readBuffer, createWorker } from '../../../utils';
 import H264bsdCanvas from './h264bsd_canvas';
 import workerString from './h264bsd.worker';
 
-export default class Decoder {
+export default class VideoDecoder {
     constructor(flv) {
         const {
             player: { $canvas },

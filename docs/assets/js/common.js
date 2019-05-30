@@ -129,7 +129,6 @@
         });
         var code = mirror.getValue();
         eval(code);
-        console.info('Player initialization completed');
     }
 
     function initApp() {

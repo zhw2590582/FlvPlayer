@@ -446,7 +446,17 @@
     createClass(Events, [{
       key: "proxy",
       value: function proxy(target, name, callback) {
+        var _this = this;
+
         var option = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+
+        if (Array.isArray(name)) {
+          name.forEach(function (item) {
+            return _this.proxy(target, item, callback, option);
+          });
+          return;
+        }
+
         target.addEventListener(name, callback, option);
         this.destroyEvents.push(function () {
           target.removeEventListener(name, callback, option);
@@ -815,10 +825,10 @@
       }
     });
     var isDroging = false;
-    proxy(player.$indicator, 'mousedown', function () {
+    proxy(player.$indicator, ['mousedown', 'touchstart'], function () {
       isDroging = true;
     });
-    proxy(document, 'mousemove', function (event) {
+    proxy(document, ['mousemove', 'touchmove'], function (event) {
       if (isDroging) {
         var _getPosFromEvent2 = getPosFromEvent(event),
             second = _getPosFromEvent2.second,
@@ -830,7 +840,7 @@
         }
       }
     });
-    proxy(document, 'mouseup', function () {
+    proxy(document, ['mouseup', 'touchend'], function () {
       if (isDroging) {
         isDroging = false;
       }
@@ -1120,6 +1130,8 @@
       this.decoderWorker = createWorker(workerString);
       this.renderer = new H264bsdCanvas(player.$canvas);
       flv.on('destroy', function () {
+        _this.frames = null;
+
         _this.decoderWorker.terminate();
       });
       events.proxy(this.decoderWorker, 'message', function (event) {

@@ -5,6 +5,10 @@ export default class Events {
     }
 
     proxy(target, name, callback, option = {}) {
+        if (Array.isArray(name)) {
+            name.forEach(item => this.proxy(target, item, callback, option));
+            return;
+        }
         target.addEventListener(name, callback, option);
         this.destroyEvents.push(() => {
             target.removeEventListener(name, callback, option);

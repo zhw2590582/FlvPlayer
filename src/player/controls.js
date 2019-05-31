@@ -74,11 +74,11 @@ export default function controls(flv, player) {
     });
 
     let isDroging = false;
-    proxy(player.$indicator, 'mousedown', () => {
+    proxy(player.$indicator, ['mousedown', 'touchstart'], () => {
         isDroging = true;
     });
 
-    proxy(document, 'mousemove', event => {
+    proxy(document, ['mousemove', 'touchmove'], event => {
         if (isDroging) {
             const { second, percentage } = getPosFromEvent(event);
             if (second <= player.loaded) {
@@ -88,7 +88,7 @@ export default function controls(flv, player) {
         }
     });
 
-    proxy(document, 'mouseup', () => {
+    proxy(document, ['mouseup', 'touchend'], () => {
         if (isDroging) {
             isDroging = false;
         }

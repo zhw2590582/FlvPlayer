@@ -819,9 +819,13 @@
     proxy(player.$progress, 'click', function (event) {
       if (event.target !== player.$indicator) {
         var _getPosFromEvent = getPosFromEvent(event),
-            second = _getPosFromEvent.second;
+            second = _getPosFromEvent.second,
+            percentage = _getPosFromEvent.percentage;
 
-        player.currentTime = second;
+        if (second <= player.loaded) {
+          player.$played.style.width = "".concat(percentage * 100, "%");
+          player.currentTime = second;
+        }
       }
     });
     var isDroging = false;

@@ -68,8 +68,11 @@ export default function controls(flv, player) {
 
     proxy(player.$progress, 'click', event => {
         if (event.target !== player.$indicator) {
-            const { second } = getPosFromEvent(event);
-            player.currentTime = second;
+            const { second, percentage } = getPosFromEvent(event);
+            if (second <= player.loaded) {
+                player.$played.style.width = `${percentage * 100}%`;
+                player.currentTime = second;
+            }
         }
     });
 

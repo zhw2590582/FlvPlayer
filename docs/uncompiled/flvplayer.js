@@ -377,16 +377,6 @@
       type: 'application/javascript'
     })));
   }
-  function secondToTime(second) {
-    var add0 = function add0(num) {
-      return num < 10 ? "0".concat(num) : String(num);
-    };
-
-    var hour = Math.floor(second / 3600);
-    var min = Math.floor((second - hour * 3600) / 60);
-    var sec = Math.floor(second - hour * 3600 - min * 60);
-    return (hour > 0 ? [hour, min, sec] : [min, sec]).map(add0).join(':');
-  }
   function getNowTime() {
     if (performance && typeof performance.now === 'function') {
       return performance.now();
@@ -662,12 +652,22 @@
       }
     });
     Object.defineProperty(player, 'duration', {
-      value: 0,
-      writable: true
+      get: function get() {
+        try {
+          return flv.demuxer.scripMeta.amf2.metaData.duration;
+        } catch (error) {
+          return flv.options.duration || 0;
+        }
+      }
     });
     Object.defineProperty(player, 'frameRate', {
-      value: flv.options.frameRate,
-      writable: true
+      get: function get() {
+        try {
+          return flv.demuxer.scripMeta.amf2.metaData.framerate;
+        } catch (error) {
+          return flv.options.frameRate || 30;
+        }
+      }
     });
     Object.defineProperty(player, 'frameDuration', {
       get: function get() {
@@ -683,8 +683,9 @@
       }
     });
     Object.defineProperty(player, 'loaded', {
-      value: 0,
-      writable: true
+      get: function get() {
+        return flv.decoder.video.loaded;
+      }
     });
     Object.defineProperty(player, 'playing', {
       get: function get() {
@@ -729,35 +730,12 @@
     });
   }
 
-  function durationInit(flv, player) {
-    flv.on('scripMeta', function (scripMeta) {
-      var metaData = scripMeta.amf2.metaData;
-
-      if (metaData.duration && !flv.options.live) {
-        player.duration = metaData.duration;
-        player.$duration.innerText = secondToTime(metaData.duration);
-      }
-    });
-  }
-
-  function durationInit$1(flv, player) {
-    flv.on('scripMeta', function (scripMeta) {
-      var metaData = scripMeta.amf2.metaData;
-
-      if (metaData.framerate) {
-        player.frameRate = Math.round(metaData.framerate);
-      }
-    });
-  }
-
   function loadedInit(flv, player) {
     var loadedFn = throttle(function (timestamp) {
-      var time = clamp(timestamp / 1000 / player.duration, 0, 1);
+      var time = clamp(timestamp / player.duration, 0, 1);
       player.$loaded.style.width = "".concat(time * 100, "%");
     }, 500);
-    flv.on('timestamp', function (timestamp) {
-      player.loaded = timestamp / 1000;
-
+    flv.on('loaded', function (timestamp) {
       if (!flv.options.live) {
         loadedFn(timestamp);
       }
@@ -778,8 +756,6 @@
 
   function eventsInit(flv, player) {
     resizeInit(flv, player);
-    durationInit(flv, player);
-    durationInit$1(flv, player);
     loadedInit(flv, player);
     playAndPauseInit(flv, player);
   }
@@ -1049,10 +1025,13 @@
 
       classCallCheck(this, VideoDecoder);
 
-      var $canvas = flv.player.$canvas,
+      var _flv$player = flv.player,
+          $canvas = _flv$player.$canvas,
+          frameRate = _flv$player.frameRate,
           proxy = flv.events.proxy;
       this.frames = [];
       this.byteSize = 0;
+      this.loaded = 0;
       this.decoder = createWorker(workerString);
       this.renderer = new H264bsdCanvas($canvas);
       proxy(this.decoder, 'message', function (event) {
@@ -1065,6 +1044,8 @@
 
             _this.frames.push(message);
 
+            _this.loaded = _this.frames.length / frameRate;
+            flv.emit('loaded', _this.loaded);
             break;
 
           default:
@@ -1227,14 +1208,14 @@
       this.flv = flv;
       var options = flv.options,
           debug = flv.debug;
-      this.scripMeta = null;
-      this.AVCDecoderConfigurationRecord = null;
-      this.AudioSpecificConfig = null;
-      this.streaming = false;
-      this.index = 0;
       this.size = 0;
+      this.index = 0;
       this.header = null;
-      this.uint8 = new Uint8Array(0);
+      this.streaming = false;
+      this.uint8 = new Uint8Array();
+      this.scripMeta = null;
+      this.AudioSpecificConfig = null;
+      this.AVCDecoderConfigurationRecord = null;
       this.streamStartTime = 0;
       this.streamStartEnd = 0;
       flv.on('streamStart', function (requestType) {
@@ -1250,23 +1231,22 @@
         _this.demux();
       });
       flv.on('streamEnd', function (uint8) {
+        _this.streaming = false;
+        _this.streamStartEnd = getNowTime();
+        debug.log('stream-time', "".concat(_this.streamStartEnd - _this.streamStartTime, " ms"));
+
         if (uint8) {
           _this.index = 0;
           _this.size = uint8.byteLength;
-          _this.header = null;
           _this.uint8 = uint8;
 
           _this.demux();
         }
 
-        _this.streamStartEnd = getNowTime();
-        debug.log('stream-time', "".concat(_this.streamStartEnd - _this.streamStartTime, " ms"));
         debug.log('stream-size', "".concat(_this.size, " byte"));
-        _this.streaming = false;
+        debug.warn(_this.size === _this.scripMeta.amf2.metaData.filesize, 'Does not seem to be a complete stream');
         _this.index = 0;
-        _this.size = 0;
-        _this.header = null;
-        _this.uint8 = new Uint8Array(0);
+        _this.uint8 = new Uint8Array();
         flv.emit('demuxDone');
         debug.log('demux-done');
       });
@@ -1303,7 +1283,6 @@
             var ts0 = this.read(1);
             var ts3 = this.read(1);
             tag.timestamp = ts0 | ts1 << 8 | ts2 << 16 | ts3 << 24;
-            this.flv.emit('timestamp', tag.timestamp);
             tag.streamID = readBufferSum(this.read(3));
             debug.error(tag.streamID === 0, "streamID should be equal to 0, but got ".concat(tag.streamID));
           } else {

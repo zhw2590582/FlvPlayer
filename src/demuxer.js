@@ -6,15 +6,15 @@ export default class Demuxer {
         this.flv = flv;
         const { options, debug } = flv;
 
-        this.scripMeta = null;
-        this.AVCDecoderConfigurationRecord = null;
-        this.AudioSpecificConfig = null;
-
-        this.streaming = false;
-        this.index = 0;
         this.size = 0;
+        this.index = 0;
         this.header = null;
-        this.uint8 = new Uint8Array(0);
+        this.streaming = false;
+        this.uint8 = new Uint8Array();
+
+        this.scripMeta = null;
+        this.AudioSpecificConfig = null;
+        this.AVCDecoderConfigurationRecord = null;
 
         this.streamStartTime = 0;
         this.streamStartEnd = 0;
@@ -33,23 +33,22 @@ export default class Demuxer {
         });
 
         flv.on('streamEnd', uint8 => {
+            this.streaming = false;
+            this.streamStartEnd = getNowTime();
+            debug.log('stream-time', `${this.streamStartEnd - this.streamStartTime} ms`);
+
             if (uint8) {
                 this.index = 0;
                 this.size = uint8.byteLength;
-                this.header = null;
                 this.uint8 = uint8;
                 this.demux();
             }
 
-            this.streamStartEnd = getNowTime();
-            debug.log('stream-time', `${this.streamStartEnd - this.streamStartTime} ms`);
             debug.log('stream-size', `${this.size} byte`);
+            debug.warn(this.size === this.scripMeta.amf2.metaData.filesize, 'Does not seem to be a complete stream');
 
-            this.streaming = false;
             this.index = 0;
-            this.size = 0;
-            this.header = null;
-            this.uint8 = new Uint8Array(0);
+            this.uint8 = new Uint8Array();
 
             flv.emit('demuxDone');
             debug.log('demux-done');
@@ -84,7 +83,6 @@ export default class Demuxer {
                 const ts0 = this.read(1);
                 const ts3 = this.read(1);
                 tag.timestamp = ts0 | (ts1 << 8) | (ts2 << 16) | (ts3 << 24);
-                this.flv.emit('timestamp', tag.timestamp);
                 tag.streamID = readBufferSum(this.read(3));
                 debug.error(tag.streamID === 0, `streamID should be equal to 0, but got ${tag.streamID}`);
             } else {

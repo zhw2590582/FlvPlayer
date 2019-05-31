@@ -5,12 +5,13 @@ import workerString from './h264bsd.worker';
 export default class VideoDecoder {
     constructor(flv) {
         const {
-            player: { $canvas },
+            player: { $canvas, frameRate },
             events: { proxy },
         } = flv;
 
         this.frames = [];
         this.byteSize = 0;
+        this.loaded = 0;
         this.decoder = createWorker(workerString);
         this.renderer = new H264bsdCanvas($canvas);
 
@@ -21,6 +22,8 @@ export default class VideoDecoder {
                 case 'pictureReady':
                     this.byteSize += message.data.byteLength;
                     this.frames.push(message);
+                    this.loaded = this.frames.length / frameRate;
+                    flv.emit('loaded', this.loaded);
                     break;
                 default:
                     break;

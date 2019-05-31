@@ -11,13 +11,23 @@ export default function videoMix(flv, player) {
     });
 
     Object.defineProperty(player, 'duration', {
-        value: 0,
-        writable: true,
+        get: () => {
+            try {
+                return flv.demuxer.scripMeta.amf2.metaData.duration;
+            } catch (error) {
+                return flv.options.duration || 0;
+            }
+        },
     });
 
     Object.defineProperty(player, 'frameRate', {
-        value: flv.options.frameRate,
-        writable: true,
+        get: () => {
+            try {
+                return flv.demuxer.scripMeta.amf2.metaData.framerate;
+            } catch (error) {
+                return flv.options.frameRate || 30;
+            }
+        },
     });
 
     Object.defineProperty(player, 'frameDuration', {
@@ -36,8 +46,9 @@ export default function videoMix(flv, player) {
     });
 
     Object.defineProperty(player, 'loaded', {
-        value: 0,
-        writable: true,
+        get: () => {
+            return flv.decoder.video.loaded;
+        },
     });
 
     Object.defineProperty(player, 'playing', {

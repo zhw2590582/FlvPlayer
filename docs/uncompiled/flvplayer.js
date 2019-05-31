@@ -191,36 +191,6 @@
     return Emitter;
   }();
 
-  function _arrayWithoutHoles(arr) {
-    if (Array.isArray(arr)) {
-      for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) {
-        arr2[i] = arr[i];
-      }
-
-      return arr2;
-    }
-  }
-
-  var arrayWithoutHoles = _arrayWithoutHoles;
-
-  function _iterableToArray(iter) {
-    if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
-  }
-
-  var iterableToArray = _iterableToArray;
-
-  function _nonIterableSpread() {
-    throw new TypeError("Invalid attempt to spread non-iterable instance");
-  }
-
-  var nonIterableSpread = _nonIterableSpread;
-
-  function _toConsumableArray(arr) {
-    return arrayWithoutHoles(arr) || iterableToArray(arr) || nonIterableSpread();
-  }
-
-  var toConsumableArray = _toConsumableArray;
-
   function _isNativeFunction(fn) {
     return Function.toString.call(fn).indexOf("[native code]") !== -1;
   }
@@ -358,27 +328,6 @@
       merge.set(val, pre.byteLength | 0);
       return merge;
     }, new Cons());
-  }
-  function readDouble(array) {
-    var view = new DataView(new ArrayBuffer(array.length));
-    array.forEach(function (b, i) {
-      view.setUint8(i, b);
-    });
-    return view.getFloat64(0);
-  }
-  function readBoolean(array) {
-    return array[0] !== 0;
-  }
-  function readString(array) {
-    var _String$fromCharCode;
-
-    return (_String$fromCharCode = String.fromCharCode).call.apply(_String$fromCharCode, [String].concat(toConsumableArray(array)));
-  }
-  function readBufferSum(array) {
-    var uint = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
-    return array.reduce(function (totle, num, index) {
-      return totle + (uint ? num : num - 128) * Math.pow(256, array.length - index - 1);
-    }, 0);
   }
   function createWorker(workerString) {
     return new Worker(URL.createObjectURL(new Blob([workerString], {
@@ -1203,427 +1152,96 @@
     return Decoder;
   }();
 
-  var nalStart = new Uint8Array([0x00, 0x00, 0x00, 0x01]);
+  var workerString$1 = "class FlvPlayerError extends Error {\n    constructor(message, context) {\n        super(message);\n        if (typeof Error.captureStackTrace === 'function') {\n            Error.captureStackTrace(this, context || this.constructor);\n        }\n        this.name = 'FlvPlayerError';\n    }\n}\n\nconst debug = {\n    warn: (condition, ...args) => {\n        if (!condition) {\n            console.warn(...args);\n        }\n    },\n    error: (condition, msg) => {\n        if (!condition) {\n            throw new FlvPlayerError(msg);\n        }\n    },\n};\n\nfunction mergeBuffer(...buffers) {\n    const Cons = buffers[0].constructor;\n    return buffers.reduce((pre, val) => {\n        const merge = new Cons((pre.byteLength | 0) + (val.byteLength | 0));\n        merge.set(pre, 0);\n        merge.set(val, pre.byteLength | 0);\n        return merge;\n    }, new Cons());\n}\n\nfunction readBufferSum(array, uint = true) {\n    return array.reduce((totle, num, index) => totle + (uint ? num : num - 128) * 256 ** (array.length - index - 1), 0);\n}\n\nfunction readString(array) {\n    return String.fromCharCode.call(String, ...array);\n}\n\nfunction readBuffer(buffer) {\n    let index = 0;\n    function read(length) {\n        const tempUint8 = new Uint8Array(length);\n        for (let i = 0; i < length; i += 1) {\n            tempUint8[i] = buffer[index];\n            index += 1;\n        }\n        read.index = index;\n        return tempUint8;\n    }\n    read.index = 0;\n    return read;\n}\n\nfunction readDouble(array) {\n    const view = new DataView(new ArrayBuffer(array.length));\n    array.forEach((b, i) => {\n        view.setUint8(i, b);\n    });\n    return view.getFloat64(0);\n}\n\nfunction readBoolean(array) {\n    return array[0] !== 0;\n}\n\nlet index = 0;\nlet header = null;\nlet uint8 = new Uint8Array();\nlet scripMeta = null;\nlet AudioSpecificConfig = null;\nlet AVCDecoderConfigurationRecord = null;\nconst nalStart = new Uint8Array([0x00, 0x00, 0x00, 0x01]);\n\nfunction readable(length) {\n    return uint8.length - index >= length;\n}\n\nfunction read(length) {\n    const tempUint8 = new Uint8Array(length);\n    for (let i = 0; i < length; i += 1) {\n        tempUint8[i] = uint8[index];\n        index += 1;\n    }\n    return tempUint8;\n}\n\nfunction demuxerScripTag(tag) {\n    const readScripTag = readBuffer(tag.body);\n    const amf1 = Object.create(null);\n    const amf2 = Object.create(null);\n\n    amf1.type = readScripTag(1)[0];\n    debug.error(amf1.type === 2, `AMF: [amf1] type expect 2, but got ${amf1.type}`);\n    amf1.size = readBufferSum(readScripTag(2));\n    amf1.string = readString(readScripTag(amf1.size));\n\n    amf2.type = readScripTag(1)[0];\n    debug.error(amf2.type === 8, `AMF: [amf2] type expect 8, but got ${amf2.type}`);\n    amf2.size = readBufferSum(readScripTag(4));\n    amf2.metaData = Object.create(null);\n\n    function getValue(type) {\n        let value = null;\n        if (type !== undefined) {\n            switch (type) {\n                case 0:\n                    value = readDouble(readScripTag(8));\n                    break;\n                case 1:\n                    value = readBoolean(readScripTag(1));\n                    break;\n                case 2: {\n                    const valueLength = readBufferSum(readScripTag(2));\n                    value = readString(readScripTag(valueLength));\n                    break;\n                }\n                case 3: {\n                    value = Object.create(null);\n                    let lastType = -1;\n                    while (lastType !== 9) {\n                        const nameLength = readBufferSum(readScripTag(2));\n                        const name = readString(readScripTag(nameLength));\n                        const itemType = readScripTag(1)[0];\n                        if (name) {\n                            value[name] = getValue(itemType);\n                        }\n                        lastType = itemType;\n                    }\n                    break;\n                }\n                case 5:\n                    value = null;\n                    break;\n                case 6:\n                    value = undefined;\n                    break;\n                case 7:\n                    value = `Reference #${readScripTag.index}`;\n                    readScripTag(2);\n                    break;\n                case 8: {\n                    value = Object.create(null);\n                    let lastType = -1;\n                    while (lastType !== 9) {\n                        const nameLength = readBufferSum(readScripTag(2));\n                        const name = readString(readScripTag(nameLength));\n                        const itemType = readScripTag(1)[0];\n                        if (name) {\n                            value[name] = getValue(itemType);\n                        }\n                        lastType = itemType;\n                    }\n                    break;\n                }\n                case 10: {\n                    const valueLength = readBufferSum(readScripTag(4));\n                    value = [];\n                    for (let index = 0; index < valueLength; index += 1) {\n                        const itemType = readScripTag(1)[0];\n                        value.push(getValue(itemType));\n                    }\n                    break;\n                }\n                case 11:\n                    value = readDouble(readScripTag(2));\n                    break;\n                case 12: {\n                    const valueLength = readBufferSum(readScripTag(4));\n                    value = readString(readScripTag(valueLength));\n                    break;\n                }\n                default:\n                    debug.error(false, `AMF: Unknown metaData type: ${type}`);\n                    break;\n            }\n        }\n        return value;\n    }\n\n    while (readScripTag.index < tag.body.length) {\n        const nameLength = readBufferSum(readScripTag(2));\n        const name = readString(readScripTag(nameLength));\n        const type = readScripTag(1)[0];\n        if (name) {\n            amf2.metaData[name] = getValue(type);\n        }\n    }\n\n    debug.error(readScripTag.index === tag.body.length, 'AMF: Seems to be incompletely parsed');\n    debug.error(amf2.size === Object.keys(amf2.metaData).length, 'AMF: [amf2] length does not match');\n\n    scripMeta = { amf1, amf2 };\n    postMessage({\n        type: 'scripMeta',\n        data: scripMeta,\n    });\n}\n\nfunction demuxerVideoTag(tag) {\n    debug.error(tag.body.length > 1, 'Invalid video packet');\n    const header = {\n        frameType: (tag.body[0] & 0xf0) >> 4,\n        codecID: tag.body[0] & 0x0f,\n    };\n    debug.error(header.codecID === 7, `[videoTrack] Unsupported codec in video frame: ${header.codecID}`);\n    const packet = tag.body.slice(1, 5);\n    debug.error(packet.length >= 4, '[H264] Invalid AVC packet, missing AVCPacketType or/and CompositionTime');\n    const view = new DataView(packet.buffer);\n    const AVCPacketType = view.getUint8(0);\n    const CompositionTime = ((view.getUint32(0) & 0x00ffffff) << 8) >> 8;\n    const pts = CompositionTime + tag.timestamp;\n    const packetData = tag.body.subarray(5);\n\n    if (AVCPacketType === 0) {\n        debug.warn(!AVCDecoderConfigurationRecord, '[h264] Find another one AVCDecoderConfigurationRecord');\n        debug.error(packetData.length >= 7, '[H264] AVCDecoderConfigurationRecord parse length is not enough');\n        const readDcr = readBuffer(packetData);\n        const result = {};\n        result.configurationVersion = readDcr(1)[0];\n        debug.error(\n            result.configurationVersion === 1,\n            `[H264] Invalid configurationVersion: ${result.configurationVersion}`,\n        );\n        result.AVCProfileIndication = readDcr(1)[0];\n        debug.error(\n            result.AVCProfileIndication !== 0,\n            `[H264] Invalid AVCProfileIndication: ${result.AVCProfileIndication}`,\n        );\n        result.profile_compatibility = readDcr(1)[0];\n        result.AVCLevelIndication = readDcr(1)[0];\n        result.lengthSizeMinusOne = (readDcr(1)[0] & 3) + 1;\n        debug.error(\n            result.lengthSizeMinusOne === 4 || result.lengthSizeMinusOne !== 3,\n            `[H264] Invalid lengthSizeMinusOne: ${result.lengthSizeMinusOne}`,\n        );\n        result.numOfSequenceParameterSets = readDcr(1)[0] & 31;\n        debug.error(\n            result.numOfSequenceParameterSets !== 0,\n            `[H264] Invalid numOfSequenceParameterSets: ${result.numOfSequenceParameterSets}`,\n        );\n        debug.warn(\n            result.numOfSequenceParameterSets === 1,\n            `[H264] Strange numOfSequenceParameterSets: ${result.numOfSequenceParameterSets}`,\n        );\n        for (let index = 0; index < result.numOfSequenceParameterSets; index += 1) {\n            result.sequenceParameterSetLength = readBufferSum(readDcr(2));\n            if (result.sequenceParameterSetLength > 0) {\n                const SPS = readDcr(result.sequenceParameterSetLength);\n                postMessage({\n                    type: 'videoData',\n                    data: mergeBuffer(nalStart, SPS),\n                });\n            }\n        }\n        result.numOfPictureParameterSets = readDcr(1)[0];\n        debug.error(\n            result.numOfPictureParameterSets !== 0,\n            `[H264] Invalid numOfPictureParameterSets: ${result.numOfPictureParameterSets}`,\n        );\n        debug.warn(\n            result.numOfPictureParameterSets === 1,\n            `[H264] Strange numOfPictureParameterSets: ${result.numOfPictureParameterSets}`,\n        );\n        for (let index = 0; index < result.numOfPictureParameterSets; index += 1) {\n            result.pictureParameterSetLength = readBufferSum(readDcr(2));\n            if (result.pictureParameterSetLength > 0) {\n                const PPS = readDcr(result.pictureParameterSetLength);\n                postMessage({\n                    type: 'videoData',\n                    data: mergeBuffer(nalStart, PPS),\n                });\n            }\n        }\n        AVCDecoderConfigurationRecord = result;\n        postMessage({\n            type: 'AVCDecoderConfigurationRecord',\n            data: result,\n        });\n    } else if (AVCPacketType === 1) {\n        const { lengthSizeMinusOne } = AVCDecoderConfigurationRecord;\n        const readVideo = readBuffer(packetData);\n        while (readVideo.index < packetData.length) {\n            const length = readBufferSum(readVideo(lengthSizeMinusOne));\n            postMessage({\n                type: 'videoData',\n                data: mergeBuffer(nalStart, readVideo(length)),\n                timestamp: pts,\n            });\n        }\n    } else {\n        debug.error(AVCPacketType === 2, `[H264] Invalid video packet type ${AVCPacketType}`);\n    }\n}\n\nfunction demuxerAudioTag(tag) {\n    debug.error(tag.body.length > 1, 'Invalid audio packet');\n    const header = {\n        soundFormat: (tag.body[0] & 0xf0) >> 4,\n        soundRate: (tag.body[0] & 0x0c) >> 2,\n        soundSize: (tag.body[0] & 0x02) >> 1,\n        soundType: (tag.body[0] & 0x01) >> 0,\n    };\n    debug.error(header.soundFormat === 10, `[audioTrack] unsupported audio format: ${header.soundFormat}`);\n    const packet = tag.body.subarray(1);\n    const packetType = packet[0];\n    if (packetType === 0) {\n        const packetData = packet.subarray(1);\n        debug.warn(!AudioSpecificConfig, '[aac] Find another one AudioSpecificConfig');\n        debug.error(packetData.length >= 2, '[aac] AudioSpecificConfig parse length is not enough');\n        const result = {};\n        result.audioObjectType = (packetData[0] & 0xf8) >> 3;\n        result.samplingFrequencyIndex = ((packetData[0] & 7) << 1) + (((packetData[1] & 0x80) >> 7) & 1);\n        result.channelConfiguration = (packetData[1] & 0x7f) >> 3;\n        AudioSpecificConfig = result;\n        postMessage({\n            type: 'AudioSpecificConfig',\n            data: result,\n        });\n    } else {\n        const { audioObjectType, samplingFrequencyIndex, channelConfiguration } = AudioSpecificConfig;\n        const ADTSLen = tag.dataSize - 2 + 7;\n        const ADTSHeader = new Uint8Array(7);\n        ADTSHeader[0] = 0xff;\n        ADTSHeader[1] = 0xf0;\n        ADTSHeader[1] |= 0 << 3;\n        ADTSHeader[1] |= 0 << 1;\n        ADTSHeader[1] |= 1;\n        ADTSHeader[2] = (audioObjectType - 1) << 6;\n        ADTSHeader[2] |= (samplingFrequencyIndex & 0x0f) << 2;\n        ADTSHeader[2] |= 0 << 1;\n        ADTSHeader[2] |= (channelConfiguration & 0x04) >> 2;\n        ADTSHeader[3] = (channelConfiguration & 0x03) << 6;\n        ADTSHeader[3] |= 0 << 5;\n        ADTSHeader[3] |= 0 << 4;\n        ADTSHeader[3] |= 0 << 3;\n        ADTSHeader[3] |= 0 << 2;\n        ADTSHeader[3] |= (ADTSLen & 0x1800) >> 11;\n        ADTSHeader[4] = (ADTSLen & 0x7f8) >> 3;\n        ADTSHeader[5] = (ADTSLen & 0x7) << 5;\n        ADTSHeader[5] |= 0x1f;\n        ADTSHeader[6] = 0xfc;\n        const ADTSBody = tag.body.subarray(2);\n        postMessage({\n            type: 'audioData',\n            data: mergeBuffer(ADTSHeader, ADTSBody),\n            timestamp: tag.timestamp,\n        });\n    }\n}\n\nonmessage = event => {\n    uint8 = mergeBuffer(uint8, event.data);\n    if (!header && readable(13)) {\n        header = Object.create(null);\n        header.signature = readString(read(3));\n        header.version = read(1)[0];\n        debug.error(header.signature === 'FLV' && header.version === 1, 'FLV header not found');\n        header.flags = read(1)[0];\n        header.headersize = readBufferSum(read(4));\n        const prevTagSize = readBufferSum(read(4));\n        debug.error(prevTagSize === 0, `PrevTagSize0 should be equal to 0, but got ${prevTagSize}`);\n        postMessage({\n            type: 'flvHeader',\n            data: header,\n        });\n    }\n\n    while (index < uint8.length) {\n        const tag = Object.create(null);\n        const restIndex = index;\n\n        if (readable(11)) {\n            tag.tagType = read(1)[0];\n            tag.dataSize = readBufferSum(read(3));\n            const ts2 = read(1);\n            const ts1 = read(1);\n            const ts0 = read(1);\n            const ts3 = read(1);\n            tag.timestamp = ts0 | (ts1 << 8) | (ts2 << 16) | (ts3 << 24);\n            tag.streamID = readBufferSum(read(3));\n            debug.error(tag.streamID === 0, `streamID should be equal to 0, but got ${tag.streamID}`);\n        } else {\n            index = 0;\n            uint8 = uint8.subarray(restIndex);\n            return;\n        }\n\n        if (readable(tag.dataSize + 4)) {\n            tag.body = read(tag.dataSize);\n            const prevTagSize = readBufferSum(read(4));\n            debug.error(prevTagSize === tag.dataSize + 11, `Invalid PrevTagSize: ${prevTagSize}`);\n        } else {\n            index = 0;\n            uint8 = uint8.subarray(restIndex);\n            return;\n        }\n\n        switch (tag.tagType) {\n            case 18:\n                demuxerScripTag(tag);\n                break;\n            case 9:\n                demuxerVideoTag(tag);\n                break;\n            case 8:\n                demuxerAudioTag(tag);\n                break;\n            default:\n                debug.error(false, `unknown tag type: ${tag.tagType}`);\n                break;\n        }\n    }\n\n    index = 0;\n    uint8 = new Uint8Array();\n};\n";
 
-  var Demuxer =
-  /*#__PURE__*/
-  function () {
-    function Demuxer(flv) {
-      var _this = this;
+  var Demuxer = function Demuxer(flv) {
+    var _this = this;
 
-      classCallCheck(this, Demuxer);
+    classCallCheck(this, Demuxer);
 
-      this.flv = flv;
-      var options = flv.options,
-          debug = flv.debug;
-      this.size = 0;
-      this.index = 0;
-      this.header = null;
-      this.streaming = false;
-      this.uint8 = new Uint8Array();
-      this.scripMeta = null;
-      this.AudioSpecificConfig = null;
-      this.AVCDecoderConfigurationRecord = null;
-      this.streamStartTime = 0;
-      this.streamStartEnd = 0;
-      flv.on('streamStart', function (requestType) {
-        _this.streamStartTime = getNowTime();
-        debug.log('stream-url', options.url);
-        debug.log('stream-request', requestType);
-      });
-      flv.on('streaming', function (uint8) {
-        _this.streaming = true;
-        _this.size += uint8.byteLength;
-        _this.uint8 = mergeBuffer(_this.uint8, uint8);
+    var options = flv.options,
+        debug = flv.debug;
+    this.size = 0;
+    this.header = null;
+    this.streaming = false;
+    this.streamStartTime = 0;
+    this.streamEndTime = 0;
+    this.scripMeta = null;
+    this.AudioSpecificConfig = null;
+    this.AVCDecoderConfigurationRecord = null;
+    this.demux = createWorker(workerString$1);
+    flv.on('streamStart', function (requestType) {
+      _this.streamStartTime = getNowTime();
+      debug.log('stream-url', options.url);
+      debug.log('stream-request', requestType);
+    });
+    flv.on('streaming', function (uint8) {
+      _this.streaming = true;
+      _this.size += uint8.byteLength;
 
-        _this.demux();
-      });
-      flv.on('streamEnd', function (uint8) {
-        _this.streaming = false;
-        _this.streamStartEnd = getNowTime();
-        debug.log('stream-time', "".concat(_this.streamStartEnd - _this.streamStartTime, " ms"));
+      _this.demux.postMessage(uint8);
+    });
+    flv.on('streamEnd', function (uint8) {
+      _this.streaming = false;
+      _this.streamEndTime = getNowTime();
 
-        if (uint8) {
-          _this.index = 0;
-          _this.size = uint8.byteLength;
-          _this.uint8 = uint8;
-
-          _this.demux();
-        }
-
-        debug.log('stream-size', "".concat(_this.size, " byte"));
-        debug.warn(_this.size === _this.scripMeta.amf2.metaData.filesize, 'Does not seem to be a complete stream');
+      if (uint8) {
         _this.index = 0;
-        _this.uint8 = new Uint8Array();
-        flv.emit('demuxDone');
-        debug.log('demux-done');
-      });
-    }
+        _this.size = uint8.byteLength;
 
-    createClass(Demuxer, [{
-      key: "demux",
-      value: function demux() {
-        var debug = this.flv.debug;
-
-        if (!this.header && this.readable(13)) {
-          var header = Object.create(null);
-          header.signature = readString(this.read(3));
-          header.version = this.read(1)[0];
-          debug.error(header.signature === 'FLV' && header.version === 1, 'FLV header not found');
-          header.flags = this.read(1)[0];
-          header.headersize = readBufferSum(this.read(4));
-          this.header = header;
-          var prevTagSize = readBufferSum(this.read(4));
-          debug.error(prevTagSize === 0, "PrevTagSize0 should be equal to 0, but got ".concat(prevTagSize));
-          this.flv.emit('flvHeader', this.header);
-          debug.log('flv-header', this.header);
-        }
-
-        while (this.index < this.uint8.length) {
-          var restIndex = this.index;
-          var tag = Object.create(null);
-
-          if (this.readable(11)) {
-            tag.tagType = this.read(1)[0];
-            tag.dataSize = readBufferSum(this.read(3));
-            var ts2 = this.read(1);
-            var ts1 = this.read(1);
-            var ts0 = this.read(1);
-            var ts3 = this.read(1);
-            tag.timestamp = ts0 | ts1 << 8 | ts2 << 16 | ts3 << 24;
-            tag.streamID = readBufferSum(this.read(3));
-            debug.error(tag.streamID === 0, "streamID should be equal to 0, but got ".concat(tag.streamID));
-          } else {
-            this.index = restIndex;
-            break;
-          }
-
-          if (this.readable(tag.dataSize + 4)) {
-            tag.body = this.read(tag.dataSize);
-
-            var _prevTagSize = readBufferSum(this.read(4));
-
-            debug.error(_prevTagSize === tag.dataSize + 11, "Invalid PrevTagSize: ".concat(_prevTagSize));
-          } else {
-            this.index = restIndex;
-            break;
-          }
-
-          switch (tag.tagType) {
-            case 18:
-              this.demuxerScripTag(tag);
-              break;
-
-            case 9:
-              this.demuxerVideoTag(tag);
-              break;
-
-            case 8:
-              this.demuxerAudioTag(tag);
-              break;
-
-            default:
-              debug.error(false, "unknown tag type: ".concat(tag.tagType));
-              break;
-          }
-        }
+        _this.demux.postMessage(uint8);
       }
-    }, {
-      key: "readable",
-      value: function readable(length) {
-        return this.uint8.length - this.index >= length;
+
+      debug.log('stream-size', "".concat(_this.size, " byte"));
+      debug.log('stream-time', "".concat(_this.streamEndTime - _this.streamStartTime, " ms"));
+
+      _this.demux.terminate();
+
+      flv.emit('demuxDone');
+      debug.log('demux-done');
+    });
+
+    this.demux.onmessage = function (event) {
+      var message = event.data;
+
+      switch (message.type) {
+        case 'flvHeader':
+          _this.header = message.data;
+          flv.emit('flvHeader', _this.header);
+          debug.log('flv-header', _this.header);
+          break;
+
+        case 'scripMeta':
+          _this.scripMeta = message.data;
+          flv.emit('scripMeta', _this.scripMeta);
+          debug.log('scrip-meta', _this.scripMeta);
+          break;
+
+        case 'AVCDecoderConfigurationRecord':
+          _this.AVCDecoderConfigurationRecord = message.data;
+          flv.emit('AVCDecoderConfigurationRecord', _this.AVCDecoderConfigurationRecord);
+          debug.log('AVCDecoderConfigurationRecord', _this.AVCDecoderConfigurationRecord);
+          break;
+
+        case 'AudioSpecificConfig':
+          _this.AudioSpecificConfig = message.data;
+          flv.emit('AudioSpecificConfig', _this.AudioSpecificConfig);
+          debug.log('AudioSpecificConfig', _this.AudioSpecificConfig);
+          break;
+
+        case 'videoData':
+          flv.emit('videoData', message.data, message.timestamp);
+          break;
+
+        case 'audioData':
+          flv.emit('audioData', message.data, message.timestamp);
+          break;
+
+        default:
+          break;
       }
-    }, {
-      key: "read",
-      value: function read(length) {
-        var tempUint8 = new Uint8Array(length);
-
-        for (var i = 0; i < length; i += 1) {
-          tempUint8[i] = this.uint8[this.index];
-          this.index += 1;
-        }
-
-        return tempUint8;
-      }
-    }, {
-      key: "demuxerScripTag",
-      value: function demuxerScripTag(tag) {
-        var debug = this.flv.debug;
-        var readScripTag = readBuffer(tag.body);
-        var amf1 = Object.create(null);
-        var amf2 = Object.create(null);
-        amf1.type = readScripTag(1)[0];
-        debug.error(amf1.type === 2, "AMF: [amf1] type expect 2, but got ".concat(amf1.type));
-        amf1.size = readBufferSum(readScripTag(2));
-        amf1.string = readString(readScripTag(amf1.size));
-        amf2.type = readScripTag(1)[0];
-        debug.error(amf2.type === 8, "AMF: [amf2] type expect 8, but got ".concat(amf2.type));
-        amf2.size = readBufferSum(readScripTag(4));
-        amf2.metaData = Object.create(null);
-
-        function getValue(type) {
-          var value = null;
-
-          if (type !== undefined) {
-            switch (type) {
-              case 0:
-                value = readDouble(readScripTag(8));
-                break;
-
-              case 1:
-                value = readBoolean(readScripTag(1));
-                break;
-
-              case 2:
-                {
-                  var valueLength = readBufferSum(readScripTag(2));
-                  value = readString(readScripTag(valueLength));
-                  break;
-                }
-
-              case 3:
-                {
-                  value = Object.create(null);
-                  var lastType = -1;
-
-                  while (lastType !== 9) {
-                    var nameLength = readBufferSum(readScripTag(2));
-                    var name = readString(readScripTag(nameLength));
-                    var itemType = readScripTag(1)[0];
-
-                    if (name) {
-                      value[name] = getValue(itemType);
-                    }
-
-                    lastType = itemType;
-                  }
-
-                  break;
-                }
-
-              case 5:
-                value = null;
-                break;
-
-              case 6:
-                value = undefined;
-                break;
-
-              case 7:
-                value = "Reference #".concat(readScripTag.index);
-                readScripTag(2);
-                break;
-
-              case 8:
-                {
-                  value = Object.create(null);
-
-                  var _lastType = -1;
-
-                  while (_lastType !== 9) {
-                    var _nameLength = readBufferSum(readScripTag(2));
-
-                    var _name = readString(readScripTag(_nameLength));
-
-                    var _itemType = readScripTag(1)[0];
-
-                    if (_name) {
-                      value[_name] = getValue(_itemType);
-                    }
-
-                    _lastType = _itemType;
-                  }
-
-                  break;
-                }
-
-              case 10:
-                {
-                  var _valueLength = readBufferSum(readScripTag(4));
-
-                  value = [];
-
-                  for (var index = 0; index < _valueLength; index += 1) {
-                    var _itemType2 = readScripTag(1)[0];
-                    value.push(getValue(_itemType2));
-                  }
-
-                  break;
-                }
-
-              case 11:
-                value = readDouble(readScripTag(2));
-                break;
-
-              case 12:
-                {
-                  var _valueLength2 = readBufferSum(readScripTag(4));
-
-                  value = readString(readScripTag(_valueLength2));
-                  break;
-                }
-
-              default:
-                debug.error(false, "AMF: Unknown metaData type: ".concat(type));
-                break;
-            }
-          }
-
-          return value;
-        }
-
-        while (readScripTag.index < tag.body.length) {
-          var nameLength = readBufferSum(readScripTag(2));
-          var name = readString(readScripTag(nameLength));
-          var type = readScripTag(1)[0];
-
-          if (name) {
-            amf2.metaData[name] = getValue(type);
-          }
-        }
-
-        debug.error(readScripTag.index === tag.body.length, 'AMF: Seems to be incompletely parsed');
-        debug.error(amf2.size === Object.keys(amf2.metaData).length, 'AMF: [amf2] length does not match');
-        this.scripMeta = {
-          amf1: amf1,
-          amf2: amf2
-        };
-        this.flv.emit('scripMeta', this.scripMeta);
-        debug.log('scrip-meta', this.scripMeta);
-      }
-    }, {
-      key: "demuxerVideoTag",
-      value: function demuxerVideoTag(tag) {
-        var debug = this.flv.debug;
-        debug.error(tag.body.length > 1, 'Invalid video packet');
-        var header = {
-          frameType: (tag.body[0] & 0xf0) >> 4,
-          codecID: tag.body[0] & 0x0f
-        };
-        debug.error(header.codecID === 7, "[videoTrack] Unsupported codec in video frame: ".concat(header.codecID));
-        var packet = tag.body.slice(1, 5);
-        debug.error(packet.length >= 4, '[H264] Invalid AVC packet, missing AVCPacketType or/and CompositionTime');
-        var view = new DataView(packet.buffer);
-        var AVCPacketType = view.getUint8(0);
-        var CompositionTime = (view.getUint32(0) & 0x00ffffff) << 8 >> 8;
-        var pts = CompositionTime + tag.timestamp;
-        var packetData = tag.body.subarray(5);
-
-        if (AVCPacketType === 0) {
-          debug.warn(!this.AVCDecoderConfigurationRecord, '[h264] Find another one AVCDecoderConfigurationRecord');
-          debug.error(packetData.length >= 7, '[H264] AVCDecoderConfigurationRecord parse length is not enough');
-          var readDcr = readBuffer(packetData);
-          var result = {};
-          result.configurationVersion = readDcr(1)[0];
-          debug.error(result.configurationVersion === 1, "[H264] Invalid configurationVersion: ".concat(result.configurationVersion));
-          result.AVCProfileIndication = readDcr(1)[0];
-          debug.error(result.AVCProfileIndication !== 0, "[H264] Invalid AVCProfileIndication: ".concat(result.AVCProfileIndication));
-          result.profile_compatibility = readDcr(1)[0];
-          result.AVCLevelIndication = readDcr(1)[0];
-          result.lengthSizeMinusOne = (readDcr(1)[0] & 3) + 1;
-          debug.error(result.lengthSizeMinusOne === 4 || result.lengthSizeMinusOne !== 3, "[H264] Invalid lengthSizeMinusOne: ".concat(result.lengthSizeMinusOne));
-          result.numOfSequenceParameterSets = readDcr(1)[0] & 31;
-          debug.error(result.numOfSequenceParameterSets !== 0, "[H264] Invalid numOfSequenceParameterSets: ".concat(result.numOfSequenceParameterSets));
-          debug.warn(result.numOfSequenceParameterSets === 1, "[H264] Strange numOfSequenceParameterSets: ".concat(result.numOfSequenceParameterSets));
-
-          for (var index = 0; index < result.numOfSequenceParameterSets; index += 1) {
-            result.sequenceParameterSetLength = readBufferSum(readDcr(2));
-
-            if (result.sequenceParameterSetLength > 0) {
-              var SPS = readDcr(result.sequenceParameterSetLength);
-              this.flv.emit('videoData', mergeBuffer(nalStart, SPS));
-            }
-          }
-
-          result.numOfPictureParameterSets = readDcr(1)[0];
-          debug.error(result.numOfPictureParameterSets !== 0, "[H264] Invalid numOfPictureParameterSets: ".concat(result.numOfPictureParameterSets));
-          debug.warn(result.numOfPictureParameterSets === 1, "[H264] Strange numOfPictureParameterSets: ".concat(result.numOfPictureParameterSets));
-
-          for (var _index = 0; _index < result.numOfPictureParameterSets; _index += 1) {
-            result.pictureParameterSetLength = readBufferSum(readDcr(2));
-
-            if (result.pictureParameterSetLength > 0) {
-              var PPS = readDcr(result.pictureParameterSetLength);
-              this.flv.emit('videoData', mergeBuffer(nalStart, PPS), pts);
-            }
-          }
-
-          this.AVCDecoderConfigurationRecord = result;
-          this.flv.emit('AVCDecoderConfigurationRecord', result);
-          debug.log('avc-decoder-configuration-record', result);
-        } else if (AVCPacketType === 1) {
-          var lengthSizeMinusOne = this.AVCDecoderConfigurationRecord.lengthSizeMinusOne;
-          var readVideo = readBuffer(packetData);
-
-          while (readVideo.index < packetData.length) {
-            var length = readBufferSum(readVideo(lengthSizeMinusOne));
-            this.flv.emit('videoData', mergeBuffer(nalStart, readVideo(length)), pts);
-          }
-        } else {
-          debug.error(AVCPacketType === 2, "[H264] Invalid video packet type ".concat(AVCPacketType));
-        }
-      }
-    }, {
-      key: "demuxerAudioTag",
-      value: function demuxerAudioTag(tag) {
-        var debug = this.flv.debug;
-        debug.error(tag.body.length > 1, 'Invalid audio packet');
-        var header = {
-          soundFormat: (tag.body[0] & 0xf0) >> 4,
-          soundRate: (tag.body[0] & 0x0c) >> 2,
-          soundSize: (tag.body[0] & 0x02) >> 1,
-          soundType: (tag.body[0] & 0x01) >> 0
-        };
-        debug.error(header.soundFormat === 10, "[audioTrack] unsupported audio format: ".concat(header.soundFormat));
-        var packet = tag.body.subarray(1);
-        var packetType = packet[0];
-
-        if (packetType === 0) {
-          var packetData = packet.subarray(1);
-          debug.warn(!this.AudioSpecificConfig, '[aac] Find another one AudioSpecificConfig');
-          debug.error(packetData.length >= 2, '[aac] AudioSpecificConfig parse length is not enough');
-          var result = {};
-          result.audioObjectType = (packetData[0] & 0xf8) >> 3;
-          result.samplingFrequencyIndex = ((packetData[0] & 7) << 1) + ((packetData[1] & 0x80) >> 7 & 1);
-          result.channelConfiguration = (packetData[1] & 0x7f) >> 3;
-          this.AudioSpecificConfig = result;
-          this.flv.emit('AudioSpecificConfig', result);
-          debug.log('audio-specific-config', result);
-        } else {
-          var _this$AudioSpecificCo = this.AudioSpecificConfig,
-              audioObjectType = _this$AudioSpecificCo.audioObjectType,
-              samplingFrequencyIndex = _this$AudioSpecificCo.samplingFrequencyIndex,
-              channelConfiguration = _this$AudioSpecificCo.channelConfiguration;
-          var ADTSLen = tag.dataSize - 2 + 7;
-          var ADTSHeader = new Uint8Array(7);
-          ADTSHeader[0] = 0xff;
-          ADTSHeader[1] = 0xf0;
-          ADTSHeader[1] |= 0 << 3;
-          ADTSHeader[1] |= 0 << 1;
-          ADTSHeader[1] |= 1;
-          ADTSHeader[2] = audioObjectType - 1 << 6;
-          ADTSHeader[2] |= (samplingFrequencyIndex & 0x0f) << 2;
-          ADTSHeader[2] |= 0 << 1;
-          ADTSHeader[2] |= (channelConfiguration & 0x04) >> 2;
-          ADTSHeader[3] = (channelConfiguration & 0x03) << 6;
-          ADTSHeader[3] |= 0 << 5;
-          ADTSHeader[3] |= 0 << 4;
-          ADTSHeader[3] |= 0 << 3;
-          ADTSHeader[3] |= 0 << 2;
-          ADTSHeader[3] |= (ADTSLen & 0x1800) >> 11;
-          ADTSHeader[4] = (ADTSLen & 0x7f8) >> 3;
-          ADTSHeader[5] = (ADTSLen & 0x7) << 5;
-          ADTSHeader[5] |= 0x1f;
-          ADTSHeader[6] = 0xfc;
-          var ADTSBody = tag.body.subarray(2);
-          var data = mergeBuffer(ADTSHeader, ADTSBody);
-          this.flv.emit('audioData', data, tag.timestamp);
-        }
-      }
-    }]);
-
-    return Demuxer;
-  }();
+    };
+  };
 
   function fetchRequest(flv, url) {
     flv.emit('streamStart', 'fetch-request');
@@ -1746,11 +1364,6 @@
     return socket;
   }
 
-  function rtmpRequest(flv, url) {
-    flv.emit('streamStart', 'rtmp-request');
-    flv.debug.error(false, 'rtmpRequest WIP');
-  }
-
   function readFile(flv, file) {
     flv.emit('streamStart');
     var proxy = flv.events.proxy;
@@ -1794,10 +1407,6 @@
 
         if (url.startsWith('ws://')) {
           return websocketRequest;
-        }
-
-        if (url.startsWith('rtmp://')) {
-          return rtmpRequest;
         }
 
         if (typeof Response !== 'undefined' && Object.prototype.hasOwnProperty.call(Response.prototype, 'body') && typeof Headers === 'function') {

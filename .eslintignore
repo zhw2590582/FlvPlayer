@@ -2,6 +2,7 @@
 /docs
 /test
 /src/decoder/video
+/src/demuxer/demuxer.worker
 /src/player/icons/*.svg
 /node_modules
 ./rollup-config.js

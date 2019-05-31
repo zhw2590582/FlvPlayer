@@ -2,7 +2,6 @@ import fetchRequest from './fetchRequest';
 import mozXhrRequest from './mozXhrRequest';
 import xhrRequest from './xhrRequest';
 import websocketRequest from './websocketRequest';
-import rtmpRequest from './rtmpRequest';
 import readFile from './readFile';
 
 export default class Stream {
@@ -29,10 +28,6 @@ export default class Stream {
 
         if (url.startsWith('ws://')) {
             return websocketRequest;
-        }
-
-        if (url.startsWith('rtmp://')) {
-            return rtmpRequest;
         }
 
         if (

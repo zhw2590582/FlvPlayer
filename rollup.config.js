@@ -44,7 +44,7 @@ module.exports = {
             extract: isProd ? 'dist/flvplayer.css' : 'docs/uncompiled/flvplayer.css',
         }),
         string({
-            include: ['src/decoder/video/**/*.worker', 'src/player/icons/*.svg'],
+            include: ['src/decoder/video/**/*.worker', 'src/demuxer/*.worker', 'src/player/icons/*.svg'],
         }),
         nodeResolve(),
         commonjs(),

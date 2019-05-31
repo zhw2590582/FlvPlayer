@@ -334,6 +334,16 @@
       type: 'application/javascript'
     })));
   }
+  function secondToTime(second) {
+    var add0 = function add0(num) {
+      return num < 10 ? "0".concat(num) : String(num);
+    };
+
+    var hour = Math.floor(second / 3600);
+    var min = Math.floor((second - hour * 3600) / 60);
+    var sec = Math.floor(second - hour * 3600 - min * 60);
+    return (hour > 0 ? [hour, min, sec] : [min, sec]).map(add0).join(':');
+  }
   function getNowTime() {
     if (performance && typeof performance.now === 'function') {
       return performance.now();
@@ -479,7 +489,7 @@
     icons[key] = "<i class=\"flv-player-icon flv-player-icon-".concat(key, "\">").concat(iconsMap[key], "</i>");
   });
 
-  function templateCreator(flv, player) {
+  function template(flv, player) {
     var options = flv.options;
     options.container.classList.add('flv-player-container');
 
@@ -487,7 +497,7 @@
       options.container.classList.add('flv-player-live');
     }
 
-    options.container.innerHTML = "\n        <div class=\"flv-player-inner\">\n            <canvas class=\"flv-player-canvas\" width=\"".concat(options.width, "\" height=\"").concat(options.height, "\"></canvas>\n            <div class=\"flv-player-loading\">").concat(icons.loading, "</div>\n            <div class=\"flv-player-controls\">\n                <div class=\"flv-player-controls-top\">\n                    <div class=\"flv-player-controls-left\">\n                        <div class=\"flv-player-controls-item flv-player-state\">\n                            <div class=\"flv-player-play\">").concat(icons.play, "</div>\n                            <div class=\"flv-player-pause\">").concat(icons.pause, "</div>\n                        </div>\n                        <div class=\"flv-player-controls-item flv-player-time\">\n                            <span class=\"flv-player-current\">00:00</span> / <span class=\"flv-player-duration\">00:00</span>\n                        </div>\n                    </div>\n                    <div class=\"flv-player-controls-right\">\n                        <div class=\"flv-player-controls-item flv-player-volume\">").concat(icons.volume, "</div>\n                        <div class=\"flv-player-controls-item flv-player-fullscreen\">").concat(icons.fullscreen, "</div>\n                    </div>\n                </div>\n                <div class=\"flv-player-controls-progress\">\n                    <div class=\"flv-player-loaded\"></div>\n                    <div class=\"flv-player-played\">\n                        <div class=\"flv-player-indicator\"></div>\n                    </div>\n                </div>\n            </div>\n        </div>\n    ");
+    options.container.innerHTML = "\n        <div class=\"flv-player-inner\">\n            <canvas class=\"flv-player-canvas\" width=\"".concat(options.width, "\" height=\"").concat(options.height, "\"></canvas>\n            <div class=\"flv-player-loading\">").concat(icons.loading, "</div>\n            ").concat(options.controls ? "\n                <div class=\"flv-player-controls\">\n                    <div class=\"flv-player-controls-top\">\n                        <div class=\"flv-player-controls-left\">\n                            <div class=\"flv-player-controls-item flv-player-state\">\n                                <div class=\"flv-player-play\">".concat(icons.play, "</div>\n                                <div class=\"flv-player-pause\">").concat(icons.pause, "</div>\n                            </div>\n                            <div class=\"flv-player-controls-item flv-player-time\">\n                                <span class=\"flv-player-current\">00:00</span> / <span class=\"flv-player-duration\">00:00</span>\n                            </div>\n                        </div>\n                        <div class=\"flv-player-controls-right\">\n                            <div class=\"flv-player-controls-item flv-player-volume\">").concat(icons.volume, "</div>\n                            <div class=\"flv-player-controls-item flv-player-fullscreen\">").concat(icons.fullscreen, "</div>\n                        </div>\n                    </div>\n                    <div class=\"flv-player-controls-progress\">\n                        <div class=\"flv-player-loaded\"></div>\n                        <div class=\"flv-player-played\">\n                            <div class=\"flv-player-indicator\"></div>\n                        </div>\n                    </div>\n                </div>\n            ") : '', "\n            ").concat(options.debug ? "\n                <div class=\"flv-player-performance\">\n                \n                </div>\n                " : '', "\n        </div>\n    ");
     Object.defineProperty(player, '$container', {
       value: options.container
     });
@@ -535,25 +545,10 @@
     });
   }
 
-  function loadingMix(flv, player) {
-    Object.defineProperty(player, 'loading', {
-      get: function get() {
-        return player.$loading.style.display === 'flex';
-      },
-      set: function set(type) {
-        if (type) {
-          player.$loading.style.display = 'flex';
-        } else {
-          player.$loading.style.display = 'none';
-        }
-      }
-    });
-  }
-
-  function propertysMix(flv, player) {
+  function property(flv, player) {
     Object.defineProperty(player, 'rect', {
       get: function get() {
-        return flv.options.container.getBoundingClientRect();
+        return player.$container.getBoundingClientRect();
       }
     });
     ['bottom', 'height', 'left', 'right', 'top', 'width'].forEach(function (key) {
@@ -573,34 +568,9 @@
         return player.top + window.pageYOffset;
       }
     });
-  }
-
-  function autoSize(flv, player) {
-    Object.defineProperty(player, 'autoSize', {
-      value: function value() {
-        var playerWidth = player.width;
-        var playerHeight = player.height;
-        var playerRatio = playerWidth / playerHeight;
-        var canvasWidth = player.$canvas.width;
-        var canvasHeight = player.$canvas.height;
-        var canvasRatio = canvasWidth / canvasHeight;
-
-        if (playerRatio > canvasRatio) {
-          var padding = (playerWidth - playerHeight * canvasRatio) / 2;
-          player.$container.style.padding = "0 ".concat(padding, "px");
-        } else {
-          var _padding = (playerHeight - playerWidth / canvasRatio) / 2;
-
-          player.$container.style.padding = "".concat(_padding, "px 0");
-        }
-      }
-    });
-  }
-
-  function videoMix(flv, player) {
     Object.defineProperty(player, 'currentTime', {
       get: function get() {
-        return flv.decoder.playIndex / player.frameRate;
+        return flv.decoder.currentTime;
       },
       set: function set(time) {
         if (time <= player.loaded) {
@@ -661,33 +631,100 @@
         flv.decoder.pause();
       }
     });
-  }
+    Object.defineProperty(player, 'autoSize', {
+      value: function value() {
+        var playerWidth = player.width;
+        var playerHeight = player.height;
+        var playerRatio = playerWidth / playerHeight;
+        var canvasWidth = player.$canvas.width;
+        var canvasHeight = player.$canvas.height;
+        var canvasRatio = canvasWidth / canvasHeight;
 
-  function propertyMixer(flv, player) {
-    loadingMix(flv, player);
-    propertysMix(flv, player);
-    autoSize(flv, player);
-    videoMix(flv, player);
-  }
+        if (playerRatio > canvasRatio) {
+          var padding = (playerWidth - playerHeight * canvasRatio) / 2;
+          player.$container.style.padding = "0 ".concat(padding, "px");
+        } else {
+          var _padding = (playerHeight - playerWidth / canvasRatio) / 2;
 
-  function resizeInit(flv, player) {
-    flv.on('scripMeta', function (scripMeta) {
-      var metaData = scripMeta.amf2.metaData;
-
-      if (metaData.width && metaData.height) {
-        player.$canvas.width = metaData.width;
-        player.$canvas.height = metaData.height;
-        player.autoSize();
+          player.$container.style.padding = "".concat(_padding, "px 0");
+        }
       }
     });
-    var resizeObserver = new ResizeObserver(player.autoSize);
-    resizeObserver.observe(player.$container);
-    flv.events.destroyEvents.push(function () {
-      resizeObserver.unobserve(player.$container);
+    Object.defineProperty(player, 'loading', {
+      get: function get() {
+        return player.$loading.style.display === 'flex';
+      },
+      set: function set(type) {
+        if (type) {
+          player.$loading.style.display = 'flex';
+        } else {
+          player.$loading.style.display = 'none';
+        }
+      }
     });
   }
 
-  function loadedInit(flv, player) {
+  function observer(flv, player) {
+    var proxy = flv.events.proxy;
+    var object = document.createElement('object');
+    object.setAttribute('aria-hidden', 'true');
+    object.setAttribute('tabindex', -1);
+    object.type = 'text/html';
+    object.data = 'about:blank';
+    var playerWidth = player.width;
+    var playerHeight = player.height;
+    proxy(object, 'load', function () {
+      proxy(object.contentDocument.defaultView, 'resize', function () {
+        if (player.width !== playerWidth || player.height !== playerHeight) {
+          playerWidth = player.width;
+          playerHeight = player.height;
+          flv.emit('resize');
+        }
+      });
+    });
+    player.$container.appendChild(object);
+  }
+
+  function events(flv, player) {
+    var proxy = flv.events.proxy;
+    player.autoSize();
+    flv.on('scripMeta', function (scripMeta) {
+      var _scripMeta$amf2$metaD = scripMeta.amf2.metaData,
+          width = _scripMeta$amf2$metaD.width,
+          height = _scripMeta$amf2$metaD.height;
+      player.$canvas.width = width;
+      player.$canvas.height = height;
+      player.autoSize();
+    });
+    flv.on('resize', function () {
+      player.autoSize();
+    });
+    proxy(player.$canvas, 'click', function () {
+      if (player.playing) {
+        player.pause();
+      } else {
+        player.play();
+      }
+    });
+    flv.on('waiting', function () {
+      player.loading = true;
+    });
+    flv.on('ended', function () {
+      player.loading = false;
+    });
+    flv.on('timeupdate', function () {
+      player.loading = false;
+    });
+  }
+
+  function controls(flv, player) {
+    var proxy = flv.events.proxy;
+    proxy(player.$play, 'click', function () {
+      player.play();
+    });
+    proxy(player.$pause, 'click', function () {
+      player.pause();
+    });
     var loadedFn = throttle(function (timestamp) {
       var time = clamp(timestamp / player.duration, 0, 1);
       player.$loaded.style.width = "".concat(time * 100, "%");
@@ -697,32 +734,30 @@
         loadedFn(timestamp);
       }
     });
-  }
-
-  function playAndPauseInit(flv, player) {
-    var $canvas = player.$canvas;
-    var proxy = flv.events.proxy;
-    proxy($canvas, 'click', function () {
-      if (player.playing) {
-        player.pause();
-      } else {
-        player.play();
+    var timeupdateFn = throttle(function (currentTime) {
+      player.$played.style.width = "".concat(currentTime / player.duration * 100, "%");
+      player.$current.innerText = secondToTime(currentTime);
+    }, 500);
+    flv.on('timeupdate', function (currentTime) {
+      if (!flv.options.live) {
+        timeupdateFn(currentTime);
       }
     });
-  }
-
-  function eventsInit(flv, player) {
-    resizeInit(flv, player);
-    loadedInit(flv, player);
-    playAndPauseInit(flv, player);
+    flv.on('scripMeta', function () {
+      if (!flv.options.live) {
+        player.$duration.innerText = secondToTime(player.duration);
+      }
+    });
   }
 
   var Player = function Player(flv) {
     classCallCheck(this, Player);
 
-    templateCreator(flv, this);
-    propertyMixer(flv, this);
-    eventsInit(flv, this);
+    template(flv, this);
+    property(flv, this);
+    observer(flv, this);
+    events(flv, this);
+    controls(flv, this);
   };
 
   //
@@ -982,16 +1017,14 @@
 
       classCallCheck(this, VideoDecoder);
 
-      var _flv$player = flv.player,
-          $canvas = _flv$player.$canvas,
-          frameRate = _flv$player.frameRate,
-          proxy = flv.events.proxy;
+      var player = flv.player,
+          events = flv.events;
       this.frames = [];
       this.byteSize = 0;
       this.loaded = 0;
       this.decoder = createWorker(workerString);
-      this.renderer = new H264bsdCanvas($canvas);
-      proxy(this.decoder, 'message', function (event) {
+      this.renderer = new H264bsdCanvas(player.$canvas);
+      events.proxy(this.decoder, 'message', function (event) {
         var message = event.data;
         if (!message.hasOwnProperty('type')) return;
 
@@ -1001,7 +1034,7 @@
 
             _this.frames.push(message);
 
-            _this.loaded = _this.frames.length / frameRate;
+            _this.loaded = _this.frames.length / player.frameRate;
             flv.emit('loaded', _this.loaded);
             break;
 
@@ -1011,7 +1044,7 @@
       });
       var sps = null;
       var pps = null;
-      flv.on('videoData', function (nalu, timestamp) {
+      flv.on('videoData', function (nalu) {
         var readNalu = readBuffer(nalu);
         readNalu(4);
         var nalHeader = readNalu(1)[0];
@@ -1075,7 +1108,9 @@
       this.playing = false;
       this.playTimer = null;
       this.waitingTimer = null;
+      this.endedTimer = null;
       this.playIndex = 0;
+      this.currentTime = 0;
       this.video = new VideoDecoder(flv, this);
       this.audio = new AudioDecoder(flv, this);
     }
@@ -1086,16 +1121,15 @@
         var _this = this;
 
         var _this$flv = this.flv,
-            stream = _this$flv.stream,
+            demuxer = _this$flv.demuxer,
             options = _this$flv.options,
-            player = _this$flv.player; // Play after the end of playback
+            player = _this$flv.player;
 
         if (this.ended) {
           this.playIndex = 0;
-        } // Whether to draw successfully
+        }
 
-
-        var videoDrawState = this.video.draw(this.playIndex); // Successfully drawn
+        var videoDrawState = this.video.draw(this.playIndex);
 
         if (videoDrawState) {
           if (!this.playing) {
@@ -1105,28 +1139,35 @@
 
           this.playIndex += 1;
           this.ended = false;
-          this.flv.emit('timeupdate');
+          this.currentTime = this.playIndex / player.frameRate;
+          this.flv.emit('timeupdate', this.currentTime);
           this.playTimer = setTimeout(function () {
             _this.play();
-          }, player.frameDuration); // Failed to draw because it is not loaded
-        } else if (stream.streaming) {
+          }, player.frameDuration);
+          console.log('timeupdate');
+        } else if (demuxer.streaming) {
           this.ended = false;
           this.playing = false;
           this.flv.emit('waiting');
           this.waitingTimer = setTimeout(function () {
             _this.play();
-          }, player.frameDuration); // Drawing failed because of the end    
+          }, player.frameDuration);
+          console.log('waiting');
         } else {
-          this.flv.emit('ended');
           this.ended = true;
           this.playing = false;
+          this.flv.emit('ended');
 
           if (options.loop) {
             this.playIndex = 0;
-            this.play();
+            this.endedTimer = setTimeout(function () {
+              _this.play();
+            }, player.frameDuration);
           } else {
             this.pause();
           }
+
+          console.log('ended');
         }
       }
     }, {
@@ -1136,15 +1177,17 @@
         this.flv.emit('pause');
         clearTimeout(this.playTimer);
         clearTimeout(this.waitingTimer);
+        clearTimeout(this.endedTimer);
         this.playTimer = null;
         this.waitingTimer = null;
+        this.endedTimer = null;
       }
     }, {
       key: "seeked",
       value: function seeked(time) {
         var player = this.flv.player;
         this.playIndex = time * player.frameRate;
-        this.flv.emit('seeked');
+        this.flv.emit('seeked', time);
         this.video.draw(this.playIndex);
       }
     }]);
@@ -1478,7 +1521,8 @@
           muted: false,
           loop: false,
           autoplay: false,
-          frameRate: 24,
+          controls: true,
+          frameRate: 30,
           headers: {},
           width: 400,
           height: 300

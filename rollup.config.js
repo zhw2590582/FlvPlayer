@@ -29,7 +29,7 @@ module.exports = {
     },
     plugins: [
         eslint({
-            exclude: ['node_modules/**', 'src/decoder/video', 'src/player/style/*.scss', 'src/player/icons/*.svg'],
+            exclude: ['node_modules/**', 'src/decoder/video', 'src/player/style.scss', 'src/player/icons/*.svg'],
         }),
         postcss({
             plugins: [

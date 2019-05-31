@@ -8,56 +8,56 @@ export default class Decoder {
         this.playing = false;
         this.playTimer = null;
         this.waitingTimer = null;
+        this.endedTimer = null;
         this.playIndex = 0;
+        this.currentTime = 0;
         this.video = new VideoDecoder(flv, this);
         this.audio = new AudioDecoder(flv, this);
     }
 
     play() {
-        const { stream, options, player } = this.flv;
+        const { demuxer, options, player } = this.flv;
 
-        // Play after the end of playback
         if (this.ended) {
             this.playIndex = 0;
         }
 
-        // Whether to draw successfully
         const videoDrawState = this.video.draw(this.playIndex);
 
-        // Successfully drawn
         if (videoDrawState) {
             if (!this.playing) {
                 this.playing = true;
                 this.flv.emit('play');
             }
-
             this.playIndex += 1;
             this.ended = false;
-            this.flv.emit('timeupdate');
+            this.currentTime = this.playIndex / player.frameRate;
+            this.flv.emit('timeupdate', this.currentTime);
             this.playTimer = setTimeout(() => {
                 this.play();
             }, player.frameDuration);
-
-        // Failed to draw because it is not loaded
-        } else if (stream.streaming) {
+            console.log('timeupdate');
+        } else if (demuxer.streaming) {
             this.ended = false;
             this.playing = false;
             this.flv.emit('waiting');
             this.waitingTimer = setTimeout(() => {
                 this.play();
             }, player.frameDuration);
-
-        // Drawing failed because of the end    
+            console.log('waiting');
         } else {
-            this.flv.emit('ended');
             this.ended = true;
             this.playing = false;
+            this.flv.emit('ended');
             if (options.loop) {
                 this.playIndex = 0;
-                this.play();
+                this.endedTimer = setTimeout(() => {
+                    this.play();
+                }, player.frameDuration);
             } else {
                 this.pause();
             }
+            console.log('ended');
         }
     }
 
@@ -66,14 +66,16 @@ export default class Decoder {
         this.flv.emit('pause');
         clearTimeout(this.playTimer);
         clearTimeout(this.waitingTimer);
+        clearTimeout(this.endedTimer);
         this.playTimer = null;
         this.waitingTimer = null;
+        this.endedTimer = null;
     }
 
     seeked(time) {
         const { player } = this.flv;
         this.playIndex = time * player.frameRate;
-        this.flv.emit('seeked');
+        this.flv.emit('seeked', time);
         this.video.draw(this.playIndex);
     }
 }

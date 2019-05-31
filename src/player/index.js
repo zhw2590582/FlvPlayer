@@ -1,12 +1,18 @@
-import './style/index.scss';
-import templateCreator from './templateCreator';
-import propertyMixer from './propertyMixer';
-import eventsInit from './eventsInit';
+import './style.scss';
+import template from './template';
+import property from './property';
+import observer from './observer';
+import events from './events';
+import controls from './controls';
+import performance from './performance';
 
 export default class Player {
     constructor(flv) {
-        templateCreator(flv, this);
-        propertyMixer(flv, this);
-        eventsInit(flv, this);
+        template(flv, this);
+        property(flv, this);
+        observer(flv, this);
+        events(flv, this);
+        controls(flv, this);
+        performance(flv, this);
     }
 }

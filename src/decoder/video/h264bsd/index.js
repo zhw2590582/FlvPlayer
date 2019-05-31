@@ -7,6 +7,8 @@ export default class VideoDecoder {
         const { player, events } = flv;
 
         this.frames = [];
+        this.framesInputLength = 0;
+        this.decoding = true;
         this.byteSize = 0;
         this.loaded = 0;
         this.decoder = createWorker(workerString);
@@ -19,6 +21,7 @@ export default class VideoDecoder {
                 case 'pictureReady':
                     this.byteSize += message.data.byteLength;
                     this.frames.push(message);
+                    this.decoding = this.frames.length !== this.framesInputLength;
                     this.loaded = this.frames.length / player.frameRate;
                     flv.emit('loaded', this.loaded);
                     break;
@@ -27,8 +30,8 @@ export default class VideoDecoder {
             }
         });
 
-        let sps = null;
-        let pps = null;
+        let sps = new Uint8Array();
+        let pps = new Uint8Array();
         flv.on('videoData', nalu => {
             const readNalu = readBuffer(nalu);
             readNalu(4);
@@ -39,6 +42,7 @@ export default class VideoDecoder {
                 case 5: {
                     const frame = mergeBuffer(sps, pps, nalu);
                     this.decoder.postMessage({ type: 'queueInput', data: frame.buffer }, [frame.buffer]);
+                    this.framesInputLength += 1;
                     break;
                 }
                 case 7:

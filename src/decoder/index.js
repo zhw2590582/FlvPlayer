@@ -16,7 +16,7 @@ export default class Decoder {
     }
 
     play() {
-        const { demuxer, options, player } = this.flv;
+        const { options, player } = this.flv;
 
         if (this.ended) {
             this.playIndex = 0;
@@ -36,15 +36,13 @@ export default class Decoder {
             this.playTimer = setTimeout(() => {
                 this.play();
             }, player.frameDuration);
-            console.log('timeupdate');
-        } else if (demuxer.streaming) {
+        } else if (player.streaming || player.videoDecoding) {
             this.ended = false;
             this.playing = false;
             this.flv.emit('waiting');
             this.waitingTimer = setTimeout(() => {
                 this.play();
             }, player.frameDuration);
-            console.log('waiting');
         } else {
             this.ended = true;
             this.playing = false;
@@ -57,7 +55,6 @@ export default class Decoder {
             } else {
                 this.pause();
             }
-            console.log('ended');
         }
     }
 

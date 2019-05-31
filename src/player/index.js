@@ -12,7 +12,13 @@ export default class Player {
         property(flv, this);
         observer(flv, this);
         events(flv, this);
-        controls(flv, this);
-        performance(flv, this);
+
+        if (flv.options.controls) {
+            controls(flv, this);
+        }
+
+        if (flv.options.debug) {
+            performance(flv, this);
+        }
     }
 }

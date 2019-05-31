@@ -35,6 +35,21 @@ export default function controls(flv, player) {
         }
     });
 
+    flv.on('play', () => {
+        player.$play.style.display = 'none';
+        player.$pause.style.display = 'block';
+    });
+
+    flv.on('ended', () => {
+        player.$play.style.display = 'block';
+        player.$pause.style.display = 'none';
+    });
+
+    flv.on('pause', () => {
+        player.$play.style.display = 'block';
+        player.$pause.style.display = 'none';
+    });
+
     flv.on('scripMeta', () => {
         if (!flv.options.live) {
             player.$duration.innerText = secondToTime(player.duration);

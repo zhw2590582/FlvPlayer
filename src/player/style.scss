@@ -154,13 +154,6 @@
         }
     }
 
-    &.flv-player-live {
-        .flv-player-time,
-        .flv-player-controls-progress {
-            display: none;
-        }
-    }
-
     & >>> object {
         display: block;
         position: absolute;

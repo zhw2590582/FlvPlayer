@@ -15,7 +15,7 @@ export default class VideoDecoder {
         this.renderer = new H264bsdCanvas(player.$canvas);
 
         flv.on('destroy', () => {
-            this.frames = null;
+            this.frames = [];
             this.decoderWorker.terminate();
         });
 

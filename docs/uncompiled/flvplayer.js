@@ -115,73 +115,81 @@
 
   var inherits = _inherits;
 
-  function E () {
-    // Keep this empty so it's easier to inherit from
-    // (via https://github.com/lipsmack from https://github.com/scottcorgan/tiny-emitter/issues/3)
-  }
-
-  E.prototype = {
-    on: function (name, callback, ctx) {
-      var e = this.e || (this.e = {});
-
-      (e[name] || (e[name] = [])).push({
-        fn: callback,
-        ctx: ctx
-      });
-
-      return this;
-    },
-
-    once: function (name, callback, ctx) {
-      var self = this;
-      function listener () {
-        self.off(name, listener);
-        callback.apply(ctx, arguments);
-      }
-      listener._ = callback;
-      return this.on(name, listener, ctx);
-    },
-
-    emit: function (name) {
-      var data = [].slice.call(arguments, 1);
-      var evtArr = ((this.e || (this.e = {}))[name] || []).slice();
-      var i = 0;
-      var len = evtArr.length;
-
-      for (i; i < len; i++) {
-        evtArr[i].fn.apply(evtArr[i].ctx, data);
-      }
-
-      return this;
-    },
-
-    off: function (name, callback) {
-      var e = this.e || (this.e = {});
-      var evts = e[name];
-      var liveEvents = [];
-
-      if (evts && callback) {
-        for (var i = 0, len = evts.length; i < len; i++) {
-          if (evts[i].fn !== callback && evts[i].fn._ !== callback)
-            liveEvents.push(evts[i]);
-        }
-      }
-
-      // Remove event from queue to prevent memory leak
-      // Suggested by https://github.com/lazd
-      // Ref: https://github.com/scottcorgan/tiny-emitter/commit/c6ebfaa9bc973b33d110a84a307742b7cf94c953#commitcomment-5024910
-
-      (liveEvents.length)
-        ? e[name] = liveEvents
-        : delete e[name];
-
-      return this;
+  var Emitter =
+  /*#__PURE__*/
+  function () {
+    function Emitter() {
+      classCallCheck(this, Emitter);
     }
-  };
 
-  var tinyEmitter = E;
-  var TinyEmitter = E;
-  tinyEmitter.TinyEmitter = TinyEmitter;
+    createClass(Emitter, [{
+      key: "on",
+      value: function on(name, fn, ctx) {
+        var e = this.e || (this.e = {});
+        (e[name] || (e[name] = [])).push({
+          fn: fn,
+          ctx: ctx
+        });
+        return this;
+      }
+    }, {
+      key: "once",
+      value: function once(name, fn, ctx) {
+        var self = this;
+
+        function listener() {
+          self.off(name, listener);
+
+          for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+            args[_key] = arguments[_key];
+          }
+
+          fn.apply(ctx, args);
+        }
+
+        listener._ = fn;
+        return this.on(name, listener, ctx);
+      }
+    }, {
+      key: "emit",
+      value: function emit(name) {
+        var evtArr = ((this.e || (this.e = {}))[name] || []).slice();
+
+        for (var _len2 = arguments.length, data = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+          data[_key2 - 1] = arguments[_key2];
+        }
+
+        for (var i = 0; i < evtArr.length; i += 1) {
+          evtArr[i].fn.apply(evtArr[i].ctx, data);
+        }
+
+        return this;
+      }
+    }, {
+      key: "off",
+      value: function off(name, callback) {
+        var e = this.e || (this.e = {});
+        var evts = e[name];
+        var liveEvents = [];
+
+        if (evts && callback) {
+          for (var i = 0, len = evts.length; i < len; i += 1) {
+            if (evts[i].fn !== callback && evts[i].fn._ !== callback) liveEvents.push(evts[i]);
+          }
+        }
+
+        if (liveEvents.length) {
+          e[name] = liveEvents;
+        } else {
+          delete e[name];
+        }
+
+        return this;
+      }
+    }]);
+
+    return Emitter;
+  }();
 
   function _arrayWithoutHoles(arr) {
     if (Array.isArray(arr)) {
@@ -419,7 +427,7 @@
     return Math.max(Math.min(num, Math.max(a, b)), Math.min(a, b));
   }
 
-  function optionValidator (flv) {
+  function validator (flv) {
     var _flv$options = flv.options,
         container = _flv$options.container,
         url = _flv$options.url;
@@ -1619,7 +1627,7 @@
 
   function fetchRequest(flv, url) {
     flv.emit('streamStart', 'fetch-request');
-    fetch(url, {
+    return fetch(url, {
       headers: flv.options.headers
     }).then(function (response) {
       var reader = response.body.getReader();
@@ -1643,6 +1651,8 @@
           throw error;
         });
       })();
+
+      return reader;
     });
   }
 
@@ -1672,6 +1682,7 @@
       xhr.abort();
     });
     xhr.send();
+    return xhr;
   }
 
   function xhrRequest(flv, url) {
@@ -1709,6 +1720,7 @@
       xhr.abort();
     });
     xhr.send();
+    return xhr;
   }
 
   function websocketRequest(flv, url) {
@@ -1731,6 +1743,12 @@
     flv.on('destroy', function () {
       socket.close();
     });
+    return socket;
+  }
+
+  function rtmpRequest(flv, url) {
+    flv.emit('streamStart', 'rtmp-request');
+    flv.debug.error(false, 'rtmpRequest WIP');
   }
 
   function readFile(flv, file) {
@@ -1742,16 +1760,7 @@
       flv.emit('streamEnd', new Uint8Array(buffer));
     });
     reader.readAsArrayBuffer(file);
-  }
-
-  function supportsXhrResponseType(type) {
-    try {
-      var tmpXhr = new XMLHttpRequest();
-      tmpXhr.responseType = type;
-      return tmpXhr.responseType === type;
-    } catch (e) {
-      return false;
-    }
+    return reader;
   }
 
   var Stream =
@@ -1762,10 +1771,21 @@
 
       var url = flv.options.url;
       this.transportFactory = Stream.getStreamFactory(url);
-      this.transportFactory(flv, url);
+      this.transport = this.transportFactory(flv, url);
     }
 
     createClass(Stream, null, [{
+      key: "supportsXhrResponseType",
+      value: function supportsXhrResponseType(type) {
+        try {
+          var tmpXhr = new XMLHttpRequest();
+          tmpXhr.responseType = type;
+          return tmpXhr.responseType === type;
+        } catch (e) {
+          return false;
+        }
+      }
+    }, {
       key: "getStreamFactory",
       value: function getStreamFactory(url) {
         if (url instanceof File) {
@@ -1776,13 +1796,17 @@
           return websocketRequest;
         }
 
+        if (url.startsWith('rtmp://')) {
+          return rtmpRequest;
+        }
+
         if (typeof Response !== 'undefined' && Object.prototype.hasOwnProperty.call(Response.prototype, 'body') && typeof Headers === 'function') {
           return fetchRequest;
         }
 
         var mozChunked = 'moz-chunked-arraybuffer';
 
-        if (supportsXhrResponseType(mozChunked)) {
+        if (Stream.supportsXhrResponseType(mozChunked)) {
           return mozXhrRequest;
         }
 
@@ -1807,7 +1831,7 @@
 
       _this = possibleConstructorReturn(this, getPrototypeOf(FlvPlayer).call(this));
       _this.options = Object.assign({}, FlvPlayer.options, options);
-      optionValidator(assertThisInitialized(_this));
+      validator(assertThisInitialized(_this));
       _this.debug = new Debug(assertThisInitialized(_this));
       _this.events = new Events(assertThisInitialized(_this));
       _this.player = new Player(assertThisInitialized(_this));
@@ -1860,7 +1884,7 @@
     }]);
 
     return FlvPlayer;
-  }(tinyEmitter);
+  }(Emitter);
 
   Object.defineProperty(FlvPlayer, 'instances', {
     value: []

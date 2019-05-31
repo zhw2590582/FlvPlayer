@@ -1,6 +1,6 @@
 export default function fetchRequest(flv, url) {
     flv.emit('streamStart', 'fetch-request');
-    fetch(url, {
+    return fetch(url, {
         headers: flv.options.headers,
     }).then(response => {
         const reader = response.body.getReader();
@@ -24,5 +24,7 @@ export default function fetchRequest(flv, url) {
                     throw error;
                 });
         })();
+
+        return reader;
     });
 }

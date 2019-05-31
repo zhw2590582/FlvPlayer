@@ -47,7 +47,6 @@
     "servor": "^2.2.1"
   },
   "dependencies": {
-    "resize-observer": "^1.0.0",
-    "tiny-emitter": "^2.1.0"
+    "resize-observer": "^1.0.0"
   }
 }

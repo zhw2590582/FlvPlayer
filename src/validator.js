@@ -1,4 +1,4 @@
-import { errorHandle } from './index';
+import { errorHandle } from './utils';
 
 export default function(flv) {
     const { container, url } = flv.options;

@@ -26,4 +26,6 @@ export default function websocketRequest(flv, url) {
     flv.on('destroy', () => {
         socket.close();
     });
+
+    return socket;
 }

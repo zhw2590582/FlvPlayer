@@ -37,4 +37,6 @@ export default function xhrRequest(flv, url) {
     });
 
     xhr.send();
+
+    return xhr;
 }

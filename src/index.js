@@ -1,5 +1,5 @@
-import Emitter from 'tiny-emitter';
-import optionValidator from './utils/optionValidator';
+import Emitter from './emitter';
+import validator from './validator';
 import Debug from './debug';
 import Events from './events';
 import Player from './player';
@@ -12,7 +12,7 @@ class FlvPlayer extends Emitter {
     constructor(options) {
         super();
         this.options = Object.assign({}, FlvPlayer.options, options);
-        optionValidator(this);
+        validator(this);
 
         this.debug = new Debug(this);
         this.events = new Events(this);

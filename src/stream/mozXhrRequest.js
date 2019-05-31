@@ -32,4 +32,6 @@ export default function mozXhrRequest(flv, url) {
     });
 
     xhr.send();
+
+    return xhr;
 }

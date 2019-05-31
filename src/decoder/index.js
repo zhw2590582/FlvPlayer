@@ -1,3 +1,4 @@
+import { throttle } from '../utils';
 import VideoDecoder from './video/h264bsd';
 import AudioDecoder from './audio';
 
@@ -13,6 +14,10 @@ export default class Decoder {
         this.currentTime = 0;
         this.video = new VideoDecoder(flv, this);
         this.audio = new AudioDecoder(flv, this);
+
+        this.drawThrottle = throttle(() => {
+            this.video.draw(this.playIndex);
+        }, 500);
     }
 
     play() {
@@ -71,8 +76,10 @@ export default class Decoder {
 
     seeked(time) {
         const { player } = this.flv;
-        this.playIndex = time * player.frameRate;
+        this.playIndex = Math.floor(time * player.frameRate);
         this.flv.emit('seeked', time);
-        this.video.draw(this.playIndex);
+        this.currentTime = time;
+        this.flv.emit('timeupdate', time);
+        this.drawThrottle();
     }
 }

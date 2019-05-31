@@ -497,7 +497,7 @@
       options.container.classList.add('flv-player-live');
     }
 
-    options.container.innerHTML = "\n        <div class=\"flv-player-inner\">\n            <canvas class=\"flv-player-canvas\" width=\"".concat(options.width, "\" height=\"").concat(options.height, "\"></canvas>\n            <div class=\"flv-player-loading\">").concat(icons.loading, "</div>\n            ").concat(options.controls ? "\n                <div class=\"flv-player-controls\">\n                    <div class=\"flv-player-controls-top\">\n                        <div class=\"flv-player-controls-left\">\n                            <div class=\"flv-player-controls-item flv-player-state\">\n                                <div class=\"flv-player-play\">".concat(icons.play, "</div>\n                                <div class=\"flv-player-pause\">").concat(icons.pause, "</div>\n                            </div>\n                            ").concat(!options.live ? "\n                                <div class=\"flv-player-controls-item flv-player-time\">\n                                    <span class=\"flv-player-current\">00:00</span> / <span class=\"flv-player-duration\">00:00</span>\n                                </div>\n                            " : '', "\n                        </div>\n                        <div class=\"flv-player-controls-right\">\n                            <div class=\"flv-player-controls-item flv-player-volume\">").concat(icons.volume, "</div>\n                            <div class=\"flv-player-controls-item flv-player-fullscreen\">").concat(icons.fullscreen, "</div>\n                        </div>\n                    </div>\n                    ").concat(!options.live ? "\n                        <div class=\"flv-player-controls-progress\">\n                            <div class=\"flv-player-loaded\"></div>\n                            <div class=\"flv-player-played\">\n                                <div class=\"flv-player-indicator\"></div>\n                            </div>\n                        </div>\n                    " : '', "\n                </div>\n            ") : '', "\n            ").concat(options.debug ? "\n                <div class=\"flv-player-performance\">\n                \n                </div>\n                " : '', "\n        </div>\n    ");
+    options.container.innerHTML = "\n        <div class=\"flv-player-inner\">\n            <canvas class=\"flv-player-canvas\" width=\"".concat(options.width, "\" height=\"").concat(options.height, "\"></canvas>\n            ").concat(options.poster ? "<div class=\"flv-player-poster\" style=\"background-image: url(".concat(options.poster, ")\"></div>") : '', "\n            <div class=\"flv-player-loading\">").concat(icons.loading, "</div>\n            ").concat(options.controls ? "\n                <div class=\"flv-player-controls\">\n                    ".concat(!options.live ? "\n                        <div class=\"flv-player-controls-progress\">\n                            <div class=\"flv-player-loaded\"></div>\n                            <div class=\"flv-player-played\">\n                                <div class=\"flv-player-indicator\"></div>\n                            </div>\n                        </div>\n                    " : '', "\n                    <div class=\"flv-player-controls-bottom\">\n                        <div class=\"flv-player-controls-left\">\n                            <div class=\"flv-player-controls-item flv-player-state\">\n                                <div class=\"flv-player-play\">").concat(icons.play, "</div>\n                                <div class=\"flv-player-pause\">").concat(icons.pause, "</div>\n                            </div>\n                            ").concat(!options.live ? "\n                                <div class=\"flv-player-controls-item flv-player-time\">\n                                    <span class=\"flv-player-current\">00:00</span> / <span class=\"flv-player-duration\">00:00</span>\n                                </div>\n                            " : '', "\n                        </div>\n                        <div class=\"flv-player-controls-right\">\n                            <div class=\"flv-player-controls-item flv-player-volume\">").concat(icons.volume, "</div>\n                            <div class=\"flv-player-controls-item flv-player-fullscreen\">").concat(icons.fullscreen, "</div>\n                        </div>\n                    </div>\n                </div>\n            ") : '', "\n            ").concat(options.debug ? "\n                <div class=\"flv-player-performance\">\n                \n                </div>\n                " : '', "\n        </div>\n    ");
     Object.defineProperty(player, '$container', {
       value: options.container
     });
@@ -506,6 +506,9 @@
     });
     Object.defineProperty(player, '$canvas', {
       value: options.container.querySelector('.flv-player-canvas')
+    });
+    Object.defineProperty(player, '$poster', {
+      value: options.container.querySelector('.flv-player-poster')
     });
     Object.defineProperty(player, '$loading', {
       value: options.container.querySelector('.flv-player-loading')
@@ -533,6 +536,9 @@
     });
     Object.defineProperty(player, '$fullscreen', {
       value: options.container.querySelector('.flv-player-fullscreen')
+    });
+    Object.defineProperty(player, '$progress', {
+      value: options.container.querySelector('.flv-player-controls-progress')
     });
     Object.defineProperty(player, '$loaded', {
       value: options.container.querySelector('.flv-player-loaded')
@@ -600,9 +606,9 @@
     Object.defineProperty(player, 'frameRate', {
       get: function get() {
         try {
-          return flv.demuxer.scripMeta.amf2.metaData.framerate;
+          return Math.round(flv.demuxer.scripMeta.amf2.metaData.framerate);
         } catch (error) {
-          return flv.options.frameRate || 30;
+          return Math.round(flv.options.frameRate || 30);
         }
       }
     });
@@ -696,7 +702,8 @@
   }
 
   function events(flv, player) {
-    var proxy = flv.events.proxy;
+    var poster = flv.options.poster,
+        proxy = flv.events.proxy;
     player.autoSize();
     flv.on('scripMeta', function (scripMeta) {
       var _scripMeta$amf2$metaD = scripMeta.amf2.metaData,
@@ -716,6 +723,13 @@
         player.play();
       }
     });
+
+    if (poster) {
+      flv.on('play', function () {
+        player.$poster.style.display = 'none';
+      });
+    }
+
     flv.on('waiting', function () {
       player.loading = true;
     });
@@ -768,6 +782,54 @@
     flv.on('scripMeta', function () {
       if (!flv.options.live) {
         player.$duration.innerText = secondToTime(player.duration);
+      }
+    });
+
+    function getPosFromEvent(event) {
+      var $progress = player.$progress;
+
+      var _$progress$getBoundin = $progress.getBoundingClientRect(),
+          left = _$progress$getBoundin.left;
+
+      var width = clamp(event.x - left, 0, $progress.clientWidth);
+      var second = width / $progress.clientWidth * player.duration;
+      var time = secondToTime(second);
+      var percentage = clamp(width / $progress.clientWidth, 0, 1);
+      return {
+        second: second,
+        time: time,
+        width: width,
+        percentage: percentage
+      };
+    }
+
+    proxy(player.$progress, 'click', function (event) {
+      if (event.target !== player.$indicator) {
+        var _getPosFromEvent = getPosFromEvent(event),
+            second = _getPosFromEvent.second;
+
+        player.currentTime = second;
+      }
+    });
+    var isDroging = false;
+    proxy(player.$indicator, 'mousedown', function () {
+      isDroging = true;
+    });
+    proxy(document, 'mousemove', function (event) {
+      if (isDroging) {
+        var _getPosFromEvent2 = getPosFromEvent(event),
+            second = _getPosFromEvent2.second,
+            percentage = _getPosFromEvent2.percentage;
+
+        if (second <= player.loaded) {
+          player.$played.style.width = "".concat(percentage * 100, "%");
+          player.currentTime = second;
+        }
+      }
+    });
+    proxy(document, 'mouseup', function () {
+      if (isDroging) {
+        isDroging = false;
       }
     });
   }
@@ -1045,15 +1107,19 @@
       classCallCheck(this, VideoDecoder);
 
       var player = flv.player,
-          events = flv.events;
+          events = flv.events,
+          options = flv.options;
       this.frames = [];
       this.framesInputLength = 0;
-      this.decoding = true;
+      this.decoding = false;
       this.byteSize = 0;
       this.loaded = 0;
-      this.decoder = createWorker(workerString);
+      this.decoderWorker = createWorker(workerString);
       this.renderer = new H264bsdCanvas(player.$canvas);
-      events.proxy(this.decoder, 'message', function (event) {
+      flv.on('destroy', function () {
+        _this.decoderWorker.terminate();
+      });
+      events.proxy(this.decoderWorker, 'message', function (event) {
         var message = event.data;
         if (!message.hasOwnProperty('type')) return;
 
@@ -1066,6 +1132,11 @@
             _this.decoding = _this.frames.length !== _this.framesInputLength;
             _this.loaded = _this.frames.length / player.frameRate;
             flv.emit('loaded', _this.loaded);
+
+            if (!options.poster && _this.frames.length === 1) {
+              _this.draw(0);
+            }
+
             break;
 
           default:
@@ -1084,9 +1155,10 @@
           case 1:
           case 5:
             {
+              _this.decoding = true;
               var frame = mergeBuffer(sps, pps, nalu);
 
-              _this.decoder.postMessage({
+              _this.decoderWorker.postMessage({
                 type: 'queueInput',
                 data: frame.buffer
               }, [frame.buffer]);
@@ -1132,6 +1204,8 @@
   /*#__PURE__*/
   function () {
     function Decoder(flv) {
+      var _this = this;
+
       classCallCheck(this, Decoder);
 
       this.flv = flv;
@@ -1144,12 +1218,15 @@
       this.currentTime = 0;
       this.video = new VideoDecoder(flv, this);
       this.audio = new AudioDecoder(flv, this);
+      this.drawThrottle = throttle(function () {
+        _this.video.draw(_this.playIndex);
+      }, 500);
     }
 
     createClass(Decoder, [{
       key: "play",
       value: function play() {
-        var _this = this;
+        var _this2 = this;
 
         var _this$flv = this.flv,
             options = _this$flv.options,
@@ -1172,14 +1249,14 @@
           this.currentTime = this.playIndex / player.frameRate;
           this.flv.emit('timeupdate', this.currentTime);
           this.playTimer = setTimeout(function () {
-            _this.play();
+            _this2.play();
           }, player.frameDuration);
         } else if (player.streaming || player.videoDecoding) {
           this.ended = false;
           this.playing = false;
           this.flv.emit('waiting');
           this.waitingTimer = setTimeout(function () {
-            _this.play();
+            _this2.play();
           }, player.frameDuration);
         } else {
           this.ended = true;
@@ -1189,7 +1266,7 @@
           if (options.loop) {
             this.playIndex = 0;
             this.endedTimer = setTimeout(function () {
-              _this.play();
+              _this2.play();
             }, player.frameDuration);
           } else {
             this.pause();
@@ -1212,9 +1289,11 @@
       key: "seeked",
       value: function seeked(time) {
         var player = this.flv.player;
-        this.playIndex = time * player.frameRate;
+        this.playIndex = Math.floor(time * player.frameRate);
         this.flv.emit('seeked', time);
-        this.video.draw(this.playIndex);
+        this.currentTime = time;
+        this.flv.emit('timeupdate', time);
+        this.drawThrottle();
       }
     }]);
 
@@ -1240,7 +1319,10 @@
     this.scripMeta = null;
     this.AudioSpecificConfig = null;
     this.AVCDecoderConfigurationRecord = null;
-    this.demux = createWorker(workerString$1);
+    this.demuxWorker = createWorker(workerString$1);
+    flv.on('destroy', function () {
+      _this.demuxWorker.terminate();
+    });
     flv.on('streamStart', function (requestType) {
       _this.streamStartTime = getNowTime();
       debug.log('stream-url', options.url);
@@ -1250,7 +1332,7 @@
       _this.streaming = true;
       _this.size += uint8.byteLength;
 
-      _this.demux.postMessage(uint8);
+      _this.demuxWorker.postMessage(uint8);
     });
     flv.on('streamEnd', function (uint8) {
       _this.streaming = false;
@@ -1260,19 +1342,16 @@
         _this.index = 0;
         _this.size = uint8.byteLength;
 
-        _this.demux.postMessage(uint8);
+        _this.demuxWorker.postMessage(uint8);
       }
 
       debug.log('stream-size', "".concat(_this.size, " byte"));
       debug.log('stream-time', "".concat(_this.streamEndTime - _this.streamStartTime, " ms"));
-
-      _this.demux.terminate();
-
       flv.emit('demuxDone');
       debug.log('demux-done');
     });
 
-    this.demux.onmessage = function (event) {
+    this.demuxWorker.onmessage = function (event) {
       var message = event.data;
 
       switch (message.type) {
@@ -1541,6 +1620,7 @@
       get: function get() {
         return {
           url: '',
+          poster: '',
           container: null,
           debug: false,
           live: false,

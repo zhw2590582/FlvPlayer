@@ -25,7 +25,7 @@ export default function controls(flv, player) {
     });
 
     const timeupdateFn = throttle(currentTime => {
-        player.$played.style.width = `${currentTime / player.duration * 100}%`;
+        player.$played.style.width = `${(currentTime / player.duration) * 100}%`;
         player.$current.innerText = secondToTime(currentTime);
     }, 500);
 
@@ -53,6 +53,44 @@ export default function controls(flv, player) {
     flv.on('scripMeta', () => {
         if (!flv.options.live) {
             player.$duration.innerText = secondToTime(player.duration);
+        }
+    });
+
+    function getPosFromEvent(event) {
+        const { $progress } = player;
+        const { left } = $progress.getBoundingClientRect();
+        const width = clamp(event.x - left, 0, $progress.clientWidth);
+        const second = (width / $progress.clientWidth) * player.duration;
+        const time = secondToTime(second);
+        const percentage = clamp(width / $progress.clientWidth, 0, 1);
+        return { second, time, width, percentage };
+    }
+
+    proxy(player.$progress, 'click', event => {
+        if (event.target !== player.$indicator) {
+            const { second } = getPosFromEvent(event);
+            player.currentTime = second;
+        }
+    });
+
+    let isDroging = false;
+    proxy(player.$indicator, 'mousedown', () => {
+        isDroging = true;
+    });
+
+    proxy(document, 'mousemove', event => {
+        if (isDroging) {
+            const { second, percentage } = getPosFromEvent(event);
+            if (second <= player.loaded) {
+                player.$played.style.width = `${percentage * 100}%`;
+                player.currentTime = second;
+            }
+        }
+    });
+
+    proxy(document, 'mouseup', () => {
+        if (isDroging) {
+            isDroging = false;
         }
     });
 }

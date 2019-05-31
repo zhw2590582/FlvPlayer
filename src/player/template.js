@@ -11,10 +11,19 @@ export default function template(flv, player) {
     options.container.innerHTML = `
         <div class="flv-player-inner">
             <canvas class="flv-player-canvas" width="${options.width}" height="${options.height}"></canvas>
+            ${options.poster ? `<div class="flv-player-poster" style="background-image: url(${options.poster})"></div>` : ''}
             <div class="flv-player-loading">${icons.loading}</div>
             ${options.controls ? `
                 <div class="flv-player-controls">
-                    <div class="flv-player-controls-top">
+                    ${!options.live ? `
+                        <div class="flv-player-controls-progress">
+                            <div class="flv-player-loaded"></div>
+                            <div class="flv-player-played">
+                                <div class="flv-player-indicator"></div>
+                            </div>
+                        </div>
+                    ` : ''}
+                    <div class="flv-player-controls-bottom">
                         <div class="flv-player-controls-left">
                             <div class="flv-player-controls-item flv-player-state">
                                 <div class="flv-player-play">${icons.play}</div>
@@ -31,14 +40,6 @@ export default function template(flv, player) {
                             <div class="flv-player-controls-item flv-player-fullscreen">${icons.fullscreen}</div>
                         </div>
                     </div>
-                    ${!options.live ? `
-                        <div class="flv-player-controls-progress">
-                            <div class="flv-player-loaded"></div>
-                            <div class="flv-player-played">
-                                <div class="flv-player-indicator"></div>
-                            </div>
-                        </div>
-                    ` : ''}
                 </div>
             `: ''}
             ${options.debug ? `
@@ -59,6 +60,10 @@ export default function template(flv, player) {
 
     Object.defineProperty(player, '$canvas', {
         value: options.container.querySelector('.flv-player-canvas'),
+    });
+
+    Object.defineProperty(player, '$poster', {
+        value: options.container.querySelector('.flv-player-poster'),
     });
 
     Object.defineProperty(player, '$loading', {
@@ -95,6 +100,10 @@ export default function template(flv, player) {
 
     Object.defineProperty(player, '$fullscreen', {
         value: options.container.querySelector('.flv-player-fullscreen'),
+    });
+
+    Object.defineProperty(player, '$progress', {
+        value: options.container.querySelector('.flv-player-controls-progress'),
     });
 
     Object.defineProperty(player, '$loaded', {

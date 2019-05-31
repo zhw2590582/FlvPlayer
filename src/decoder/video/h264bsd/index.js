@@ -4,17 +4,21 @@ import workerString from './h264bsd.worker';
 
 export default class VideoDecoder {
     constructor(flv) {
-        const { player, events } = flv;
+        const { player, events, options } = flv;
 
         this.frames = [];
         this.framesInputLength = 0;
-        this.decoding = true;
+        this.decoding = false;
         this.byteSize = 0;
         this.loaded = 0;
-        this.decoder = createWorker(workerString);
+        this.decoderWorker = createWorker(workerString);
         this.renderer = new H264bsdCanvas(player.$canvas);
 
-        events.proxy(this.decoder, 'message', event => {
+        flv.on('destroy', () => {
+            this.decoderWorker.terminate();
+        });
+
+        events.proxy(this.decoderWorker, 'message', event => {
             const message = event.data;
             if (!message.hasOwnProperty('type')) return;
             switch (message.type) {
@@ -24,6 +28,9 @@ export default class VideoDecoder {
                     this.decoding = this.frames.length !== this.framesInputLength;
                     this.loaded = this.frames.length / player.frameRate;
                     flv.emit('loaded', this.loaded);
+                    if (!options.poster && this.frames.length === 1) {
+                        this.draw(0);
+                    }
                     break;
                 default:
                     break;
@@ -40,8 +47,9 @@ export default class VideoDecoder {
             switch (naluType) {
                 case 1:
                 case 5: {
+                    this.decoding = true;
                     const frame = mergeBuffer(sps, pps, nalu);
-                    this.decoder.postMessage({ type: 'queueInput', data: frame.buffer }, [frame.buffer]);
+                    this.decoderWorker.postMessage({ type: 'queueInput', data: frame.buffer }, [frame.buffer]);
                     this.framesInputLength += 1;
                     break;
                 }

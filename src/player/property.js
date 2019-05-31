@@ -61,9 +61,9 @@ export default function property(flv, player) {
     Object.defineProperty(player, 'frameRate', {
         get: () => {
             try {
-                return flv.demuxer.scripMeta.amf2.metaData.framerate;
+                return Math.round(flv.demuxer.scripMeta.amf2.metaData.framerate);
             } catch (error) {
-                return flv.options.frameRate || 30;
+                return Math.round(flv.options.frameRate || 30);
             }
         },
     });

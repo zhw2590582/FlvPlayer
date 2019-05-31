@@ -1,5 +1,6 @@
 export default function events(flv, player) {
     const {
+        options: { poster },
         events: { proxy },
     } = flv;
 
@@ -23,6 +24,12 @@ export default function events(flv, player) {
             player.play();
         }
     });
+
+    if (poster) {
+        flv.on('play', () => {
+            player.$poster.style.display = 'none';
+        });
+    }
 
     flv.on('waiting', () => {
         player.loading = true;

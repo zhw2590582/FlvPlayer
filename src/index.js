@@ -30,6 +30,7 @@ class FlvPlayer extends Emitter {
     static get options() {
         return {
             url: '',
+            poster: '',
             container: null,
             debug: false,
             live: false,

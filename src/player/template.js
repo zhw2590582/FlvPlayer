@@ -42,11 +42,6 @@ export default function template(flv, player) {
                     </div>
                 </div>
             `: ''}
-            ${options.debug ? `
-                <div class="flv-player-performance">
-                
-                </div>
-                ` : ''}
         </div>
     `;
 

@@ -728,6 +728,9 @@
       flv.on('play', function () {
         player.$poster.style.display = 'none';
       });
+      flv.on('seeked', function () {
+        player.$poster.style.display = 'none';
+      });
     }
 
     flv.on('waiting', function () {
@@ -1220,7 +1223,7 @@
       this.audio = new AudioDecoder(flv, this);
       this.drawThrottle = throttle(function () {
         _this.video.draw(_this.playIndex);
-      }, 500);
+      }, 200);
     }
 
     createClass(Decoder, [{

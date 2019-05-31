@@ -17,7 +17,7 @@ export default class Decoder {
 
         this.drawThrottle = throttle(() => {
             this.video.draw(this.playIndex);
-        }, 500);
+        }, 200);
     }
 
     play() {

@@ -29,6 +29,10 @@ export default function events(flv, player) {
         flv.on('play', () => {
             player.$poster.style.display = 'none';
         });
+
+        flv.on('seeked', () => {
+            player.$poster.style.display = 'none';
+        });
     }
 
     flv.on('waiting', () => {

@@ -40,34 +40,6 @@ export function mergeBuffer(...buffers) {
     }, new Cons());
 }
 
-export function readDouble(array) {
-    const view = new DataView(new ArrayBuffer(array.length));
-    array.forEach((b, i) => {
-        view.setUint8(i, b);
-    });
-    return view.getFloat64(0);
-}
-
-export function readBoolean(array) {
-    return array[0] !== 0;
-}
-
-export function readString(array) {
-    return String.fromCharCode.call(String, ...array);
-}
-
-export function string2Buffer(string) {
-    const result = [];
-    for (let i = 0; i < string.length; i += 1) {
-        result.push(Number(string.charCodeAt(i).toString(10)));
-    }
-    return result;
-}
-
-export function readBufferSum(array, uint = true) {
-    return array.reduce((totle, num, index) => totle + (uint ? num : num - 128) * 256 ** (array.length - index - 1), 0);
-}
-
 export function createWorker(workerString) {
     return new Worker(URL.createObjectURL(new Blob([workerString], { type: 'application/javascript' })));
 }

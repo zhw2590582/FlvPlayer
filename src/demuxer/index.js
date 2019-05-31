@@ -7,6 +7,8 @@ export default class Demuxer {
         this.size = 0;
         this.header = null;
         this.streaming = false;
+        this.videoDataLength = 0;
+        this.audioDataLength = 0;
         this.streamStartTime = 0;
         this.streamEndTime = 0;
         this.scripMeta = null;
@@ -68,9 +70,11 @@ export default class Demuxer {
                     debug.log('AudioSpecificConfig', this.AudioSpecificConfig);
                     break;
                 case 'videoData':
+                    this.videoDataLength += 1;
                     flv.emit('videoData', message.data, message.timestamp);
                     break;
                 case 'audioData':
+                    this.audioDataLength += 1;
                     flv.emit('audioData', message.data, message.timestamp);
                     break;
                 default:

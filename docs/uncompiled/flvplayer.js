@@ -1154,7 +1154,6 @@
         moveX = event.targetTouches[0].clientX;
       }
 
-      console.log(event);
       var width = clamp(moveX - left, 0, $progress.clientWidth);
       var second = width / $progress.clientWidth * player.duration;
       var time = secondToTime(second);

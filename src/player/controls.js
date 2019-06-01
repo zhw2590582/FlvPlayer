@@ -86,7 +86,6 @@ export default function controls(flv, player) {
         if (event.targetTouches && event.targetTouches[0]) {
             moveX = event.targetTouches[0].clientX;
         }
-        console.log(event);
         const width = clamp(moveX - left, 0, $progress.clientWidth);
         const second = (width / $progress.clientWidth) * player.duration;
         const time = secondToTime(second);

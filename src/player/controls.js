@@ -76,6 +76,14 @@ export default function controls(flv, player) {
         }
     });
 
+    proxy(player.$fullscreen, 'click', () => {
+        if (player.fullscreen) {
+            player.fullscreen = false;
+        } else {
+            player.fullscreen = true;
+        }
+    });
+
     let isDroging = false;
     proxy(player.$indicator, ['mousedown', 'touchstart'], () => {
         isDroging = true;

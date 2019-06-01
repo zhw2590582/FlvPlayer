@@ -45,5 +45,8 @@
     "rollup-plugin-string": "^3.0.0",
     "rollup-plugin-uglify": "^6.0.2",
     "servor": "^2.2.1"
+  },
+  "dependencies": {
+    "screenfull": "^4.2.0"
   }
 }

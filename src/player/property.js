@@ -1,3 +1,5 @@
+import screenfull from 'screenfull';
+
 export default function property(flv, player) {
     Object.defineProperty(player, 'rect', {
         get: () => {
@@ -134,6 +136,31 @@ export default function property(flv, player) {
                 player.$loading.style.display = 'flex';
             } else {
                 player.$loading.style.display = 'none';
+            }
+        },
+    });
+
+    Object.defineProperty(player, 'fullscreen', {
+        get: () => screenfull.isFullscreen || player.$container.classList.contains('flv-player-fullscreen-web'),
+        set: type => {
+            if (type) {
+                try {
+                    screenfull.request(player.$container).then(() => {
+                        player.$container.classList.add('flv-player-fullscreen');
+                        player.autoSize();
+                    });
+                } catch (error) {
+                    player.$container.classList.add('flv-player-fullscreen-web');
+                }
+            } else {
+                try {
+                    screenfull.exit().then(() => {
+                        player.$container.classList.remove('flv-player-fullscreen');
+                        player.autoSize();
+                    });
+                } catch (error) {
+                    player.$container.classList.remove('flv-player-fullscreen-web');
+                }
             }
         },
     });

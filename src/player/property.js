@@ -70,10 +70,10 @@ export default function property(flv, player) {
 
     Object.defineProperty(player, 'volume', {
         get: () => {
-            return true;
+            return flv.decoder.audio.gainNode.gain.value;
         },
         set: value => {
-            return value;
+            flv.decoder.audio.gainNode.gain.value = clamp(value, 0, 10);
         },
     });
 

@@ -830,10 +830,10 @@
     });
     Object.defineProperty(player, 'volume', {
       get: function get() {
-        return true;
+        return flv.decoder.audio.gainNode.gain.value;
       },
       set: function set(value) {
-        return value;
+        flv.decoder.audio.gainNode.gain.value = clamp(value, 0, 10);
       }
     });
     Object.defineProperty(player, 'loaded', {
@@ -1108,6 +1108,7 @@
       player.$pause.style.display = 'block';
     });
     flv.on('ended', function () {
+      player.controls = true;
       player.$play.style.display = 'block';
       player.$pause.style.display = 'none';
     });
@@ -1587,9 +1588,43 @@
   }();
 
   var AudioDecoder = function AudioDecoder(flv) {
+    var _this = this;
+
     classCallCheck(this, AudioDecoder);
 
-    this.flv = flv;
+    this.context = new (window.AudioContext || window.webkitAudioContext)();
+    this.source = this.context.createBufferSource();
+    this.gainNode = this.context.createGain();
+    this.source.connect(this.gainNode);
+    this.gainNode.connect(this.context.destination);
+    this.gainNode.gain.value = 0.7;
+    this.audiobuffers = []; // let test = new Uint8Array();
+    // let index = 0;
+    // flv.on('audioData', uint8 => {
+    //     if (index <= 500) {
+    //         index += 1;
+    //         test = mergeBuffer(test, uint8);
+    //     }
+    // });
+    // this.play = () => {
+    //     this.context.decodeAudioData(test.buffer, audiobuffer => {
+    //         this.source.buffer = audiobuffer;
+    //         this.source.start(0);
+    //     });
+    // };
+
+    flv.on('audioData', function (uint8) {// this.context.decodeAudioData(uint8.buffer, audiobuffer => {
+      //     this.audiobuffers.push(audiobuffer);
+      // }, err => {
+      //     console.log(err);
+      // });
+    });
+
+    this.play = function (index) {
+      _this.source.buffer = _this.audiobuffers[index];
+
+      _this.source.start(0);
+    };
   };
 
   var Decoder =

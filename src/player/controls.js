@@ -41,6 +41,7 @@ export default function controls(flv, player) {
     });
 
     flv.on('ended', () => {
+        player.controls = true;
         player.$play.style.display = 'block';
         player.$pause.style.display = 'none';
     });

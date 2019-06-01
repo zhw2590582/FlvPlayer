@@ -24,6 +24,8 @@ class FlvPlayer extends Emitter {
         id += 1;
         this.id = id;
         this.isDestroy = false;
+        this.ua = window.navigator.userAgent;
+        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(this.userAgent);
         FlvPlayer.instances.push(this);
     }
 
@@ -56,8 +58,8 @@ class FlvPlayer extends Emitter {
 
     destroy() {
         this.events.destroy();
-        this.options.container.innerHTML = '';
         this.isDestroy = true;
+        this.options.container.innerHTML = '';
         FlvPlayer.instances.splice(FlvPlayer.instances.indexOf(this), 1);
         this.emit('destroy');
     }

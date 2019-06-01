@@ -1148,7 +1148,14 @@
       var _$progress$getBoundin = $progress.getBoundingClientRect(),
           left = _$progress$getBoundin.left;
 
-      var width = clamp(event.x - left, 0, $progress.clientWidth);
+      var moveX = event.x;
+
+      if (event.targetTouches && event.targetTouches[0]) {
+        moveX = event.targetTouches[0].clientX;
+      }
+
+      console.log(event);
+      var width = clamp(moveX - left, 0, $progress.clientWidth);
       var second = width / $progress.clientWidth * player.duration;
       var time = secondToTime(second);
       var percentage = clamp(width / $progress.clientWidth, 0, 1);
@@ -1969,6 +1976,8 @@
       id += 1;
       _this.id = id;
       _this.isDestroy = false;
+      _this.ua = window.navigator.userAgent;
+      _this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(_this.userAgent);
       FlvPlayer.instances.push(assertThisInitialized(_this));
       return _this;
     }
@@ -1977,8 +1986,8 @@
       key: "destroy",
       value: function destroy() {
         this.events.destroy();
-        this.options.container.innerHTML = '';
         this.isDestroy = true;
+        this.options.container.innerHTML = '';
         FlvPlayer.instances.splice(FlvPlayer.instances.indexOf(this), 1);
         this.emit('destroy');
       }

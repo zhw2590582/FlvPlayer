@@ -82,7 +82,12 @@ export default function controls(flv, player) {
     function getPosFromEvent(event) {
         const { $progress } = player;
         const { left } = $progress.getBoundingClientRect();
-        const width = clamp(event.x - left, 0, $progress.clientWidth);
+        let moveX = event.x;
+        if (event.targetTouches && event.targetTouches[0]) {
+            moveX = event.targetTouches[0].clientX;
+        }
+        console.log(event);
+        const width = clamp(moveX - left, 0, $progress.clientWidth);
         const second = (width / $progress.clientWidth) * player.duration;
         const time = secondToTime(second);
         const percentage = clamp(width / $progress.clientWidth, 0, 1);

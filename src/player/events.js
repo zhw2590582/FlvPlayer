@@ -17,12 +17,16 @@ export default function events(flv, player) {
         player.autoSize();
     });
 
-    proxy(player.$canvas, 'click', () => {
-        if (player.playing) {
-            player.pause();
+    proxy(window, ['click', 'contextmenu'], event => {
+        if (event.composedPath().indexOf(player.$container) > -1) {
+            player.isFocus = true;
         } else {
-            player.play();
+            player.isFocus = false;
         }
+    });
+
+    proxy(player.$canvas, 'click', () => {
+        player.toggle();
     });
 
     if (poster) {

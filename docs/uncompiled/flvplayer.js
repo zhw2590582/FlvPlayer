@@ -780,9 +780,7 @@
         return flv.decoder.currentTime;
       },
       set: function set(time) {
-        if (time <= player.loaded) {
-          flv.decoder.seeked(time);
-        }
+        flv.decoder.seeked(clamp(time, 0, player.loaded));
       }
     });
     Object.defineProperty(player, 'streaming', {
@@ -812,6 +810,10 @@
           return Math.round(flv.options.frameRate || 30);
         }
       }
+    });
+    Object.defineProperty(player, 'isFocus', {
+      value: false,
+      writable: true
     });
     Object.defineProperty(player, 'frameDuration', {
       get: function get() {
@@ -848,6 +850,15 @@
         flv.decoder.pause();
       }
     });
+    Object.defineProperty(player, 'toggle', {
+      value: function value() {
+        if (player.playing) {
+          player.pause();
+        } else {
+          player.play();
+        }
+      }
+    });
     Object.defineProperty(player, 'autoSize', {
       value: function value() {
         var playerWidth = player.width;
@@ -879,6 +890,26 @@
         }
       }
     });
+
+    try {
+      var screenfullChange = function screenfullChange() {
+        if (player.fullscreen) {
+          player.$container.classList.add('flv-player-fullscreen');
+        } else {
+          player.$container.classList.remove('flv-player-fullscreen');
+        }
+
+        player.autoSize();
+      };
+
+      screenfull.on('change', screenfullChange);
+      flv.events.destroyEvents.push(function () {
+        screenfull.off('change', screenfullChange);
+      });
+    } catch (error) {
+      flv.debug.warn(false, 'Does not seem to support full screen events');
+    }
+
     Object.defineProperty(player, 'fullscreen', {
       get: function get() {
         return screenfull.isFullscreen || player.$container.classList.contains('flv-player-fullscreen-web');
@@ -886,19 +917,13 @@
       set: function set(type) {
         if (type) {
           try {
-            screenfull.request(player.$container).then(function () {
-              player.$container.classList.add('flv-player-fullscreen');
-              player.autoSize();
-            });
+            screenfull.request(player.$container);
           } catch (error) {
             player.$container.classList.add('flv-player-fullscreen-web');
           }
         } else {
           try {
-            screenfull.exit().then(function () {
-              player.$container.classList.remove('flv-player-fullscreen');
-              player.autoSize();
-            });
+            screenfull.exit();
           } catch (error) {
             player.$container.classList.remove('flv-player-fullscreen-web');
           }
@@ -943,12 +968,15 @@
     flv.on('resize', function () {
       player.autoSize();
     });
-    proxy(player.$canvas, 'click', function () {
-      if (player.playing) {
-        player.pause();
+    proxy(window, ['click', 'contextmenu'], function (event) {
+      if (event.composedPath().indexOf(player.$container) > -1) {
+        player.isFocus = true;
       } else {
-        player.play();
+        player.isFocus = false;
       }
+    });
+    proxy(player.$canvas, 'click', function () {
+      player.toggle();
     });
 
     if (poster) {
@@ -971,10 +999,62 @@
     });
   }
 
+  function hotkey(flv, player) {
+    var proxy = flv.events.proxy;
+    var keys = {};
+
+    function addHotkey(key, event) {
+      if (keys[key]) {
+        keys[key].push(event);
+      } else {
+        keys[key] = [event];
+      }
+    }
+
+    addHotkey(27, function () {
+      if (player.fullscreen) {
+        player.fullscreen = false;
+      }
+    });
+    addHotkey(32, function () {
+      player.toggle();
+    });
+    addHotkey(37, function () {
+      player.currentTime -= 10;
+    });
+    addHotkey(38, function () {
+      player.volume += 0.05;
+    });
+    addHotkey(39, function () {
+      player.currentTime += 10;
+    });
+    addHotkey(40, function () {
+      player.volume -= 0.05;
+    });
+    proxy(window, 'keydown', function (event) {
+      if (player.isFocus) {
+        var tag = document.activeElement.tagName.toUpperCase();
+        var editable = document.activeElement.getAttribute('contenteditable');
+
+        if (tag !== 'INPUT' && tag !== 'TEXTAREA' && editable !== '' && editable !== 'true') {
+          var events = keys[event.keyCode];
+
+          if (events) {
+            event.preventDefault();
+            events.forEach(function (fn) {
+              return fn();
+            });
+          }
+        }
+      }
+    });
+  }
+
   function controls(flv, player) {
     var proxy = flv.events.proxy;
     proxy(player.$play, 'click', function () {
       player.play();
+      console.log(document.activeElement);
     });
     proxy(player.$pause, 'click', function () {
       player.pause();
@@ -1082,6 +1162,10 @@
     property(flv, this);
     observer(flv, this);
     events(flv, this);
+
+    if (flv.options.hotkey) {
+      hotkey(flv, this);
+    }
 
     if (flv.options.controls) {
       controls(flv, this);
@@ -1868,6 +1952,7 @@
           muted: false,
           loop: false,
           autoplay: false,
+          hotkey: true,
           controls: true,
           frameRate: 30,
           headers: {},

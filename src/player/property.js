@@ -31,6 +31,12 @@ export default function property(flv, player) {
         },
     });
 
+    Object.defineProperty(player, 'demuxed', {
+        get: () => {
+            return flv.demuxer.demuxed;
+        },
+    });
+
     Object.defineProperty(player, 'videoDecoding', {
         get: () => {
             return flv.decoder.video.decoding;

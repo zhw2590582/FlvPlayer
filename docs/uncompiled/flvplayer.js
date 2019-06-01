@@ -796,6 +796,11 @@
         return flv.demuxer.streaming;
       }
     });
+    Object.defineProperty(player, 'demuxed', {
+      get: function get() {
+        return flv.demuxer.demuxed;
+      }
+    });
     Object.defineProperty(player, 'videoDecoding', {
       get: function get() {
         return flv.decoder.video.decoding;
@@ -1500,7 +1505,7 @@
       var player = flv.player,
           events = flv.events,
           options = flv.options;
-      this.frames = [];
+      this.framesOutput = [];
       this.framesInputLength = 0;
       this.decoding = false;
       this.byteSize = 0;
@@ -1508,7 +1513,7 @@
       this.decoderWorker = createWorker(workerString);
       this.renderer = new H264bsdCanvas(player.$canvas);
       flv.on('destroy', function () {
-        _this.frames = [];
+        _this.framesOutput = [];
 
         _this.decoderWorker.terminate();
       });
@@ -1520,13 +1525,13 @@
           case 'pictureReady':
             _this.byteSize += message.data.byteLength;
 
-            _this.frames.push(message);
+            _this.framesOutput.push(message);
 
-            _this.decoding = _this.frames.length !== _this.framesInputLength;
-            _this.loaded = _this.frames.length / player.frameRate;
+            _this.decoding = _this.framesOutput.length !== _this.framesInputLength;
+            _this.loaded = _this.framesOutput.length / player.frameRate;
             flv.emit('loaded', _this.loaded);
 
-            if (!options.poster && _this.frames.length === 1) {
+            if (!options.poster && _this.framesOutput.length === 1) {
               _this.draw(0);
             }
 
@@ -1577,7 +1582,7 @@
     createClass(VideoDecoder, [{
       key: "draw",
       value: function draw(index) {
-        var message = this.frames[index];
+        var message = this.framesOutput[index];
         if (!message) return false;
         this.renderer.drawNextOutputPicture(message.width, message.height, message.croppingParams, new Uint8Array(message.data));
         return true;
@@ -1587,45 +1592,111 @@
     return VideoDecoder;
   }();
 
-  var AudioDecoder = function AudioDecoder(flv) {
-    var _this = this;
+  var AudioDecoder =
+  /*#__PURE__*/
+  function () {
+    function AudioDecoder(flv) {
+      var _this = this;
 
-    classCallCheck(this, AudioDecoder);
+      classCallCheck(this, AudioDecoder);
 
-    this.context = new (window.AudioContext || window.webkitAudioContext)();
-    this.source = this.context.createBufferSource();
-    this.gainNode = this.context.createGain();
-    this.source.connect(this.gainNode);
-    this.gainNode.connect(this.context.destination);
-    this.gainNode.gain.value = 0.7;
-    this.audiobuffers = []; // let test = new Uint8Array();
-    // let index = 0;
-    // flv.on('audioData', uint8 => {
-    //     if (index <= 500) {
-    //         index += 1;
-    //         test = mergeBuffer(test, uint8);
-    //     }
-    // });
-    // this.play = () => {
-    //     this.context.decodeAudioData(test.buffer, audiobuffer => {
-    //         this.source.buffer = audiobuffer;
-    //         this.source.start(0);
-    //     });
-    // };
+      this.context = new (window.AudioContext || window.webkitAudioContext)();
+      this.gainNode = this.context.createGain();
+      this.gainNode.gain.value = 0.7;
+      this.playing = false;
+      this.playIndex = 0;
+      this.duration = 0;
+      this.audiobuffers = [];
+      this.audioInputLength = 0;
+      var decodeErrorBuffer = new Uint8Array();
+      var decodeWaitingBuffer = new Uint8Array();
+      flv.on('destroy', function () {
+        _this.audiobuffers = [];
+      });
+      flv.on('audioData', function (uint8) {
+        _this.audioInputLength += 1;
 
-    flv.on('audioData', function (uint8) {// this.context.decodeAudioData(uint8.buffer, audiobuffer => {
-      //     this.audiobuffers.push(audiobuffer);
-      // }, err => {
-      //     console.log(err);
-      // });
-    });
+        if (_this.audioInputLength % 128 === 0) {
+          var buffer = mergeBuffer(decodeErrorBuffer, decodeWaitingBuffer).buffer;
+          decodeWaitingBuffer = new Uint8Array();
 
-    this.play = function (index) {
-      _this.source.buffer = _this.audiobuffers[index];
+          _this.context.decodeAudioData(buffer, function (audiobuffer) {
+            _this.duration += audiobuffer.duration;
 
-      _this.source.start(0);
-    };
-  };
+            _this.audiobuffers.push(audiobuffer);
+
+            decodeErrorBuffer = new Uint8Array();
+          })["catch"](function () {
+            decodeErrorBuffer = mergeBuffer(decodeErrorBuffer, decodeWaitingBuffer);
+          });
+        } else {
+          decodeWaitingBuffer = mergeBuffer(decodeWaitingBuffer, uint8);
+        }
+      });
+    }
+
+    createClass(AudioDecoder, [{
+      key: "queue",
+      value: function queue() {
+        var _this2 = this;
+
+        this.playIndex += 1;
+        var audiobuffer = this.audiobuffers[this.playIndex];
+        if (!audiobuffer) return;
+        this.source = this.context.createBufferSource();
+        this.source.buffer = audiobuffer;
+        this.source.connect(this.gainNode);
+        this.gainNode.connect(this.context.destination);
+
+        this.source.onended = function () {
+          if (_this2.playing) {
+            _this2.queue();
+          }
+        };
+
+        this.playing = true;
+        this.source.start();
+      }
+    }, {
+      key: "play",
+      value: function play(startTime) {
+        var _this3 = this;
+
+        this.stop();
+        var time = 0;
+        this.playIndex = this.audiobuffers.findIndex(function (item) {
+          time += item.duration;
+          return startTime <= time;
+        });
+        var audiobuffer = this.audiobuffers[this.playIndex];
+        var offset = startTime - (time - audiobuffer.duration);
+        this.source = this.context.createBufferSource();
+        this.source.connect(this.gainNode);
+        this.gainNode.connect(this.context.destination);
+        this.source.buffer = audiobuffer;
+
+        this.source.onended = function () {
+          if (_this3.playing) {
+            _this3.queue();
+          }
+        };
+
+        this.playing = true;
+        this.source.start(0, offset);
+      }
+    }, {
+      key: "stop",
+      value: function stop() {
+        this.playing = false;
+
+        if (this.source) {
+          this.source.stop();
+        }
+      }
+    }]);
+
+    return AudioDecoder;
+  }();
 
   var Decoder =
   /*#__PURE__*/
@@ -1739,6 +1810,7 @@
     this.size = 0;
     this.header = null;
     this.streaming = false;
+    this.demuxed = false;
     this.videoDataLength = 0;
     this.audioDataLength = 0;
     this.streamStartTime = 0;
@@ -1774,6 +1846,7 @@
 
       debug.log('stream-size', "".concat(_this.size, " byte"));
       debug.log('stream-time', "".concat(_this.streamEndTime - _this.streamStartTime, " ms"));
+      _this.demuxed = true;
       flv.emit('demuxDone');
       debug.log('demux-done');
     });

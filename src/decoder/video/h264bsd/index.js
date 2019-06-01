@@ -6,7 +6,7 @@ export default class VideoDecoder {
     constructor(flv) {
         const { player, events, options } = flv;
 
-        this.frames = [];
+        this.framesOutput = [];
         this.framesInputLength = 0;
         this.decoding = false;
         this.byteSize = 0;
@@ -15,7 +15,7 @@ export default class VideoDecoder {
         this.renderer = new H264bsdCanvas(player.$canvas);
 
         flv.on('destroy', () => {
-            this.frames = [];
+            this.framesOutput = [];
             this.decoderWorker.terminate();
         });
 
@@ -25,11 +25,11 @@ export default class VideoDecoder {
             switch (message.type) {
                 case 'pictureReady':
                     this.byteSize += message.data.byteLength;
-                    this.frames.push(message);
-                    this.decoding = this.frames.length !== this.framesInputLength;
-                    this.loaded = this.frames.length / player.frameRate;
+                    this.framesOutput.push(message);
+                    this.decoding = this.framesOutput.length !== this.framesInputLength;
+                    this.loaded = this.framesOutput.length / player.frameRate;
                     flv.emit('loaded', this.loaded);
-                    if (!options.poster && this.frames.length === 1) {
+                    if (!options.poster && this.framesOutput.length === 1) {
                         this.draw(0);
                     }
                     break;
@@ -67,7 +67,7 @@ export default class VideoDecoder {
     }
 
     draw(index) {
-        const message = this.frames[index];
+        const message = this.framesOutput[index];
         if (!message) return false;
         this.renderer.drawNextOutputPicture(
             message.width,

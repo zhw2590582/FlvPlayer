@@ -7,6 +7,7 @@ export default class Demuxer {
         this.size = 0;
         this.header = null;
         this.streaming = false;
+        this.demuxed = false;
         this.videoDataLength = 0;
         this.audioDataLength = 0;
         this.streamStartTime = 0;
@@ -45,6 +46,7 @@ export default class Demuxer {
             debug.log('stream-size', `${this.size} byte`);
             debug.log('stream-time', `${this.streamEndTime - this.streamStartTime} ms`);
 
+            this.demuxed = true;
             flv.emit('demuxDone');
             debug.log('demux-done');
         });

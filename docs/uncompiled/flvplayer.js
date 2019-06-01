@@ -1148,13 +1148,7 @@
       var _$progress$getBoundin = $progress.getBoundingClientRect(),
           left = _$progress$getBoundin.left;
 
-      var moveX = event.x;
-
-      if (event.targetTouches && event.targetTouches[0]) {
-        moveX = event.targetTouches[0].clientX;
-      }
-
-      var width = clamp(moveX - left, 0, $progress.clientWidth);
+      var width = clamp(event.x - left, 0, $progress.clientWidth);
       var second = width / $progress.clientWidth * player.duration;
       var time = secondToTime(second);
       var percentage = clamp(width / $progress.clientWidth, 0, 1);
@@ -1179,12 +1173,12 @@
           }
         }
       });
-      var isDroging = false;
-      proxy(player.$indicator, ['mousedown', 'touchstart'], function () {
-        isDroging = true;
+      var isIndicatorDroging = false;
+      proxy(player.$indicator, 'mousedown', function () {
+        isIndicatorDroging = true;
       });
-      proxy(document, ['mousemove', 'touchmove'], function (event) {
-        if (isDroging) {
+      proxy(document, 'mousemove', function (event) {
+        if (isIndicatorDroging) {
           var _getPosFromEvent2 = getPosFromEvent(event),
               second = _getPosFromEvent2.second,
               percentage = _getPosFromEvent2.percentage;
@@ -1195,9 +1189,35 @@
           }
         }
       });
-      proxy(document, ['mouseup', 'touchend'], function () {
-        if (isDroging) {
-          isDroging = false;
+      proxy(document, 'mouseup', function () {
+        if (isIndicatorDroging) {
+          isIndicatorDroging = false;
+        }
+      });
+      var isCanvasDroging = false;
+      var touchstartX = 0;
+      var touchSecond = 0;
+      proxy(player.$canvas, 'touchstart', function (event) {
+        isCanvasDroging = true;
+        touchstartX = event.targetTouches[0].clientX;
+      });
+      proxy(player.$canvas, 'touchmove', function (event) {
+        if (isCanvasDroging) {
+          var $progress = player.$progress;
+          var moveWidth = event.targetTouches[0].clientX - touchstartX;
+          touchSecond = moveWidth / $progress.clientWidth * player.duration;
+        }
+      });
+      proxy(player.$canvas, 'touchend', function () {
+        if (isCanvasDroging) {
+          isCanvasDroging = false;
+
+          if (touchSecond <= player.loaded) {
+            player.currentTime += touchSecond;
+          }
+
+          touchstartX = 0;
+          touchSecond = 0;
         }
       });
     }

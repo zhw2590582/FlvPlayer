@@ -82,11 +82,7 @@ export default function controls(flv, player) {
     function getPosFromEvent(event) {
         const { $progress } = player;
         const { left } = $progress.getBoundingClientRect();
-        let moveX = event.x;
-        if (event.targetTouches && event.targetTouches[0]) {
-            moveX = event.targetTouches[0].clientX;
-        }
-        const width = clamp(moveX - left, 0, $progress.clientWidth);
+        const width = clamp(event.x - left, 0, $progress.clientWidth);
         const second = (width / $progress.clientWidth) * player.duration;
         const time = secondToTime(second);
         const percentage = clamp(width / $progress.clientWidth, 0, 1);
@@ -104,13 +100,13 @@ export default function controls(flv, player) {
             }
         });
 
-        let isDroging = false;
-        proxy(player.$indicator, ['mousedown', 'touchstart'], () => {
-            isDroging = true;
+        let isIndicatorDroging = false;
+        proxy(player.$indicator, 'mousedown', () => {
+            isIndicatorDroging = true;
         });
 
-        proxy(document, ['mousemove', 'touchmove'], event => {
-            if (isDroging) {
+        proxy(document, 'mousemove', event => {
+            if (isIndicatorDroging) {
                 const { second, percentage } = getPosFromEvent(event);
                 if (second <= player.loaded) {
                     player.$played.style.width = `${percentage * 100}%`;
@@ -119,9 +115,36 @@ export default function controls(flv, player) {
             }
         });
 
-        proxy(document, ['mouseup', 'touchend'], () => {
-            if (isDroging) {
-                isDroging = false;
+        proxy(document, 'mouseup', () => {
+            if (isIndicatorDroging) {
+                isIndicatorDroging = false;
+            }
+        });
+
+        let isCanvasDroging = false;
+        let touchstartX = 0;
+        let touchSecond = 0;
+        proxy(player.$canvas, 'touchstart', event => {
+            isCanvasDroging = true;
+            touchstartX = event.targetTouches[0].clientX;
+        });
+
+        proxy(player.$canvas, 'touchmove', event => {
+            if (isCanvasDroging) {
+                const { $progress } = player;
+                const moveWidth = event.targetTouches[0].clientX - touchstartX;
+                touchSecond = (moveWidth / $progress.clientWidth) * player.duration;
+            }
+        });
+
+        proxy(player.$canvas, 'touchend', () => {
+            if (isCanvasDroging) {
+                isCanvasDroging = false;
+                if (touchSecond <= player.loaded) {
+                    player.currentTime += touchSecond;
+                }
+                touchstartX = 0;
+                touchSecond = 0;
             }
         });
     }

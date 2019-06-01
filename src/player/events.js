@@ -17,6 +17,12 @@ export default function events(flv, player) {
         player.autoSize();
     });
 
+    if (flv.options.autoplay) {
+        setTimeout(() => {
+            player.play();
+        }, 1000);
+    }
+
     proxy(window, ['click', 'contextmenu'], event => {
         if (event.composedPath().indexOf(player.$container) > -1) {
             player.isFocus = true;

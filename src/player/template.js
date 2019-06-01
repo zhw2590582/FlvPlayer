@@ -4,12 +4,8 @@ export default function template(flv, player) {
     const { options } = flv;
     options.container.classList.add('flv-player-container');
 
-    if (options.live) {
-        options.container.classList.add('flv-player-live');
-    }
-
     options.container.innerHTML = `
-        <div class="flv-player-inner">
+        <div class="flv-player-inner flv-player-controls-show ${options.live ? 'flv-player-live' : ''} ${options.debug ? 'flv-player-debug' : ''}">
             <canvas class="flv-player-canvas" width="${options.width}" height="${options.height}"></canvas>
             ${options.poster ? `<div class="flv-player-poster" style="background-image: url(${options.poster})"></div>` : ''}
             <div class="flv-player-loading">${icons.loading}</div>
@@ -49,7 +45,7 @@ export default function template(flv, player) {
         value: options.container,
     });
 
-    Object.defineProperty(player, '$inner', {
+    Object.defineProperty(player, '$player', {
         value: options.container.querySelector('.flv-player-inner'),
     });
 

@@ -351,6 +351,29 @@
 
     return Date.now();
   }
+  function debounce(func, wait, context) {
+    var timeout;
+
+    function fn() {
+      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        args[_key2] = arguments[_key2];
+      }
+
+      var later = function later() {
+        timeout = null;
+        func.apply(context, args);
+      };
+
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    }
+
+    fn.clearTimeout = function ct() {
+      clearTimeout(timeout);
+    };
+
+    return fn;
+  }
   function throttle(callback, delay) {
     var isThrottled = false;
     var args;
@@ -502,16 +525,11 @@
   function template(flv, player) {
     var options = flv.options;
     options.container.classList.add('flv-player-container');
-
-    if (options.live) {
-      options.container.classList.add('flv-player-live');
-    }
-
-    options.container.innerHTML = "\n        <div class=\"flv-player-inner\">\n            <canvas class=\"flv-player-canvas\" width=\"".concat(options.width, "\" height=\"").concat(options.height, "\"></canvas>\n            ").concat(options.poster ? "<div class=\"flv-player-poster\" style=\"background-image: url(".concat(options.poster, ")\"></div>") : '', "\n            <div class=\"flv-player-loading\">").concat(icons.loading, "</div>\n            ").concat(options.controls ? "\n                <div class=\"flv-player-controls\">\n                    ".concat(!options.live ? "\n                        <div class=\"flv-player-controls-progress\">\n                            <div class=\"flv-player-loaded\"></div>\n                            <div class=\"flv-player-played\">\n                                <div class=\"flv-player-indicator\"></div>\n                            </div>\n                        </div>\n                    " : '', "\n                    <div class=\"flv-player-controls-bottom\">\n                        <div class=\"flv-player-controls-left\">\n                            <div class=\"flv-player-controls-item flv-player-state\">\n                                <div class=\"flv-player-play\">").concat(icons.play, "</div>\n                                <div class=\"flv-player-pause\">").concat(icons.pause, "</div>\n                            </div>\n                            ").concat(!options.live ? "\n                                <div class=\"flv-player-controls-item flv-player-time\">\n                                    <span class=\"flv-player-current\">00:00</span> / <span class=\"flv-player-duration\">00:00</span>\n                                </div>\n                            " : '', "\n                        </div>\n                        <div class=\"flv-player-controls-right\">\n                            <div class=\"flv-player-controls-item flv-player-volume\">").concat(icons.volume, "</div>\n                            <div class=\"flv-player-controls-item flv-player-fullscreen\">").concat(icons.fullscreen, "</div>\n                        </div>\n                    </div>\n                </div>\n            ") : '', "\n        </div>\n    ");
+    options.container.innerHTML = "\n        <div class=\"flv-player-inner flv-player-controls-show ".concat(options.live ? 'flv-player-live' : '', " ").concat(options.debug ? 'flv-player-debug' : '', "\">\n            <canvas class=\"flv-player-canvas\" width=\"").concat(options.width, "\" height=\"").concat(options.height, "\"></canvas>\n            ").concat(options.poster ? "<div class=\"flv-player-poster\" style=\"background-image: url(".concat(options.poster, ")\"></div>") : '', "\n            <div class=\"flv-player-loading\">").concat(icons.loading, "</div>\n            ").concat(options.controls ? "\n                <div class=\"flv-player-controls\">\n                    ".concat(!options.live ? "\n                        <div class=\"flv-player-controls-progress\">\n                            <div class=\"flv-player-loaded\"></div>\n                            <div class=\"flv-player-played\">\n                                <div class=\"flv-player-indicator\"></div>\n                            </div>\n                        </div>\n                    " : '', "\n                    <div class=\"flv-player-controls-bottom\">\n                        <div class=\"flv-player-controls-left\">\n                            <div class=\"flv-player-controls-item flv-player-state\">\n                                <div class=\"flv-player-play\">").concat(icons.play, "</div>\n                                <div class=\"flv-player-pause\">").concat(icons.pause, "</div>\n                            </div>\n                            ").concat(!options.live ? "\n                                <div class=\"flv-player-controls-item flv-player-time\">\n                                    <span class=\"flv-player-current\">00:00</span> / <span class=\"flv-player-duration\">00:00</span>\n                                </div>\n                            " : '', "\n                        </div>\n                        <div class=\"flv-player-controls-right\">\n                            <div class=\"flv-player-controls-item flv-player-volume\">").concat(icons.volume, "</div>\n                            <div class=\"flv-player-controls-item flv-player-fullscreen\">").concat(icons.fullscreen, "</div>\n                        </div>\n                    </div>\n                </div>\n            ") : '', "\n        </div>\n    ");
     Object.defineProperty(player, '$container', {
       value: options.container
     });
-    Object.defineProperty(player, '$inner', {
+    Object.defineProperty(player, '$player', {
       value: options.container.querySelector('.flv-player-inner')
     });
     Object.defineProperty(player, '$canvas', {
@@ -765,16 +783,6 @@
         }
       });
     });
-    Object.defineProperty(player, 'x', {
-      get: function get() {
-        return player.left + window.pageXOffset;
-      }
-    });
-    Object.defineProperty(player, 'y', {
-      get: function get() {
-        return player.top + window.pageYOffset;
-      }
-    });
     Object.defineProperty(player, 'currentTime', {
       get: function get() {
         return flv.decoder.currentTime;
@@ -878,15 +886,27 @@
         }
       }
     });
-    Object.defineProperty(player, 'loading', {
+    Object.defineProperty(player, 'controls', {
       get: function get() {
-        return player.$loading.style.display === 'flex';
+        return player.$player.classList.contains('flv-player-controls-show');
       },
       set: function set(type) {
         if (type) {
-          player.$loading.style.display = 'flex';
+          player.$player.classList.add('flv-player-controls-show');
         } else {
-          player.$loading.style.display = 'none';
+          player.$player.classList.remove('flv-player-controls-show');
+        }
+      }
+    });
+    Object.defineProperty(player, 'loading', {
+      get: function get() {
+        return player.$player.classList.contains('flv-player-loading-show');
+      },
+      set: function set(type) {
+        if (type) {
+          player.$player.classList.add('flv-player-loading-show');
+        } else {
+          player.$player.classList.remove('flv-player-loading-show');
         }
       }
     });
@@ -968,6 +988,13 @@
     flv.on('resize', function () {
       player.autoSize();
     });
+
+    if (flv.options.autoplay) {
+      setTimeout(function () {
+        player.play();
+      }, 1000);
+    }
+
     proxy(window, ['click', 'contextmenu'], function (event) {
       if (event.composedPath().indexOf(player.$container) > -1) {
         player.isFocus = true;
@@ -1094,6 +1121,26 @@
         player.$duration.innerText = secondToTime(player.duration);
       }
     });
+    proxy(player.$fullscreen, 'click', function () {
+      if (player.fullscreen) {
+        player.fullscreen = false;
+      } else {
+        player.fullscreen = true;
+      }
+    });
+    var autoHide = debounce(function () {
+      player.$player.classList.add('flv-player-hide-cursor');
+      player.controls = false;
+    }, 5000);
+    proxy(player.$player, 'mousemove', function () {
+      autoHide.clearTimeout();
+      player.$player.classList.remove('flv-player-hide-cursor');
+      player.controls = true;
+
+      if (player.playing) {
+        autoHide();
+      }
+    });
 
     function getPosFromEvent(event) {
       var $progress = player.$progress;
@@ -1113,46 +1160,41 @@
       };
     }
 
-    proxy(player.$progress, 'click', function (event) {
-      if (event.target !== player.$indicator) {
-        var _getPosFromEvent = getPosFromEvent(event),
-            second = _getPosFromEvent.second,
-            percentage = _getPosFromEvent.percentage;
+    if (!flv.options.live) {
+      proxy(player.$progress, 'click', function (event) {
+        if (event.target !== player.$indicator) {
+          var _getPosFromEvent = getPosFromEvent(event),
+              second = _getPosFromEvent.second,
+              percentage = _getPosFromEvent.percentage;
 
-        if (second <= player.loaded) {
-          player.$played.style.width = "".concat(percentage * 100, "%");
-          player.currentTime = second;
+          if (second <= player.loaded) {
+            player.$played.style.width = "".concat(percentage * 100, "%");
+            player.currentTime = second;
+          }
         }
-      }
-    });
-    proxy(player.$fullscreen, 'click', function () {
-      if (player.fullscreen) {
-        player.fullscreen = false;
-      } else {
-        player.fullscreen = true;
-      }
-    });
-    var isDroging = false;
-    proxy(player.$indicator, ['mousedown', 'touchstart'], function () {
-      isDroging = true;
-    });
-    proxy(document, ['mousemove', 'touchmove'], function (event) {
-      if (isDroging) {
-        var _getPosFromEvent2 = getPosFromEvent(event),
-            second = _getPosFromEvent2.second,
-            percentage = _getPosFromEvent2.percentage;
+      });
+      var isDroging = false;
+      proxy(player.$indicator, ['mousedown', 'touchstart'], function () {
+        isDroging = true;
+      });
+      proxy(document, ['mousemove', 'touchmove'], function (event) {
+        if (isDroging) {
+          var _getPosFromEvent2 = getPosFromEvent(event),
+              second = _getPosFromEvent2.second,
+              percentage = _getPosFromEvent2.percentage;
 
-        if (second <= player.loaded) {
-          player.$played.style.width = "".concat(percentage * 100, "%");
-          player.currentTime = second;
+          if (second <= player.loaded) {
+            player.$played.style.width = "".concat(percentage * 100, "%");
+            player.currentTime = second;
+          }
         }
-      }
-    });
-    proxy(document, ['mouseup', 'touchend'], function () {
-      if (isDroging) {
-        isDroging = false;
-      }
-    });
+      });
+      proxy(document, ['mouseup', 'touchend'], function () {
+        if (isDroging) {
+          isDroging = false;
+        }
+      });
+    }
   }
 
   var Player = function Player(flv) {

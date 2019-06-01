@@ -16,18 +16,6 @@ export default function property(flv, player) {
         });
     });
 
-    Object.defineProperty(player, 'x', {
-        get: () => {
-            return player.left + window.pageXOffset;
-        },
-    });
-
-    Object.defineProperty(player, 'y', {
-        get: () => {
-            return player.top + window.pageYOffset;
-        },
-    });
-
     Object.defineProperty(player, 'currentTime', {
         get: () => {
             return flv.decoder.currentTime;
@@ -143,13 +131,28 @@ export default function property(flv, player) {
         },
     });
 
-    Object.defineProperty(player, 'loading', {
-        get: () => player.$loading.style.display === 'flex',
+    Object.defineProperty(player, 'controls', {
+        get: () => {
+            return player.$player.classList.contains('flv-player-controls-show');
+        },
         set: type => {
             if (type) {
-                player.$loading.style.display = 'flex';
+                player.$player.classList.add('flv-player-controls-show');
             } else {
-                player.$loading.style.display = 'none';
+                player.$player.classList.remove('flv-player-controls-show');
+            }
+        },
+    });
+
+    Object.defineProperty(player, 'loading', {
+        get: () => {
+            return player.$player.classList.contains('flv-player-loading-show');
+        },
+        set: type => {
+            if (type) {
+                player.$player.classList.add('flv-player-loading-show');
+            } else {
+                player.$player.classList.remove('flv-player-loading-show');
             }
         },
     });

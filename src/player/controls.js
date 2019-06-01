@@ -1,4 +1,4 @@
-import { secondToTime, throttle, clamp } from '../utils';
+import { secondToTime, throttle, debounce, clamp } from '../utils';
 
 export default function controls(flv, player) {
     const {
@@ -57,6 +57,28 @@ export default function controls(flv, player) {
         }
     });
 
+    proxy(player.$fullscreen, 'click', () => {
+        if (player.fullscreen) {
+            player.fullscreen = false;
+        } else {
+            player.fullscreen = true;
+        }
+    });
+
+    const autoHide = debounce(() => {
+        player.$player.classList.add('flv-player-hide-cursor');
+        player.controls = false;
+    }, 5000);
+
+    proxy(player.$player, 'mousemove', () => {
+        autoHide.clearTimeout();
+        player.$player.classList.remove('flv-player-hide-cursor');
+        player.controls = true;
+        if (player.playing) {
+            autoHide();
+        }
+    });
+
     function getPosFromEvent(event) {
         const { $progress } = player;
         const { left } = $progress.getBoundingClientRect();
@@ -67,42 +89,36 @@ export default function controls(flv, player) {
         return { second, time, width, percentage };
     }
 
-    proxy(player.$progress, 'click', event => {
-        if (event.target !== player.$indicator) {
-            const { second, percentage } = getPosFromEvent(event);
-            if (second <= player.loaded) {
-                player.$played.style.width = `${percentage * 100}%`;
-                player.currentTime = second;
+    if (!flv.options.live) {
+        proxy(player.$progress, 'click', event => {
+            if (event.target !== player.$indicator) {
+                const { second, percentage } = getPosFromEvent(event);
+                if (second <= player.loaded) {
+                    player.$played.style.width = `${percentage * 100}%`;
+                    player.currentTime = second;
+                }
             }
-        }
-    });
+        });
 
-    proxy(player.$fullscreen, 'click', () => {
-        if (player.fullscreen) {
-            player.fullscreen = false;
-        } else {
-            player.fullscreen = true;
-        }
-    });
+        let isDroging = false;
+        proxy(player.$indicator, ['mousedown', 'touchstart'], () => {
+            isDroging = true;
+        });
 
-    let isDroging = false;
-    proxy(player.$indicator, ['mousedown', 'touchstart'], () => {
-        isDroging = true;
-    });
-
-    proxy(document, ['mousemove', 'touchmove'], event => {
-        if (isDroging) {
-            const { second, percentage } = getPosFromEvent(event);
-            if (second <= player.loaded) {
-                player.$played.style.width = `${percentage * 100}%`;
-                player.currentTime = second;
+        proxy(document, ['mousemove', 'touchmove'], event => {
+            if (isDroging) {
+                const { second, percentage } = getPosFromEvent(event);
+                if (second <= player.loaded) {
+                    player.$played.style.width = `${percentage * 100}%`;
+                    player.currentTime = second;
+                }
             }
-        }
-    });
+        });
 
-    proxy(document, ['mouseup', 'touchend'], () => {
-        if (isDroging) {
-            isDroging = false;
-        }
-    });
+        proxy(document, ['mouseup', 'touchend'], () => {
+            if (isDroging) {
+                isDroging = false;
+            }
+        });
+    }
 }

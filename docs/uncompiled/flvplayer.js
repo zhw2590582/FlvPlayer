@@ -1081,7 +1081,6 @@
     var proxy = flv.events.proxy;
     proxy(player.$play, 'click', function () {
       player.play();
-      console.log(document.activeElement);
     });
     proxy(player.$pause, 'click', function () {
       player.pause();

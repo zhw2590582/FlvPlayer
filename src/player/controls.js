@@ -7,7 +7,6 @@ export default function controls(flv, player) {
 
     proxy(player.$play, 'click', () => {
         player.play();
-        console.log(document.activeElement);
     });
 
     proxy(player.$pause, 'click', () => {

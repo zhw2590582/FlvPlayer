@@ -1690,6 +1690,7 @@
         this.playing = false;
 
         if (this.source) {
+          this.source.onended = null;
           this.source.stop();
         }
       }

@@ -1650,7 +1650,7 @@
 
       this.context = new (window.AudioContext || window.webkitAudioContext)();
       this.gainNode = this.context.createGain();
-      this.gainNode.gain.value = 0.7;
+      this.gainNode.gain.value = flv.options.volume;
       this.playing = false;
       this.playIndex = 0;
       this.audiobuffers = [];
@@ -2195,6 +2195,7 @@
           loop: false,
           hotkey: true,
           controls: true,
+          volume: 7,
           frameRate: 30,
           headers: {},
           width: 400,

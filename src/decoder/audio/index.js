@@ -4,7 +4,7 @@ export default class AudioDecoder {
     constructor(flv) {
         this.context = new (window.AudioContext || window.webkitAudioContext)();
         this.gainNode = this.context.createGain();
-        this.gainNode.gain.value = 0.7;
+        this.gainNode.gain.value = flv.options.volume;
 
         this.playing = false;
         this.playIndex = 0;

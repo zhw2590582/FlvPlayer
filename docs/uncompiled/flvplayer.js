@@ -1629,7 +1629,7 @@
       });
       var sps = new Uint8Array();
       var pps = new Uint8Array();
-      flv.on('videoData', function (uint8, timestamp) {
+      flv.on('videoData', function (uint8) {
         var readNalu = readBuffer(uint8);
         readNalu(4);
         var nalHeader = readNalu(1)[0];
@@ -1765,7 +1765,7 @@
           }
         }, 500);
       });
-      flv.on('audioData', function (uint8, timestamp) {
+      flv.on('audioData', function (uint8) {
         _this.decoding = true;
         _this.audioInputLength += 1;
 

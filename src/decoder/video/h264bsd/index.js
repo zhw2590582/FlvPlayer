@@ -45,7 +45,7 @@ export default class VideoDecoder {
 
         let sps = new Uint8Array();
         let pps = new Uint8Array();
-        flv.on('videoData', (uint8, timestamp) => {
+        flv.on('videoData', uint8 => {
             const readNalu = readBuffer(uint8);
             readNalu(4);
             const nalHeader = readNalu(1)[0];

@@ -41,7 +41,7 @@ export default class AudioDecoder {
             }, 500);
         });
 
-        flv.on('audioData', (uint8, timestamp) => {
+        flv.on('audioData', uint8 => {
             this.decoding = true;
             this.audioInputLength += 1;
             if (this.decodeWaitingBuffer.byteLength >= 1024 * 512) {

@@ -11,34 +11,55 @@ export default class AudioDecoder {
         this.audiobuffers = [];
         this.audioInputLength = 0;
         this.decoding = false;
+        this.byteSize = 0;
         this.loaded = 0;
 
-        let decodeErrorBuffer = new Uint8Array();
-        let decodeWaitingBuffer = new Uint8Array();
+        this.decodeErrorBuffer = new Uint8Array();
+        this.decodeWaitingBuffer = new Uint8Array();
 
         flv.on('destroy', () => {
             this.audiobuffers = [];
             this.pause();
         });
 
+        flv.on('demuxDone', () => {
+            // TODO...
+            setTimeout(() => {
+                if (this.decodeWaitingBuffer.buffer) {
+                    this.context.decodeAudioData(this.decodeWaitingBuffer.buffer, audiobuffer => {
+                        this.decodeWaitingBuffer = new Uint8Array();
+                        this.decodeErrorBuffer = new Uint8Array();
+                        this.loaded += audiobuffer.duration;
+                        this.byteSize += audiobuffer.length;
+                        this.audiobuffers.push(audiobuffer);
+                        flv.emit('audioLoaded', this.loaded);
+                        this.decoding = false;
+                    });
+                } else {
+                    this.decoding = false;
+                }
+            }, 500);
+        });
+
         flv.on('audioData', (uint8, timestamp) => {
+            this.decoding = true;
             this.audioInputLength += 1;
-            if (this.audioInputLength % 128 === 0) {
-                const buffer = mergeBuffer(decodeErrorBuffer, decodeWaitingBuffer).buffer;
-                decodeWaitingBuffer = new Uint8Array();
+            if (this.decodeWaitingBuffer.byteLength >= 1024 * 512) {
+                const buffer = mergeBuffer(this.decodeErrorBuffer, this.decodeWaitingBuffer).buffer;
+                this.decodeWaitingBuffer = new Uint8Array();
                 this.context
                     .decodeAudioData(buffer, audiobuffer => {
                         this.loaded += audiobuffer.duration;
+                        this.byteSize += audiobuffer.length;
                         this.audiobuffers.push(audiobuffer);
-                        this.decoding = this.audiobuffers.length !== this.audioInputLength;
                         flv.emit('audioLoaded', this.loaded);
-                        decodeErrorBuffer = new Uint8Array();
+                        this.decodeErrorBuffer = new Uint8Array();
                     })
                     .catch(() => {
-                        decodeErrorBuffer = mergeBuffer(decodeErrorBuffer, decodeWaitingBuffer);
+                        this.decodeErrorBuffer = mergeBuffer(this.decodeErrorBuffer, this.decodeWaitingBuffer);
                     });
             } else {
-                decodeWaitingBuffer = mergeBuffer(decodeWaitingBuffer, uint8);
+                this.decodeWaitingBuffer = mergeBuffer(this.decodeWaitingBuffer, uint8);
             }
         });
     }

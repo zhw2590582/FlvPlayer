@@ -1736,34 +1736,56 @@
       this.audiobuffers = [];
       this.audioInputLength = 0;
       this.decoding = false;
+      this.byteSize = 0;
       this.loaded = 0;
-      var decodeErrorBuffer = new Uint8Array();
-      var decodeWaitingBuffer = new Uint8Array();
+      this.decodeErrorBuffer = new Uint8Array();
+      this.decodeWaitingBuffer = new Uint8Array();
       flv.on('destroy', function () {
         _this.audiobuffers = [];
 
         _this.pause();
       });
+      flv.on('demuxDone', function () {
+        // TODO...
+        setTimeout(function () {
+          if (_this.decodeWaitingBuffer.buffer) {
+            _this.context.decodeAudioData(_this.decodeWaitingBuffer.buffer, function (audiobuffer) {
+              _this.decodeWaitingBuffer = new Uint8Array();
+              _this.decodeErrorBuffer = new Uint8Array();
+              _this.loaded += audiobuffer.duration;
+              _this.byteSize += audiobuffer.length;
+
+              _this.audiobuffers.push(audiobuffer);
+
+              flv.emit('audioLoaded', _this.loaded);
+              _this.decoding = false;
+            });
+          } else {
+            _this.decoding = false;
+          }
+        }, 500);
+      });
       flv.on('audioData', function (uint8, timestamp) {
+        _this.decoding = true;
         _this.audioInputLength += 1;
 
-        if (_this.audioInputLength % 128 === 0) {
-          var buffer = mergeBuffer(decodeErrorBuffer, decodeWaitingBuffer).buffer;
-          decodeWaitingBuffer = new Uint8Array();
+        if (_this.decodeWaitingBuffer.byteLength >= 1024 * 512) {
+          var buffer = mergeBuffer(_this.decodeErrorBuffer, _this.decodeWaitingBuffer).buffer;
+          _this.decodeWaitingBuffer = new Uint8Array();
 
           _this.context.decodeAudioData(buffer, function (audiobuffer) {
             _this.loaded += audiobuffer.duration;
+            _this.byteSize += audiobuffer.length;
 
             _this.audiobuffers.push(audiobuffer);
 
-            _this.decoding = _this.audiobuffers.length !== _this.audioInputLength;
             flv.emit('audioLoaded', _this.loaded);
-            decodeErrorBuffer = new Uint8Array();
+            _this.decodeErrorBuffer = new Uint8Array();
           })["catch"](function () {
-            decodeErrorBuffer = mergeBuffer(decodeErrorBuffer, decodeWaitingBuffer);
+            _this.decodeErrorBuffer = mergeBuffer(_this.decodeErrorBuffer, _this.decodeWaitingBuffer);
           });
         } else {
-          decodeWaitingBuffer = mergeBuffer(decodeWaitingBuffer, uint8);
+          _this.decodeWaitingBuffer = mergeBuffer(_this.decodeWaitingBuffer, uint8);
         }
       });
     }
@@ -1964,6 +1986,8 @@
     this.header = null;
     this.streaming = false;
     this.demuxed = false;
+    this.videoDataSize = 0;
+    this.audioDataSize = 0;
     this.videoDataLength = 0;
     this.audioDataLength = 0;
     this.streamStartTime = 0;
@@ -2034,11 +2058,13 @@
 
         case 'videoData':
           _this.videoDataLength += 1;
+          _this.videoDataSize += message.data.byteLength;
           flv.emit('videoData', message.data, message.timestamp);
           break;
 
         case 'audioData':
           _this.audioDataLength += 1;
+          _this.audioDataSize += message.data.byteLength;
           flv.emit('audioData', message.data, message.timestamp);
           break;
 

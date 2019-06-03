@@ -26,7 +26,7 @@ export default function hotkey(flv, player) {
     });
 
     addHotkey(38, () => {
-        player.volume += 0.05;
+        player.volume += 1;
     });
 
     addHotkey(39, () => {
@@ -34,7 +34,7 @@ export default function hotkey(flv, player) {
     });
 
     addHotkey(40, () => {
-        player.volume -= 0.05;
+        player.volume -= 1;
     });
 
     proxy(window, 'keydown', event => {

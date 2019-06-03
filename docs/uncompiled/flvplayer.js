@@ -1062,13 +1062,13 @@
       player.currentTime -= 10;
     });
     addHotkey(38, function () {
-      player.volume += 0.05;
+      player.volume += 1;
     });
     addHotkey(39, function () {
       player.currentTime += 10;
     });
     addHotkey(40, function () {
-      player.volume -= 0.05;
+      player.volume -= 1;
     });
     proxy(window, 'keydown', function (event) {
       if (player.isFocus) {

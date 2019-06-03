@@ -86,6 +86,7 @@ export default function property(flv, player) {
         },
         set: value => {
             flv.decoder.audio.gainNode.gain.value = clamp(value, 0, 10);
+            flv.emit('volumechange', player.volume);
         },
     });
 

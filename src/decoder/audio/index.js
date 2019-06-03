@@ -21,7 +21,7 @@ export default class AudioDecoder {
             this.pause();
         });
 
-        flv.on('audioData', uint8 => {
+        flv.on('audioData', (uint8, timestamp) => {
             this.audioInputLength += 1;
             if (this.audioInputLength % 128 === 0) {
                 const buffer = mergeBuffer(decodeErrorBuffer, decodeWaitingBuffer).buffer;

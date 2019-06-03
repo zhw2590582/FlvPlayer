@@ -25,6 +25,13 @@ export default function template(flv, player) {
                                 <div class="flv-player-play">${icons.play}</div>
                                 <div class="flv-player-pause">${icons.pause}</div>
                             </div>
+                            <div class="flv-player-controls-item flv-player-volume">
+                                <div class="flv-player-volume-on">${icons.volume}</div>
+                                <div class="flv-player-volume-off">${icons.volumeClose}</div>
+                                <div class="flv-player-volume-panel">
+                                    <div class="flv-player-volume-panel-handle"></div>
+                                </div>
+                            </div>
                             ${!options.live ? `
                                 <div class="flv-player-controls-item flv-player-time">
                                     <span class="flv-player-current">00:00</span> / <span class="flv-player-duration">00:00</span>
@@ -32,7 +39,6 @@ export default function template(flv, player) {
                             ` : ''}
                         </div>
                         <div class="flv-player-controls-right">
-                            <div class="flv-player-controls-item flv-player-volume">${icons.volume}</div>
                             <div class="flv-player-controls-item flv-player-fullscreen">${icons.fullscreen}</div>
                         </div>
                     </div>
@@ -85,8 +91,20 @@ export default function template(flv, player) {
         value: options.container.querySelector('.flv-player-duration'),
     });
 
-    Object.defineProperty(player, '$volume', {
-        value: options.container.querySelector('.flv-player-volume'),
+    Object.defineProperty(player, '$volumeOn', {
+        value: options.container.querySelector('.flv-player-volume-on'),
+    });
+
+    Object.defineProperty(player, '$volumeOff', {
+        value: options.container.querySelector('.flv-player-volume-off'),
+    });
+
+    Object.defineProperty(player, '$volumePanel', {
+        value: options.container.querySelector('.flv-player-volume-panel'),
+    });
+
+    Object.defineProperty(player, '$volumeHandle', {
+        value: options.container.querySelector('.flv-player-volume-panel-handle'),
     });
 
     Object.defineProperty(player, '$fullscreen', {

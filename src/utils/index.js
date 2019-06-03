@@ -107,3 +107,13 @@ export function throttle(callback, delay) {
 export function clamp(num, a, b) {
     return Math.max(Math.min(num, Math.max(a, b)), Math.min(a, b));
 }
+
+export function setStyle(element, key, value) {
+    element.style[key] = value;
+    return element;
+}
+
+export function getStyle(element, key, numberType = true) {
+    const value = window.getComputedStyle(element, null).getPropertyValue(key);
+    return numberType ? parseFloat(value) : value;
+}

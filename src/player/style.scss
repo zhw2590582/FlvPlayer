@@ -86,8 +86,9 @@
                 repeat-x bottom;
 
             .flv-player-controls-item {
+                display: flex;
+                justify-content: center;
                 padding: 0 5px;
-                line-height: 1;
             }
 
             .flv-player-controls-progress {
@@ -142,8 +143,60 @@
                     display: flex;
                     align-items: center;
                     .flv-player-state {
+                        height: 100%;
                         .flv-player-pause {
                             display: none;
+                        }
+                    }
+                    .flv-player-volume {
+                        display: flex;
+                        height: 100%;
+
+                        .flv-player-volume-off {
+                            display: none;
+                        }
+
+                        .flv-player-volume-panel {
+                            position: relative;
+                            width: 0;
+                            height: 100%;
+                            transition: margin .2s cubic-bezier(0.4,0.0,1,1),width .2s cubic-bezier(0.4,0.0,1,1);
+                            overflow: hidden;
+                            .flv-player-volume-panel-handle {
+                                position: absolute;
+                                top: 50%;
+                                left: 0;
+                                width: 12px;
+                                height: 12px;
+                                border-radius: 12px;
+                                margin-top: -6px;
+                                background: #fff;
+            
+                                &::before {
+                                    left: -54px;
+                                    background: #fff;
+                                }
+            
+                                &::after {
+                                    left: 6px;
+                                    background: rgba(255,255,255,.2);
+                                }
+            
+                                &::before, &::after {
+                                    content: '';
+                                    position: absolute;
+                                    display: block;
+                                    top: 50%;
+                                    height: 3px;
+                                    margin-top: -2px;
+                                    width: 60px
+                                }
+                            }
+                        }
+
+                        &:hover .flv-player-volume-panel {
+                            width: 60px;
+                            margin-left: 5px;
                         }
                     }
                 }

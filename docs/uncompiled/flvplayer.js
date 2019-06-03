@@ -1000,13 +1000,6 @@
     flv.on('resize', function () {
       player.autoSize();
     });
-
-    if (flv.options.autoplay) {
-      setTimeout(function () {
-        player.play();
-      }, 1000);
-    }
-
     proxy(window, ['click', 'contextmenu'], function (event) {
       if (event.composedPath().indexOf(player.$container) > -1) {
         player.isFocus = true;
@@ -2200,7 +2193,6 @@
           live: false,
           muted: false,
           loop: false,
-          autoplay: false,
           hotkey: true,
           controls: true,
           frameRate: 30,

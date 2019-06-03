@@ -7,79 +7,75 @@ export default class Decoder {
         this.flv = flv;
         this.ended = false;
         this.playing = false;
-        this.playTimer = null;
-        this.waitingTimer = null;
-        this.endedTimer = null;
-        this.playIndex = 0;
-        this.currentTime = 0;
+        this.waiting = false;
+        this.timer = null;
         this.video = new VideoDecoder(flv, this);
         this.audio = new AudioDecoder(flv, this);
 
+        flv.on('destroy', () => {
+            this.pause();
+        });
+
         this.drawThrottle = throttle(() => {
-            this.video.draw(this.playIndex);
+            this.video.draw(this.video.playIndex);
         }, 200);
     }
 
     play() {
         const { options, player } = this.flv;
 
+        let startTime = player.currentTime;
         if (this.ended) {
-            this.playIndex = 0;
+            startTime = 0;
         }
 
-        const videoDrawState = this.video.draw(this.playIndex);
+        this.video.play(startTime);
+        this.audio.play(startTime);
+        this.flv.emit('play');
 
-        if (videoDrawState) {
-            if (!this.playing) {
-                this.playing = true;
-                this.flv.emit('play');
-            }
-            this.playIndex += 1;
-            this.ended = false;
-            this.currentTime = this.playIndex / player.frameRate;
-            this.flv.emit('timeupdate', this.currentTime);
-            this.playTimer = setTimeout(() => {
-                this.play();
-            }, player.frameDuration);
-        } else if (player.streaming || player.videoDecoding) {
-            this.ended = false;
-            this.playing = false;
-            this.flv.emit('waiting');
-            this.waitingTimer = setTimeout(() => {
-                this.play();
-            }, player.frameDuration);
-        } else {
-            this.ended = true;
-            this.playing = false;
-            this.flv.emit('ended');
-            if (options.loop) {
-                this.playIndex = 0;
-                this.endedTimer = setTimeout(() => {
-                    this.play();
-                }, player.frameDuration);
-            } else {
-                this.pause();
-            }
-        }
+        const loop = () => {
+            this.timer = window.requestAnimationFrame(() => {
+                if (this.video.playing && this.audio.playing) {
+                    this.flv.emit('timeupdate', player.currentTime);
+                    this.ended = false;
+                    this.playing = true;
+                    this.waiting = false;
+                } else if (player.streaming || this.video.decoding || this.audio.decoding) {
+                    this.flv.emit('waiting', player.currentTime);
+                    this.ended = false;
+                    this.playing = false;
+                    this.waiting = true;
+                } else {
+                    this.flv.emit('ended', player.currentTime);
+                    this.ended = true;
+                    this.playing = false;
+                    this.waiting = false;
+                    if (options.loop) {
+                        this.play();
+                    } else {
+                        this.pause();
+                    }
+                }
+                loop();
+            });
+        };
+        loop();
     }
 
     pause() {
+        window.cancelAnimationFrame(this.timer);
+        this.timer = null;
+        this.video.stop();
+        this.audio.stop();
         this.playing = false;
+        this.waiting = false;
         this.flv.emit('pause');
-        clearTimeout(this.playTimer);
-        clearTimeout(this.waitingTimer);
-        clearTimeout(this.endedTimer);
-        this.playTimer = null;
-        this.waitingTimer = null;
-        this.endedTimer = null;
     }
 
     seeked(time) {
         const { player } = this.flv;
-        this.playIndex = Math.floor(time * player.frameRate);
+        this.video.playIndex = Math.floor(time * player.frameRate);
         this.flv.emit('seeked', time);
-        this.currentTime = time;
-        this.flv.emit('timeupdate', time);
         this.drawThrottle();
     }
 }

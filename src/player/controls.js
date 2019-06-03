@@ -18,7 +18,7 @@ export default function controls(flv, player) {
         player.$loaded.style.width = `${time * 100}%`;
     }, 500);
 
-    flv.on('loaded', timestamp => {
+    flv.on('videoLoaded', timestamp => {
         if (!flv.options.live) {
             loadedFn(timestamp);
         }

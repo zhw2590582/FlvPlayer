@@ -4,19 +4,24 @@ import workerString from './h264bsd.worker';
 
 export default class VideoDecoder {
     constructor(flv) {
+        this.flv = flv;
         const { player, events, options } = flv;
 
-        this.framesOutput = [];
-        this.framesInputLength = 0;
+        this.playing = false;
+        this.playIndex = 0;
+        this.videoframes = [];
+        this.videoInputLength = 0;
         this.decoding = false;
         this.byteSize = 0;
         this.loaded = 0;
+        this.playTimer = null;
         this.decoderWorker = createWorker(workerString);
         this.renderer = new H264bsdCanvas(player.$canvas);
 
         flv.on('destroy', () => {
-            this.framesOutput = [];
+            this.videoframes = [];
             this.decoderWorker.terminate();
+            this.pause();
         });
 
         events.proxy(this.decoderWorker, 'message', event => {
@@ -25,11 +30,11 @@ export default class VideoDecoder {
             switch (message.type) {
                 case 'pictureReady':
                     this.byteSize += message.data.byteLength;
-                    this.framesOutput.push(message);
-                    this.decoding = this.framesOutput.length !== this.framesInputLength;
-                    this.loaded = this.framesOutput.length / player.frameRate;
-                    flv.emit('loaded', this.loaded);
-                    if (!options.poster && this.framesOutput.length === 1) {
+                    this.videoframes.push(message);
+                    this.decoding = this.videoframes.length !== this.videoInputLength;
+                    this.loaded = this.videoframes.length / player.frameRate;
+                    flv.emit('videoLoaded', this.loaded);
+                    if (this.videoframes.length === 1 && !options.poster) {
                         this.draw(0);
                     }
                     break;
@@ -51,7 +56,7 @@ export default class VideoDecoder {
                     this.decoding = true;
                     const frame = mergeBuffer(sps, pps, nalu);
                     this.decoderWorker.postMessage({ type: 'queueInput', data: frame.buffer }, [frame.buffer]);
-                    this.framesInputLength += 1;
+                    this.videoInputLength += 1;
                     break;
                 }
                 case 7:
@@ -67,14 +72,45 @@ export default class VideoDecoder {
     }
 
     draw(index) {
-        const message = this.framesOutput[index];
-        if (!message) return false;
+        const videoframe = this.videoframes[index];
         this.renderer.drawNextOutputPicture(
-            message.width,
-            message.height,
-            message.croppingParams,
-            new Uint8Array(message.data),
+            videoframe.width,
+            videoframe.height,
+            videoframe.croppingParams,
+            new Uint8Array(videoframe.data),
         );
-        return true;
+    }
+
+    queue() {
+        const { player } = this.flv;
+        const videoframe = this.videoframes[this.playIndex];
+        if (!videoframe) {
+            this.stop();
+            return;
+        }
+        this.playing = true;
+        this.draw(this.playIndex);
+        this.playTimer = setTimeout(() => {
+            this.playIndex += 1;
+            this.queue();
+        }, player.frameDuration);
+    }
+
+    play(startTime = 0) {
+        this.stop();
+        const { player } = this.flv;
+        this.playIndex = startTime * player.frameRate;
+        const videoframe = this.videoframes[this.playIndex];
+        if (!videoframe) {
+            this.stop();
+            return;
+        }
+        this.queue();
+    }
+
+    stop() {
+        this.playing = false;
+        clearTimeout(this.playTimer);
+        this.playTimer = null;
     }
 }

@@ -8,15 +8,17 @@ export default class AudioDecoder {
 
         this.playing = false;
         this.playIndex = 0;
-        this.duration = 0;
         this.audiobuffers = [];
         this.audioInputLength = 0;
+        this.decoding = false;
+        this.loaded = 0;
 
         let decodeErrorBuffer = new Uint8Array();
         let decodeWaitingBuffer = new Uint8Array();
 
         flv.on('destroy', () => {
             this.audiobuffers = [];
+            this.pause();
         });
 
         flv.on('audioData', uint8 => {
@@ -26,8 +28,10 @@ export default class AudioDecoder {
                 decodeWaitingBuffer = new Uint8Array();
                 this.context
                     .decodeAudioData(buffer, audiobuffer => {
-                        this.duration += audiobuffer.duration;
+                        this.loaded += audiobuffer.duration;
                         this.audiobuffers.push(audiobuffer);
+                        this.decoding = this.audiobuffers.length !== this.audioInputLength;
+                        flv.emit('audioLoaded', this.loaded);
                         decodeErrorBuffer = new Uint8Array();
                     })
                     .catch(() => {
@@ -42,7 +46,10 @@ export default class AudioDecoder {
     queue() {
         this.playIndex += 1;
         const audiobuffer = this.audiobuffers[this.playIndex];
-        if (!audiobuffer) return;
+        if (!audiobuffer) {
+            this.stop();
+            return;
+        }
         this.source = this.context.createBufferSource();
         this.source.buffer = audiobuffer;
         this.source.connect(this.gainNode);
@@ -56,7 +63,7 @@ export default class AudioDecoder {
         this.source.start();
     }
 
-    play(startTime) {
+    play(startTime = 0) {
         this.stop();
         let time = 0;
         this.playIndex = this.audiobuffers.findIndex(item => {
@@ -64,6 +71,10 @@ export default class AudioDecoder {
             return startTime <= time;
         });
         const audiobuffer = this.audiobuffers[this.playIndex];
+        if (!audiobuffer) {
+            this.stop();
+            return;
+        }
         const offset = startTime - (time - audiobuffer.duration);
         this.source = this.context.createBufferSource();
         this.source.connect(this.gainNode);

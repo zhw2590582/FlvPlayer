@@ -18,7 +18,7 @@ export default function property(flv, player) {
 
     Object.defineProperty(player, 'currentTime', {
         get: () => {
-            return flv.decoder.currentTime;
+            return flv.decoder.video.playIndex / player.frameRate;
         },
         set: time => {
             flv.decoder.seeked(clamp(time, 0, player.loaded));
@@ -43,6 +43,12 @@ export default function property(flv, player) {
         },
     });
 
+    Object.defineProperty(player, 'audioDecoding', {
+        get: () => {
+            return flv.decoder.audio.decoding;
+        },
+    });
+
     Object.defineProperty(player, 'duration', {
         get: () => {
             try {
@@ -63,15 +69,15 @@ export default function property(flv, player) {
         },
     });
 
-    Object.defineProperty(player, 'isFocus', {
-        value: false,
-        writable: true,
-    });
-
     Object.defineProperty(player, 'frameDuration', {
         get: () => {
             return (1000 / player.frameRate) | 0;
         },
+    });
+
+    Object.defineProperty(player, 'isFocus', {
+        value: false,
+        writable: true,
     });
 
     Object.defineProperty(player, 'volume', {
@@ -96,9 +102,9 @@ export default function property(flv, player) {
     });
 
     Object.defineProperty(player, 'play', {
-        value: () => {
+        value: (time = 0) => {
             if (!player.playing) {
-                flv.decoder.play();
+                flv.decoder.play(time);
             }
         },
     });

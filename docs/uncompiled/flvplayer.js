@@ -785,7 +785,7 @@
     });
     Object.defineProperty(player, 'currentTime', {
       get: function get() {
-        return flv.decoder.currentTime;
+        return flv.decoder.video.playIndex / player.frameRate;
       },
       set: function set(time) {
         flv.decoder.seeked(clamp(time, 0, player.loaded));
@@ -806,6 +806,11 @@
         return flv.decoder.video.decoding;
       }
     });
+    Object.defineProperty(player, 'audioDecoding', {
+      get: function get() {
+        return flv.decoder.audio.decoding;
+      }
+    });
     Object.defineProperty(player, 'duration', {
       get: function get() {
         try {
@@ -824,14 +829,14 @@
         }
       }
     });
-    Object.defineProperty(player, 'isFocus', {
-      value: false,
-      writable: true
-    });
     Object.defineProperty(player, 'frameDuration', {
       get: function get() {
         return 1000 / player.frameRate | 0;
       }
+    });
+    Object.defineProperty(player, 'isFocus', {
+      value: false,
+      writable: true
     });
     Object.defineProperty(player, 'volume', {
       get: function get() {
@@ -853,8 +858,10 @@
     });
     Object.defineProperty(player, 'play', {
       value: function value() {
+        var time = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+
         if (!player.playing) {
-          flv.decoder.play();
+          flv.decoder.play(time);
         }
       }
     });
@@ -1094,7 +1101,7 @@
       var time = clamp(timestamp / player.duration, 0, 1);
       player.$loaded.style.width = "".concat(time * 100, "%");
     }, 500);
-    flv.on('loaded', function (timestamp) {
+    flv.on('videoLoaded', function (timestamp) {
       if (!flv.options.live) {
         loadedFn(timestamp);
       }
@@ -1502,20 +1509,26 @@
 
       classCallCheck(this, VideoDecoder);
 
+      this.flv = flv;
       var player = flv.player,
           events = flv.events,
           options = flv.options;
-      this.framesOutput = [];
-      this.framesInputLength = 0;
+      this.playing = false;
+      this.playIndex = 0;
+      this.videoframes = [];
+      this.videoInputLength = 0;
       this.decoding = false;
       this.byteSize = 0;
       this.loaded = 0;
+      this.playTimer = null;
       this.decoderWorker = createWorker(workerString);
       this.renderer = new H264bsdCanvas(player.$canvas);
       flv.on('destroy', function () {
-        _this.framesOutput = [];
+        _this.videoframes = [];
 
         _this.decoderWorker.terminate();
+
+        _this.pause();
       });
       events.proxy(this.decoderWorker, 'message', function (event) {
         var message = event.data;
@@ -1525,13 +1538,13 @@
           case 'pictureReady':
             _this.byteSize += message.data.byteLength;
 
-            _this.framesOutput.push(message);
+            _this.videoframes.push(message);
 
-            _this.decoding = _this.framesOutput.length !== _this.framesInputLength;
-            _this.loaded = _this.framesOutput.length / player.frameRate;
-            flv.emit('loaded', _this.loaded);
+            _this.decoding = _this.videoframes.length !== _this.videoInputLength;
+            _this.loaded = _this.videoframes.length / player.frameRate;
+            flv.emit('videoLoaded', _this.loaded);
 
-            if (!options.poster && _this.framesOutput.length === 1) {
+            if (_this.videoframes.length === 1 && !options.poster) {
               _this.draw(0);
             }
 
@@ -1561,7 +1574,7 @@
                 data: frame.buffer
               }, [frame.buffer]);
 
-              _this.framesInputLength += 1;
+              _this.videoInputLength += 1;
               break;
             }
 
@@ -1582,10 +1595,52 @@
     createClass(VideoDecoder, [{
       key: "draw",
       value: function draw(index) {
-        var message = this.framesOutput[index];
-        if (!message) return false;
-        this.renderer.drawNextOutputPicture(message.width, message.height, message.croppingParams, new Uint8Array(message.data));
-        return true;
+        var videoframe = this.videoframes[index];
+        this.renderer.drawNextOutputPicture(videoframe.width, videoframe.height, videoframe.croppingParams, new Uint8Array(videoframe.data));
+      }
+    }, {
+      key: "queue",
+      value: function queue() {
+        var _this2 = this;
+
+        var player = this.flv.player;
+        var videoframe = this.videoframes[this.playIndex];
+
+        if (!videoframe) {
+          this.stop();
+          return;
+        }
+
+        this.playing = true;
+        this.draw(this.playIndex);
+        this.playTimer = setTimeout(function () {
+          _this2.playIndex += 1;
+
+          _this2.queue();
+        }, player.frameDuration);
+      }
+    }, {
+      key: "play",
+      value: function play() {
+        var startTime = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+        this.stop();
+        var player = this.flv.player;
+        this.playIndex = startTime * player.frameRate;
+        var videoframe = this.videoframes[this.playIndex];
+
+        if (!videoframe) {
+          this.stop();
+          return;
+        }
+
+        this.queue();
+      }
+    }, {
+      key: "stop",
+      value: function stop() {
+        this.playing = false;
+        clearTimeout(this.playTimer);
+        this.playTimer = null;
       }
     }]);
 
@@ -1605,13 +1660,16 @@
       this.gainNode.gain.value = 0.7;
       this.playing = false;
       this.playIndex = 0;
-      this.duration = 0;
       this.audiobuffers = [];
       this.audioInputLength = 0;
+      this.decoding = false;
+      this.loaded = 0;
       var decodeErrorBuffer = new Uint8Array();
       var decodeWaitingBuffer = new Uint8Array();
       flv.on('destroy', function () {
         _this.audiobuffers = [];
+
+        _this.pause();
       });
       flv.on('audioData', function (uint8) {
         _this.audioInputLength += 1;
@@ -1621,10 +1679,12 @@
           decodeWaitingBuffer = new Uint8Array();
 
           _this.context.decodeAudioData(buffer, function (audiobuffer) {
-            _this.duration += audiobuffer.duration;
+            _this.loaded += audiobuffer.duration;
 
             _this.audiobuffers.push(audiobuffer);
 
+            _this.decoding = _this.audiobuffers.length !== _this.audioInputLength;
+            flv.emit('audioLoaded', _this.loaded);
             decodeErrorBuffer = new Uint8Array();
           })["catch"](function () {
             decodeErrorBuffer = mergeBuffer(decodeErrorBuffer, decodeWaitingBuffer);
@@ -1642,7 +1702,12 @@
 
         this.playIndex += 1;
         var audiobuffer = this.audiobuffers[this.playIndex];
-        if (!audiobuffer) return;
+
+        if (!audiobuffer) {
+          this.stop();
+          return;
+        }
+
         this.source = this.context.createBufferSource();
         this.source.buffer = audiobuffer;
         this.source.connect(this.gainNode);
@@ -1659,9 +1724,10 @@
       }
     }, {
       key: "play",
-      value: function play(startTime) {
+      value: function play() {
         var _this3 = this;
 
+        var startTime = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
         this.stop();
         var time = 0;
         this.playIndex = this.audiobuffers.findIndex(function (item) {
@@ -1669,6 +1735,12 @@
           return startTime <= time;
         });
         var audiobuffer = this.audiobuffers[this.playIndex];
+
+        if (!audiobuffer) {
+          this.stop();
+          return;
+        }
+
         var offset = startTime - (time - audiobuffer.duration);
         this.source = this.context.createBufferSource();
         this.source.connect(this.gainNode);
@@ -1710,15 +1782,15 @@
       this.flv = flv;
       this.ended = false;
       this.playing = false;
-      this.playTimer = null;
-      this.waitingTimer = null;
-      this.endedTimer = null;
-      this.playIndex = 0;
-      this.currentTime = 0;
+      this.waiting = false;
+      this.timer = null;
       this.video = new VideoDecoder(flv, this);
       this.audio = new AudioDecoder(flv, this);
+      flv.on('destroy', function () {
+        _this.pause();
+      });
       this.drawThrottle = throttle(function () {
-        _this.video.draw(_this.playIndex);
+        _this.video.draw(_this.video.playIndex);
       }, 200);
     }
 
@@ -1730,68 +1802,67 @@
         var _this$flv = this.flv,
             options = _this$flv.options,
             player = _this$flv.player;
+        var startTime = player.currentTime;
 
         if (this.ended) {
-          this.playIndex = 0;
+          startTime = 0;
         }
 
-        var videoDrawState = this.video.draw(this.playIndex);
+        this.video.play(startTime);
+        this.audio.play(startTime);
+        this.flv.emit('play');
 
-        if (videoDrawState) {
-          if (!this.playing) {
-            this.playing = true;
-            this.flv.emit('play');
-          }
+        var loop = function loop() {
+          _this2.timer = window.requestAnimationFrame(function () {
+            if (_this2.video.playing && _this2.audio.playing) {
+              _this2.flv.emit('timeupdate', player.currentTime);
 
-          this.playIndex += 1;
-          this.ended = false;
-          this.currentTime = this.playIndex / player.frameRate;
-          this.flv.emit('timeupdate', this.currentTime);
-          this.playTimer = setTimeout(function () {
-            _this2.play();
-          }, player.frameDuration);
-        } else if (player.streaming || player.videoDecoding) {
-          this.ended = false;
-          this.playing = false;
-          this.flv.emit('waiting');
-          this.waitingTimer = setTimeout(function () {
-            _this2.play();
-          }, player.frameDuration);
-        } else {
-          this.ended = true;
-          this.playing = false;
-          this.flv.emit('ended');
+              _this2.ended = false;
+              _this2.playing = true;
+              _this2.waiting = false;
+            } else if (player.streaming || _this2.video.decoding || _this2.audio.decoding) {
+              _this2.flv.emit('waiting', player.currentTime);
 
-          if (options.loop) {
-            this.playIndex = 0;
-            this.endedTimer = setTimeout(function () {
-              _this2.play();
-            }, player.frameDuration);
-          } else {
-            this.pause();
-          }
-        }
+              _this2.ended = false;
+              _this2.playing = false;
+              _this2.waiting = true;
+            } else {
+              _this2.flv.emit('ended', player.currentTime);
+
+              _this2.ended = true;
+              _this2.playing = false;
+              _this2.waiting = false;
+
+              if (options.loop) {
+                _this2.play();
+              } else {
+                _this2.pause();
+              }
+            }
+
+            loop();
+          });
+        };
+
+        loop();
       }
     }, {
       key: "pause",
       value: function pause() {
+        window.cancelAnimationFrame(this.timer);
+        this.timer = null;
+        this.video.stop();
+        this.audio.stop();
         this.playing = false;
+        this.waiting = false;
         this.flv.emit('pause');
-        clearTimeout(this.playTimer);
-        clearTimeout(this.waitingTimer);
-        clearTimeout(this.endedTimer);
-        this.playTimer = null;
-        this.waitingTimer = null;
-        this.endedTimer = null;
       }
     }, {
       key: "seeked",
       value: function seeked(time) {
         var player = this.flv.player;
-        this.playIndex = Math.floor(time * player.frameRate);
+        this.video.playIndex = Math.floor(time * player.frameRate);
         this.flv.emit('seeked', time);
-        this.currentTime = time;
-        this.flv.emit('timeupdate', time);
         this.drawThrottle();
       }
     }]);
@@ -2103,7 +2174,7 @@
       id += 1;
       _this.id = id;
       _this.isDestroy = false;
-      _this.ua = window.navigator.userAgent;
+      _this.userAgent = window.navigator.userAgent;
       _this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(_this.userAgent);
       FlvPlayer.instances.push(assertThisInitialized(_this));
       return _this;

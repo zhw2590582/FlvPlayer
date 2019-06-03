@@ -1,5 +1,4 @@
 import Emitter from './emitter';
-import validator from './validator';
 import Debug from './debug';
 import Events from './events';
 import Player from './player';
@@ -11,8 +10,14 @@ let id = 0;
 class FlvPlayer extends Emitter {
     constructor(options) {
         super();
-        this.options = Object.assign({}, FlvPlayer.options, options);
-        validator(this);
+        this.options = {
+            ...FlvPlayer.options,
+            ...options,
+        };
+
+        if (typeof this.options.container === 'string') {
+            this.options.container = document.querySelector(this.options.container);
+        }
 
         this.debug = new Debug(this);
         this.events = new Events(this);
@@ -33,7 +38,7 @@ class FlvPlayer extends Emitter {
         return {
             url: '',
             poster: '',
-            container: null,
+            container: '',
             debug: false,
             live: false,
             loop: false,
@@ -42,9 +47,9 @@ class FlvPlayer extends Emitter {
             hasAudio: true,
             volume: 7,
             frameRate: 30,
-            headers: {},
             width: 400,
             height: 300,
+            headers: {},
         };
     }
 

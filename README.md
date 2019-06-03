@@ -51,7 +51,7 @@ Will expose the global variable to `window.FlvPlayer`.
 
 ```js
 var flv = new FlvPlayer({
-    container: document.querySelector('.flvplayer-app'), // A div dom element
+    container: '.flvplayer-app', // A div dom element
     url: 'path/to/video.flv', // Url of flv video file
     poster: 'path/to/poster.png', // Url of video poster, the first frame of the video is taken as the poster by default
     debug: false, // Show debug information on developer tools
@@ -59,6 +59,7 @@ var flv = new FlvPlayer({
     loop: false, // Whether to automatically loop play
     hotkey: true, // Whether to use hotkeys
     controls: true, // Whether to display the controller
+    hasAudio: true, // Whether to include audio
     volume: 7, // Default volume, ranging from 0 to 10
     frameRate: 30, // Video frame rate, which will be extracted from the flv file by default
     width: 400, // Video default width, which will be extracted from the flv file by default

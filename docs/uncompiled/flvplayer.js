@@ -4,6 +4,44 @@
   (global = global || self, global.FlvPlayer = factory());
 }(this, function () { 'use strict';
 
+  function _defineProperty(obj, key, value) {
+    if (key in obj) {
+      Object.defineProperty(obj, key, {
+        value: value,
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
+    } else {
+      obj[key] = value;
+    }
+
+    return obj;
+  }
+
+  var defineProperty = _defineProperty;
+
+  function _objectSpread(target) {
+    for (var i = 1; i < arguments.length; i++) {
+      var source = arguments[i] != null ? arguments[i] : {};
+      var ownKeys = Object.keys(source);
+
+      if (typeof Object.getOwnPropertySymbols === 'function') {
+        ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) {
+          return Object.getOwnPropertyDescriptor(source, sym).enumerable;
+        }));
+      }
+
+      ownKeys.forEach(function (key) {
+        defineProperty(target, key, source[key]);
+      });
+    }
+
+    return target;
+  }
+
+  var objectSpread = _objectSpread;
+
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
@@ -291,13 +329,6 @@
 
     return FlvPlayerError;
   }(wrapNativeSuper(Error));
-  function errorHandle(condition, msg) {
-    if (!condition) {
-      throw new FlvPlayerError(msg);
-    }
-
-    return condition;
-  }
   function readBuffer(buffer) {
     var index = 0;
 
@@ -416,17 +447,6 @@
     var numberType = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
     var value = window.getComputedStyle(element, null).getPropertyValue(key);
     return numberType ? parseFloat(value) : value;
-  }
-
-  function validator (flv) {
-    var _flv$options = flv.options,
-        container = _flv$options.container,
-        url = _flv$options.url;
-    errorHandle(container instanceof HTMLDivElement, 'The \'container\' option is not a \'HTMLDivElement\'');
-    errorHandle(flv.constructor.instances.every(function (item) {
-      return item.options.container !== container;
-    }), 'Cannot mount multiple instances on the same div element, please destroy the instance first');
-    errorHandle(typeof url === 'string' || url instanceof File, 'The \'url\' option is not a string or file');
   }
 
   var Debug = function Debug(flv) {
@@ -2297,8 +2317,12 @@
       classCallCheck(this, FlvPlayer);
 
       _this = possibleConstructorReturn(this, getPrototypeOf(FlvPlayer).call(this));
-      _this.options = Object.assign({}, FlvPlayer.options, options);
-      validator(assertThisInitialized(_this));
+      _this.options = objectSpread({}, FlvPlayer.options, options);
+
+      if (typeof _this.options.container === 'string') {
+        _this.options.container = document.querySelector(_this.options.container);
+      }
+
       _this.debug = new Debug(assertThisInitialized(_this));
       _this.events = new Events(assertThisInitialized(_this));
       _this.player = new Player(assertThisInitialized(_this));
@@ -2329,7 +2353,7 @@
         return {
           url: '',
           poster: '',
-          container: null,
+          container: '',
           debug: false,
           live: false,
           loop: false,
@@ -2338,9 +2362,9 @@
           hasAudio: true,
           volume: 7,
           frameRate: 30,
-          headers: {},
           width: 400,
-          height: 300
+          height: 300,
+          headers: {}
         };
       }
     }, {

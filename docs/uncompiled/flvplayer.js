@@ -1782,8 +1782,12 @@
       flv.on('destroy', function () {
         _this.pause();
       });
-      this.drawThrottle = throttle(function () {
+      this.seekedThrottle = throttle(function () {
         _this.video.draw(_this.video.playIndex);
+
+        if (_this.playing) {
+          _this.play();
+        }
       }, 200);
     }
 
@@ -1819,6 +1823,7 @@
               _this2.ended = false;
               _this2.playing = false;
               _this2.waiting = true;
+              return _this2.play();
             } else {
               _this2.flv.emit('ended', player.currentTime);
 
@@ -1827,13 +1832,13 @@
               _this2.waiting = false;
 
               if (options.loop) {
-                _this2.play();
-              } else {
-                _this2.pause();
+                return _this2.play();
               }
+
+              return _this2.pause();
             }
 
-            loop();
+            return loop();
           });
         };
 
@@ -1846,6 +1851,7 @@
         this.timer = null;
         this.video.stop();
         this.audio.stop();
+        this.ended = false;
         this.playing = false;
         this.waiting = false;
         this.flv.emit('pause');
@@ -1854,9 +1860,11 @@
       key: "seeked",
       value: function seeked(time) {
         var player = this.flv.player;
+        window.cancelAnimationFrame(this.timer);
+        this.timer = null;
         this.video.playIndex = Math.floor(time * player.frameRate);
         this.flv.emit('seeked', time);
-        this.drawThrottle();
+        this.seekedThrottle();
       }
     }]);
 

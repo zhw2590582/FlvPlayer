@@ -16,8 +16,11 @@ export default class Decoder {
             this.pause();
         });
 
-        this.drawThrottle = throttle(() => {
+        this.seekedThrottle = throttle(() => {
             this.video.draw(this.video.playIndex);
+            if (this.playing) {
+                this.play();
+            }
         }, 200);
     }
 
@@ -45,18 +48,18 @@ export default class Decoder {
                     this.ended = false;
                     this.playing = false;
                     this.waiting = true;
+                    return this.play();
                 } else {
                     this.flv.emit('ended', player.currentTime);
                     this.ended = true;
                     this.playing = false;
                     this.waiting = false;
                     if (options.loop) {
-                        this.play();
-                    } else {
-                        this.pause();
+                        return this.play();
                     }
+                    return this.pause();
                 }
-                loop();
+                return loop();
             });
         };
         loop();
@@ -67,6 +70,7 @@ export default class Decoder {
         this.timer = null;
         this.video.stop();
         this.audio.stop();
+        this.ended = false;
         this.playing = false;
         this.waiting = false;
         this.flv.emit('pause');
@@ -74,8 +78,10 @@ export default class Decoder {
 
     seeked(time) {
         const { player } = this.flv;
+        window.cancelAnimationFrame(this.timer);
+        this.timer = null;
         this.video.playIndex = Math.floor(time * player.frameRate);
         this.flv.emit('seeked', time);
-        this.drawThrottle();
+        this.seekedThrottle();
     }
 }

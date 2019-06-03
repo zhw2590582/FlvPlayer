@@ -2,6 +2,7 @@ import { mergeBuffer } from '../../utils';
 
 export default class AudioDecoder {
     constructor(flv) {
+        this.flv = flv;
         this.context = new (window.AudioContext || window.webkitAudioContext)();
         this.gainNode = this.context.createGain();
         this.gainNode.gain.value = flv.options.volume;
@@ -19,7 +20,7 @@ export default class AudioDecoder {
 
         flv.on('destroy', () => {
             this.audiobuffers = [];
-            this.pause();
+            this.stop();
         });
 
         flv.on('demuxDone', () => {

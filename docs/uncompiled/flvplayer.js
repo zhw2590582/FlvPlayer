@@ -534,7 +534,7 @@
   function template(flv, player) {
     var options = flv.options;
     options.container.classList.add('flv-player-container');
-    options.container.innerHTML = "\n        <div class=\"flv-player-inner flv-player-controls-show ".concat(options.live ? 'flv-player-live' : '', " ").concat(options.debug ? 'flv-player-debug' : '', "\">\n            <canvas class=\"flv-player-canvas\" width=\"").concat(options.width, "\" height=\"").concat(options.height, "\"></canvas>\n            ").concat(options.poster ? "<div class=\"flv-player-poster\" style=\"background-image: url(".concat(options.poster, ")\"></div>") : '', "\n            <div class=\"flv-player-loading\">").concat(icons.loading, "</div>\n            ").concat(options.controls ? "\n                <div class=\"flv-player-controls\">\n                    ".concat(!options.live ? "\n                        <div class=\"flv-player-controls-progress\">\n                            <div class=\"flv-player-loaded\"></div>\n                            <div class=\"flv-player-played\">\n                                <div class=\"flv-player-indicator\"></div>\n                            </div>\n                        </div>\n                    " : '', "\n                    <div class=\"flv-player-controls-bottom\">\n                        <div class=\"flv-player-controls-left\">\n                            <div class=\"flv-player-controls-item flv-player-state\">\n                                <div class=\"flv-player-play\">").concat(icons.play, "</div>\n                                <div class=\"flv-player-pause\">").concat(icons.pause, "</div>\n                            </div>\n                            <div class=\"flv-player-controls-item flv-player-volume\">\n                                <div class=\"flv-player-volume-on\">").concat(icons.volume, "</div>\n                                <div class=\"flv-player-volume-off\">").concat(icons.volumeClose, "</div>\n                                <div class=\"flv-player-volume-panel\">\n                                    <div class=\"flv-player-volume-panel-handle\"></div>\n                                </div>\n                            </div>\n                            ").concat(!options.live ? "\n                                <div class=\"flv-player-controls-item flv-player-time\">\n                                    <span class=\"flv-player-current\">00:00</span> / <span class=\"flv-player-duration\">00:00</span>\n                                </div>\n                            " : '', "\n                        </div>\n                        <div class=\"flv-player-controls-right\">\n                            <div class=\"flv-player-controls-item flv-player-fullscreen\">").concat(icons.fullscreen, "</div>\n                        </div>\n                    </div>\n                </div>\n            ") : '', "\n        </div>\n    ");
+    options.container.innerHTML = "\n        <div class=\"flv-player-inner flv-player-controls-show ".concat(options.live ? 'flv-player-live' : '', " ").concat(options.debug ? 'flv-player-debug' : '', "\">\n            <canvas class=\"flv-player-canvas\" width=\"").concat(options.width, "\" height=\"").concat(options.height, "\"></canvas>\n            ").concat(options.poster ? "<div class=\"flv-player-poster\" style=\"background-image: url(".concat(options.poster, ")\"></div>") : '', "\n            <div class=\"flv-player-loading\">").concat(icons.loading, "</div>\n            ").concat(options.controls ? "\n                <div class=\"flv-player-controls\">\n                    ".concat(!options.live ? "\n                        <div class=\"flv-player-controls-progress\">\n                            <div class=\"flv-player-loaded\"></div>\n                            <div class=\"flv-player-played\">\n                                <div class=\"flv-player-indicator\"></div>\n                            </div>\n                        </div>\n                    " : '', "\n                    <div class=\"flv-player-controls-bottom\">\n                        <div class=\"flv-player-controls-left\">\n                            <div class=\"flv-player-controls-item flv-player-state\">\n                                <div class=\"flv-player-play\">").concat(icons.play, "</div>\n                                <div class=\"flv-player-pause\">").concat(icons.pause, "</div>\n                            </div>\n                            ").concat(options.hasAudio ? "\n                                <div class=\"flv-player-controls-item flv-player-volume\">\n                                    <div class=\"flv-player-volume-on\">".concat(icons.volume, "</div>\n                                    <div class=\"flv-player-volume-off\">").concat(icons.volumeClose, "</div>\n                                    <div class=\"flv-player-volume-panel\">\n                                        <div class=\"flv-player-volume-panel-handle\"></div>\n                                    </div>\n                                </div>\n                            ") : '', "\n                            ").concat(!options.live ? "\n                                <div class=\"flv-player-controls-item flv-player-time\">\n                                    <span class=\"flv-player-current\">00:00</span> / <span class=\"flv-player-duration\">00:00</span>\n                                </div>\n                            " : '', "\n                        </div>\n                        <div class=\"flv-player-controls-right\">\n                            <div class=\"flv-player-controls-item flv-player-fullscreen\">").concat(icons.fullscreen, "</div>\n                        </div>\n                    </div>\n                </div>\n            ") : '', "\n        </div>\n    ");
     Object.defineProperty(player, '$container', {
       value: options.container
     });
@@ -858,11 +858,20 @@
     });
     Object.defineProperty(player, 'volume', {
       get: function get() {
-        return flv.decoder.audio.gainNode.gain.value;
+        try {
+          return flv.decoder.audio.gainNode.gain.value;
+        } catch (error) {
+          return 0;
+        }
       },
       set: function set(value) {
-        flv.decoder.audio.gainNode.gain.value = clamp(value, 0, 10);
-        flv.emit('volumechange', player.volume);
+        try {
+          flv.decoder.audio.gainNode.gain.value = clamp(value, 0, 10);
+          flv.emit('volumechange', player.volume);
+          return player.volume;
+        } catch (error) {
+          return value;
+        }
       }
     });
     Object.defineProperty(player, 'loaded', {
@@ -1165,8 +1174,6 @@
         autoHide();
       }
     });
-    var lastVolume = 0;
-    var isVolumeDroging = false;
 
     function volumeChangeFromEvent(event) {
       var _player$$volumePanel$ = player.$volumePanel.getBoundingClientRect(),
@@ -1195,37 +1202,41 @@
       }
     }
 
-    setVolumeHandle(flv.options.volume);
-    flv.on('volumechange', function () {
-      setVolumeHandle(player.volume);
-    });
-    proxy(player.$volumeOn, 'click', function () {
-      player.$volumeOn.style.display = 'none';
-      player.$volumeOff.style.display = 'block';
-      lastVolume = player.volume;
-      player.volume = 0;
-    });
-    proxy(player.$volumeOff, 'click', function () {
-      player.$volumeOn.style.display = 'block';
-      player.$volumeOff.style.display = 'none';
-      player.volume = lastVolume || 7;
-    });
-    proxy(player.$volumePanel, 'click', function (event) {
-      player.volume = volumeChangeFromEvent(event);
-    });
-    proxy(player.$volumeHandle, 'mousedown', function () {
-      isVolumeDroging = true;
-    });
-    proxy(player.$volumeHandle, 'mousemove', function (event) {
-      if (isVolumeDroging) {
+    if (flv.options.hasAudio) {
+      var lastVolume = 0;
+      var isVolumeDroging = false;
+      setVolumeHandle(flv.options.volume);
+      flv.on('volumechange', function () {
+        setVolumeHandle(player.volume);
+      });
+      proxy(player.$volumeOn, 'click', function () {
+        player.$volumeOn.style.display = 'none';
+        player.$volumeOff.style.display = 'block';
+        lastVolume = player.volume;
+        player.volume = 0;
+      });
+      proxy(player.$volumeOff, 'click', function () {
+        player.$volumeOn.style.display = 'block';
+        player.$volumeOff.style.display = 'none';
+        player.volume = lastVolume || 7;
+      });
+      proxy(player.$volumePanel, 'click', function (event) {
         player.volume = volumeChangeFromEvent(event);
-      }
-    });
-    proxy(document, 'mouseup', function () {
-      if (isVolumeDroging) {
-        isVolumeDroging = false;
-      }
-    });
+      });
+      proxy(player.$volumeHandle, 'mousedown', function () {
+        isVolumeDroging = true;
+      });
+      proxy(player.$volumeHandle, 'mousemove', function (event) {
+        if (isVolumeDroging) {
+          player.volume = volumeChangeFromEvent(event);
+        }
+      });
+      proxy(document, 'mouseup', function () {
+        if (isVolumeDroging) {
+          isVolumeDroging = false;
+        }
+      });
+    }
 
     function getPosFromEvent(event) {
       var $progress = player.$progress;
@@ -1601,7 +1612,7 @@
 
         _this.decoderWorker.terminate();
 
-        _this.pause();
+        _this.stop();
       });
       events.proxy(this.decoderWorker, 'message', function (event) {
         var message = event.data;
@@ -1728,6 +1739,7 @@
 
       classCallCheck(this, AudioDecoder);
 
+      this.flv = flv;
       this.context = new (window.AudioContext || window.webkitAudioContext)();
       this.gainNode = this.context.createGain();
       this.gainNode.gain.value = flv.options.volume;
@@ -1743,7 +1755,7 @@
       flv.on('destroy', function () {
         _this.audiobuffers = [];
 
-        _this.pause();
+        _this.stop();
       });
       flv.on('demuxDone', function () {
         // TODO...
@@ -1880,7 +1892,22 @@
       this.waiting = false;
       this.timer = null;
       this.video = new VideoDecoder(flv, this);
-      this.audio = new AudioDecoder(flv, this);
+
+      if (flv.options.hasAudio) {
+        this.audio = new AudioDecoder(flv, this);
+      } else {
+        this.audio = {
+          play: function play() {
+            return null;
+          },
+          stop: function stop() {
+            return null;
+          },
+          playing: true,
+          decoding: false
+        };
+      }
+
       flv.on('destroy', function () {
         _this.pause();
       });
@@ -2308,6 +2335,7 @@
           loop: false,
           hotkey: true,
           controls: true,
+          hasAudio: true,
           volume: 7,
           frameRate: 30,
           headers: {},

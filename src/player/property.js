@@ -82,11 +82,20 @@ export default function property(flv, player) {
 
     Object.defineProperty(player, 'volume', {
         get: () => {
-            return flv.decoder.audio.gainNode.gain.value;
+            try {
+                return flv.decoder.audio.gainNode.gain.value;
+            } catch (error) {
+                return 0;
+            }
         },
         set: value => {
-            flv.decoder.audio.gainNode.gain.value = clamp(value, 0, 10);
-            flv.emit('volumechange', player.volume);
+            try {
+                flv.decoder.audio.gainNode.gain.value = clamp(value, 0, 10);
+                flv.emit('volumechange', player.volume);
+                return player.volume;
+            } catch (error) {
+                return value;
+            }
         },
     });
 

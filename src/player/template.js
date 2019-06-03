@@ -25,13 +25,15 @@ export default function template(flv, player) {
                                 <div class="flv-player-play">${icons.play}</div>
                                 <div class="flv-player-pause">${icons.pause}</div>
                             </div>
-                            <div class="flv-player-controls-item flv-player-volume">
-                                <div class="flv-player-volume-on">${icons.volume}</div>
-                                <div class="flv-player-volume-off">${icons.volumeClose}</div>
-                                <div class="flv-player-volume-panel">
-                                    <div class="flv-player-volume-panel-handle"></div>
+                            ${options.hasAudio ? `
+                                <div class="flv-player-controls-item flv-player-volume">
+                                    <div class="flv-player-volume-on">${icons.volume}</div>
+                                    <div class="flv-player-volume-off">${icons.volumeClose}</div>
+                                    <div class="flv-player-volume-panel">
+                                        <div class="flv-player-volume-panel-handle"></div>
+                                    </div>
                                 </div>
-                            </div>
+                            ` : ''}
                             ${!options.live ? `
                                 <div class="flv-player-controls-item flv-player-time">
                                     <span class="flv-player-current">00:00</span> / <span class="flv-player-duration">00:00</span>

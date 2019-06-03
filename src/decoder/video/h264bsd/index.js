@@ -21,7 +21,7 @@ export default class VideoDecoder {
         flv.on('destroy', () => {
             this.videoframes = [];
             this.decoderWorker.terminate();
-            this.pause();
+            this.stop();
         });
 
         events.proxy(this.decoderWorker, 'message', event => {

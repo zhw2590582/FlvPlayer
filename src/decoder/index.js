@@ -9,8 +9,18 @@ export default class Decoder {
         this.playing = false;
         this.waiting = false;
         this.timer = null;
+
         this.video = new VideoDecoder(flv, this);
-        this.audio = new AudioDecoder(flv, this);
+        if (flv.options.hasAudio) {
+            this.audio = new AudioDecoder(flv, this);
+        } else {
+            this.audio = {
+                play: () => null,
+                stop: () => null,
+                playing: true,
+                decoding: false,
+            };
+        }
 
         flv.on('destroy', () => {
             this.pause();

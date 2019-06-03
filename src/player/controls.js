@@ -79,9 +79,6 @@ export default function controls(flv, player) {
         }
     });
 
-    let lastVolume = 0;
-    let isVolumeDroging = false;
-
     function volumeChangeFromEvent(event) {
         const { left: panelLeft, width: panelWidth } = player.$volumePanel.getBoundingClientRect();
         const { width: handleWidth } = player.$volumeHandle.getBoundingClientRect();
@@ -105,43 +102,48 @@ export default function controls(flv, player) {
         }
     }
 
-    setVolumeHandle(flv.options.volume);
-    flv.on('volumechange', () => {
-        setVolumeHandle(player.volume);
-    });
+    if (flv.options.hasAudio) {
+        let lastVolume = 0;
+        let isVolumeDroging = false;
 
-    proxy(player.$volumeOn, 'click', () => {
-        player.$volumeOn.style.display = 'none';
-        player.$volumeOff.style.display = 'block';
-        lastVolume = player.volume;
-        player.volume = 0;
-    });
+        setVolumeHandle(flv.options.volume);
+        flv.on('volumechange', () => {
+            setVolumeHandle(player.volume);
+        });
 
-    proxy(player.$volumeOff, 'click', () => {
-        player.$volumeOn.style.display = 'block';
-        player.$volumeOff.style.display = 'none';
-        player.volume = lastVolume || 7;
-    });
+        proxy(player.$volumeOn, 'click', () => {
+            player.$volumeOn.style.display = 'none';
+            player.$volumeOff.style.display = 'block';
+            lastVolume = player.volume;
+            player.volume = 0;
+        });
 
-    proxy(player.$volumePanel, 'click', event => {
-        player.volume = volumeChangeFromEvent(event);
-    });
+        proxy(player.$volumeOff, 'click', () => {
+            player.$volumeOn.style.display = 'block';
+            player.$volumeOff.style.display = 'none';
+            player.volume = lastVolume || 7;
+        });
 
-    proxy(player.$volumeHandle, 'mousedown', () => {
-        isVolumeDroging = true;
-    });
-
-    proxy(player.$volumeHandle, 'mousemove', event => {
-        if (isVolumeDroging) {
+        proxy(player.$volumePanel, 'click', event => {
             player.volume = volumeChangeFromEvent(event);
-        }
-    });
+        });
 
-    proxy(document, 'mouseup', () => {
-        if (isVolumeDroging) {
-            isVolumeDroging = false;
-        }
-    });
+        proxy(player.$volumeHandle, 'mousedown', () => {
+            isVolumeDroging = true;
+        });
+
+        proxy(player.$volumeHandle, 'mousemove', event => {
+            if (isVolumeDroging) {
+                player.volume = volumeChangeFromEvent(event);
+            }
+        });
+
+        proxy(document, 'mouseup', () => {
+            if (isVolumeDroging) {
+                isVolumeDroging = false;
+            }
+        });
+    }
 
     function getPosFromEvent(event) {
         const { $progress } = player;

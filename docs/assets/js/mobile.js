@@ -10,6 +10,7 @@ var flv = new FlvPlayer({
     loop: false,
     hotkey: true,
     controls: true,
+    volume: 7,
     frameRate: 30,
     width: 640,
     height: 360,

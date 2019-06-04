@@ -10,24 +10,27 @@ export default class AudioDecoder {
         this.playing = false;
         this.playIndex = 0;
         this.audiobuffers = [];
-        this.timestamps = [0];
+        this.timestamps = [];
         this.audioInputLength = 0;
         this.decoding = false;
         this.byteSize = 0;
         this.loaded = 0;
-
-        this.decodeErrorBuffer = new Uint8Array();
-        this.decodeWaitingBuffer = new Uint8Array();
 
         flv.on('destroy', () => {
             this.audiobuffers = [];
             this.stop();
         });
 
+        let timestampTmp = [];
+        this.decodeErrorBuffer = new Uint8Array();
+        this.decodeWaitingBuffer = new Uint8Array();
+
         flv.on('demuxDone', () => {
             // TODO...
             setTimeout(() => {
                 if (this.decodeWaitingBuffer.buffer) {
+                    this.timestamps.push(timestampTmp[0]);
+                    timestampTmp = [];
                     this.context.decodeAudioData(this.decodeWaitingBuffer.buffer, audiobuffer => {
                         this.decodeWaitingBuffer = new Uint8Array();
                         this.decodeErrorBuffer = new Uint8Array();
@@ -46,8 +49,9 @@ export default class AudioDecoder {
         flv.on('audioData', (uint8, timestamp) => {
             this.decoding = true;
             this.audioInputLength += 1;
-            if (this.decodeWaitingBuffer.byteLength >= 512 * 512) {
-                this.timestamps.push(timestamp);
+            if (this.decodeWaitingBuffer.byteLength >= 1024 * 128) {
+                this.timestamps.push(timestampTmp[0]);
+                timestampTmp = [];
                 const buffer = mergeBuffer(this.decodeErrorBuffer, this.decodeWaitingBuffer).buffer;
                 this.decodeWaitingBuffer = new Uint8Array();
                 this.context
@@ -62,59 +66,50 @@ export default class AudioDecoder {
                         this.decodeErrorBuffer = mergeBuffer(this.decodeErrorBuffer, this.decodeWaitingBuffer);
                     });
             } else {
+                timestampTmp.push(timestamp);
                 this.decodeWaitingBuffer = mergeBuffer(this.decodeWaitingBuffer, uint8);
+            }
+        });
+
+        flv.on('timeupdate', currentTime => {
+            const timestamp = this.timestamps[this.playIndex];
+            if (timestamp && currentTime * 1000 >= timestamp) {
+                const state = this.queue(this.playIndex);
+                if (state) {
+                    this.playIndex += 1;
+                } else {
+                    this.stop();
+                }
             }
         });
     }
 
-    queue() {
-        this.playIndex += 1;
-        const audiobuffer = this.audiobuffers[this.playIndex];
-        if (!audiobuffer) {
-            this.stop();
-            return;
-        }
+    queue(index) {
+        const audiobuffer = this.audiobuffers[index];
+        if (!audiobuffer) return false;
         this.source = this.context.createBufferSource();
         this.source.buffer = audiobuffer;
         this.source.connect(this.gainNode);
         this.gainNode.connect(this.context.destination);
         this.source.onended = () => {
-            if (this.playing) {
-                this.queue();
-                if (this.flv.options.live) {
-                    this.audiobuffers[this.playIndex] = null;
-                }
+            if (this.flv.options.live) {
+                this.audiobuffers[index] = null;
             }
         };
         this.playing = true;
-        const audioCurrentTime = this.timestamps[this.playIndex];
-        const videoCurrentTime = this.flv.player.currentTime * 1000;
-        const timeDifference = audioCurrentTime - videoCurrentTime;
-        this.flv.debug.log('audio-current-time', audioCurrentTime);
-        this.flv.debug.log('video-current-time', videoCurrentTime);
-        this.flv.debug.log('time-difference', timeDifference);
-        if (Math.abs(timeDifference) > 500) {
-            if (audioCurrentTime > videoCurrentTime) {
-                setTimeout(() => {
-                    this.source.start();
-                }, audioCurrentTime - videoCurrentTime);
-            } else {
-                this.source.start(0, (videoCurrentTime - audioCurrentTime) / 1000);
-            }
-        } else {
-            this.source.start();
-        }
+        this.source.start();
+        return true;
     }
 
     play(startTime = 0) {
         this.stop();
         let time = 0;
-        this.playIndex = this.audiobuffers.findIndex(item => {
+        const index = this.audiobuffers.findIndex(item => {
             time += item.duration;
             return startTime <= time;
         });
 
-        const audiobuffer = this.audiobuffers[this.playIndex];
+        const audiobuffer = this.audiobuffers[index];
         if (!audiobuffer) {
             this.stop();
             return;
@@ -125,15 +120,13 @@ export default class AudioDecoder {
         this.gainNode.connect(this.context.destination);
         this.source.buffer = audiobuffer;
         this.source.onended = () => {
-            if (this.playing) {
-                this.queue();
-                if (this.flv.options.live) {
-                    this.audiobuffers[this.playIndex] = null;
-                }
+            if (this.flv.options.live) {
+                this.audiobuffers[index] = null;
             }
         };
         this.playing = true;
         this.source.start(0, offset);
+        this.playIndex = index + 1;
     }
 
     stop() {

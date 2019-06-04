@@ -823,7 +823,7 @@
     });
     Object.defineProperty(player, 'currentTime', {
       get: function get() {
-        return flv.decoder.video.playIndex / player.frameRate;
+        return flv.decoder.currentTime;
       },
       set: function set(time) {
         if (!flv.options.live) {
@@ -863,9 +863,9 @@
     Object.defineProperty(player, 'frameRate', {
       get: function get() {
         try {
-          return flv.demuxer.scripMeta.amf2.metaData.framerate;
+          return Math.round(flv.demuxer.scripMeta.amf2.metaData.framerate);
         } catch (error) {
-          return flv.options.frameRate || 30;
+          return Math.round(flv.options.frameRate || 30);
         }
       }
     });
@@ -1699,61 +1699,49 @@
             break;
         }
       });
+      flv.on('timeupdate', function (currentTime) {
+        var timestamp = _this.timestamps[_this.playIndex];
+
+        if (timestamp && currentTime * 1000 >= timestamp) {
+          var state = _this.draw(_this.playIndex);
+
+          if (state) {
+            _this.playIndex += 1;
+          } else {
+            _this.stop();
+          }
+        }
+
+        if (!options.live && currentTime >= player.duration) {
+          _this.stop();
+        }
+      });
     }
 
     createClass(VideoDecoder, [{
       key: "draw",
       value: function draw(index) {
         var videoframe = this.videoframes[index];
+        if (!videoframe) return false;
         this.renderer.drawNextOutputPicture(videoframe.width, videoframe.height, videoframe.croppingParams, new Uint8Array(videoframe.data));
 
         if (this.flv.options.live) {
           this.videoframes[index] = null;
         }
-      }
-    }, {
-      key: "queue",
-      value: function queue() {
-        var _this2 = this;
 
-        var player = this.flv.player;
-        var videoframe = this.videoframes[this.playIndex];
-
-        if (!videoframe) {
-          this.stop();
-          return;
-        }
-
-        this.playing = true;
-        this.draw(this.playIndex);
-        this.playTimer = setTimeout(function () {
-          _this2.playIndex += 1;
-
-          _this2.queue();
-        }, player.frameDuration);
+        return true;
       }
     }, {
       key: "play",
       value: function play() {
         var startTime = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-        this.stop();
-        var player = this.flv.player;
-        this.playIndex = startTime * player.frameRate;
-        var videoframe = this.videoframes[this.playIndex];
-
-        if (!videoframe) {
-          this.stop();
-          return;
-        }
-
-        this.queue();
+        this.playing = true;
+        this.playIndex = Math.round(startTime * this.flv.player.frameRate);
       }
     }, {
       key: "stop",
       value: function stop() {
         this.playing = false;
-        clearTimeout(this.playTimer);
-        this.playTimer = null;
       }
     }]);
 
@@ -1775,22 +1763,27 @@
       this.playing = false;
       this.playIndex = 0;
       this.audiobuffers = [];
-      this.timestamps = [0];
+      this.timestamps = [];
       this.audioInputLength = 0;
       this.decoding = false;
       this.byteSize = 0;
       this.loaded = 0;
-      this.decodeErrorBuffer = new Uint8Array();
-      this.decodeWaitingBuffer = new Uint8Array();
       flv.on('destroy', function () {
         _this.audiobuffers = [];
 
         _this.stop();
       });
+      var timestampTmp = [];
+      this.decodeErrorBuffer = new Uint8Array();
+      this.decodeWaitingBuffer = new Uint8Array();
       flv.on('demuxDone', function () {
         // TODO...
         setTimeout(function () {
           if (_this.decodeWaitingBuffer.buffer) {
+            _this.timestamps.push(timestampTmp[0]);
+
+            timestampTmp = [];
+
             _this.context.decodeAudioData(_this.decodeWaitingBuffer.buffer, function (audiobuffer) {
               _this.decodeWaitingBuffer = new Uint8Array();
               _this.decodeErrorBuffer = new Uint8Array();
@@ -1811,9 +1804,10 @@
         _this.decoding = true;
         _this.audioInputLength += 1;
 
-        if (_this.decodeWaitingBuffer.byteLength >= 512 * 512) {
-          _this.timestamps.push(timestamp);
+        if (_this.decodeWaitingBuffer.byteLength >= 1024 * 128) {
+          _this.timestamps.push(timestampTmp[0]);
 
+          timestampTmp = [];
           var buffer = mergeBuffer(_this.decodeErrorBuffer, _this.decodeWaitingBuffer).buffer;
           _this.decodeWaitingBuffer = new Uint8Array();
 
@@ -1829,58 +1823,46 @@
             _this.decodeErrorBuffer = mergeBuffer(_this.decodeErrorBuffer, _this.decodeWaitingBuffer);
           });
         } else {
+          timestampTmp.push(timestamp);
           _this.decodeWaitingBuffer = mergeBuffer(_this.decodeWaitingBuffer, uint8);
+        }
+      });
+      flv.on('timeupdate', function (currentTime) {
+        var timestamp = _this.timestamps[_this.playIndex];
+
+        if (timestamp && currentTime * 1000 >= timestamp) {
+          var state = _this.queue(_this.playIndex);
+
+          if (state) {
+            _this.playIndex += 1;
+          } else {
+            _this.stop();
+          }
         }
       });
     }
 
     createClass(AudioDecoder, [{
       key: "queue",
-      value: function queue() {
+      value: function queue(index) {
         var _this2 = this;
 
-        this.playIndex += 1;
-        var audiobuffer = this.audiobuffers[this.playIndex];
-
-        if (!audiobuffer) {
-          this.stop();
-          return;
-        }
-
+        var audiobuffer = this.audiobuffers[index];
+        if (!audiobuffer) return false;
         this.source = this.context.createBufferSource();
         this.source.buffer = audiobuffer;
         this.source.connect(this.gainNode);
         this.gainNode.connect(this.context.destination);
 
         this.source.onended = function () {
-          if (_this2.playing) {
-            _this2.queue();
-
-            if (_this2.flv.options.live) {
-              _this2.audiobuffers[_this2.playIndex] = null;
-            }
+          if (_this2.flv.options.live) {
+            _this2.audiobuffers[index] = null;
           }
         };
 
         this.playing = true;
-        var audioCurrentTime = this.timestamps[this.playIndex];
-        var videoCurrentTime = this.flv.player.currentTime * 1000;
-        var timeDifference = audioCurrentTime - videoCurrentTime;
-        this.flv.debug.log('audio-current-time', audioCurrentTime);
-        this.flv.debug.log('video-current-time', videoCurrentTime);
-        this.flv.debug.log('time-difference', timeDifference);
-
-        if (Math.abs(timeDifference) > 500) {
-          if (audioCurrentTime > videoCurrentTime) {
-            setTimeout(function () {
-              _this2.source.start();
-            }, audioCurrentTime - videoCurrentTime);
-          } else {
-            this.source.start(0, (videoCurrentTime - audioCurrentTime) / 1000);
-          }
-        } else {
-          this.source.start();
-        }
+        this.source.start();
+        return true;
       }
     }, {
       key: "play",
@@ -1890,11 +1872,11 @@
         var startTime = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
         this.stop();
         var time = 0;
-        this.playIndex = this.audiobuffers.findIndex(function (item) {
+        var index = this.audiobuffers.findIndex(function (item) {
           time += item.duration;
           return startTime <= time;
         });
-        var audiobuffer = this.audiobuffers[this.playIndex];
+        var audiobuffer = this.audiobuffers[index];
 
         if (!audiobuffer) {
           this.stop();
@@ -1908,17 +1890,14 @@
         this.source.buffer = audiobuffer;
 
         this.source.onended = function () {
-          if (_this3.playing) {
-            _this3.queue();
-
-            if (_this3.flv.options.live) {
-              _this3.audiobuffers[_this3.playIndex] = null;
-            }
+          if (_this3.flv.options.live) {
+            _this3.audiobuffers[index] = null;
           }
         };
 
         this.playing = true;
         this.source.start(0, offset);
+        this.playIndex = index + 1;
       }
     }, {
       key: "stop",
@@ -1948,6 +1927,8 @@
       this.playing = false;
       this.waiting = false;
       this.timer = null;
+      this.currentTime = 0;
+      this.lastUpdateTime = 0;
       this.video = new VideoDecoder(flv, this);
 
       if (flv.options.hasAudio) {
@@ -1985,40 +1966,46 @@
         var _this$flv = this.flv,
             options = _this$flv.options,
             player = _this$flv.player;
-        var startTime = player.currentTime;
-
-        if (this.ended) {
-          startTime = 0;
-        }
-
-        this.video.play(startTime);
-        this.audio.play(startTime);
+        this.lastUpdateTime = getNowTime();
+        this.video.play(this.currentTime);
+        this.audio.play(this.currentTime);
         this.flv.emit('play');
 
         var loop = function loop() {
           _this2.timer = window.requestAnimationFrame(function () {
             if (_this2.video.playing && _this2.audio.playing) {
-              _this2.flv.emit('timeupdate', player.currentTime);
-
               _this2.ended = false;
               _this2.playing = true;
               _this2.waiting = false;
-            } else if (player.streaming || _this2.video.decoding || _this2.audio.decoding) {
-              _this2.flv.emit('waiting', player.currentTime);
+              var updateTime = getNowTime();
+              _this2.currentTime += (updateTime - _this2.lastUpdateTime) / 1000;
+              _this2.lastUpdateTime = updateTime;
 
+              _this2.flv.emit('timeupdate', _this2.currentTime);
+            } else if (player.streaming || _this2.video.decoding || _this2.audio.decoding) {
               _this2.ended = false;
               _this2.playing = false;
               _this2.waiting = true;
-              return _this2.play();
-            } else {
-              _this2.flv.emit('ended', player.currentTime);
 
+              _this2.flv.emit('waiting', _this2.currentTime);
+
+              return setTimeout(function () {
+                _this2.play();
+              }, 1000);
+            } else {
               _this2.ended = true;
               _this2.playing = false;
               _this2.waiting = false;
 
+              _this2.flv.emit('ended', _this2.currentTime);
+
               if (options.loop && !options.live) {
-                return _this2.play();
+                _this2.currentTime = 0;
+                return setTimeout(function () {
+                  _this2.play();
+
+                  _this2.flv.emit('loop');
+                }, 1000);
               }
 
               return _this2.pause();
@@ -2045,12 +2032,11 @@
     }, {
       key: "seeked",
       value: function seeked(time) {
-        var player = this.flv.player;
         window.cancelAnimationFrame(this.timer);
         this.timer = null;
-        this.video.playIndex = Math.floor(time * player.frameRate);
-        this.flv.emit('seeked', time);
+        this.currentTime = time;
         this.seekedThrottle();
+        this.flv.emit('seeked');
       }
     }]);
 

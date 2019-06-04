@@ -1,4 +1,4 @@
-import { throttle } from '../utils';
+import { throttle, getNowTime } from '../utils';
 import VideoDecoder from './video/h264bsd';
 import AudioDecoder from './audio';
 
@@ -9,6 +9,8 @@ export default class Decoder {
         this.playing = false;
         this.waiting = false;
         this.timer = null;
+        this.currentTime = 0;
+        this.lastUpdateTime = 0;
 
         this.video = new VideoDecoder(flv, this);
         if (flv.options.hasAudio) {
@@ -36,36 +38,39 @@ export default class Decoder {
 
     play() {
         const { options, player } = this.flv;
-
-        let startTime = player.currentTime;
-        if (this.ended) {
-            startTime = 0;
-        }
-
-        this.video.play(startTime);
-        this.audio.play(startTime);
+        this.lastUpdateTime = getNowTime();
+        this.video.play(this.currentTime);
+        this.audio.play(this.currentTime);
         this.flv.emit('play');
-
         const loop = () => {
             this.timer = window.requestAnimationFrame(() => {
                 if (this.video.playing && this.audio.playing) {
-                    this.flv.emit('timeupdate', player.currentTime);
                     this.ended = false;
                     this.playing = true;
                     this.waiting = false;
+                    const updateTime = getNowTime();
+                    this.currentTime += (updateTime - this.lastUpdateTime) / 1000;
+                    this.lastUpdateTime = updateTime;
+                    this.flv.emit('timeupdate', this.currentTime);
                 } else if (player.streaming || this.video.decoding || this.audio.decoding) {
-                    this.flv.emit('waiting', player.currentTime);
                     this.ended = false;
                     this.playing = false;
                     this.waiting = true;
-                    return this.play();
+                    this.flv.emit('waiting', this.currentTime);
+                    return setTimeout(() => {
+                        this.play();
+                    }, 1000);
                 } else {
-                    this.flv.emit('ended', player.currentTime);
                     this.ended = true;
                     this.playing = false;
                     this.waiting = false;
+                    this.flv.emit('ended', this.currentTime);
                     if (options.loop && !options.live) {
-                        return this.play();
+                        this.currentTime = 0;
+                        return setTimeout(() => {
+                            this.play();
+                            this.flv.emit('loop');
+                        }, 1000);
                     }
                     return this.pause();
                 }
@@ -87,11 +92,10 @@ export default class Decoder {
     }
 
     seeked(time) {
-        const { player } = this.flv;
         window.cancelAnimationFrame(this.timer);
         this.timer = null;
-        this.video.playIndex = Math.floor(time * player.frameRate);
-        this.flv.emit('seeked', time);
+        this.currentTime = time;
         this.seekedThrottle();
+        this.flv.emit('seeked');
     }
 }

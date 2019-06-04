@@ -71,10 +71,27 @@ export default class VideoDecoder {
                     break;
             }
         });
+
+        flv.on('timeupdate', currentTime => {
+            const timestamp = this.timestamps[this.playIndex];
+            if (timestamp && currentTime * 1000 >= timestamp) {
+                const state = this.draw(this.playIndex);
+                if (state) {
+                    this.playIndex += 1;
+                } else {
+                    this.stop();
+                }
+            }
+
+            if (!options.live && currentTime >= player.duration) {
+                this.stop();
+            }
+        });
     }
 
     draw(index) {
         const videoframe = this.videoframes[index];
+        if (!videoframe) return false;
         this.renderer.drawNextOutputPicture(
             videoframe.width,
             videoframe.height,
@@ -84,38 +101,15 @@ export default class VideoDecoder {
         if (this.flv.options.live) {
             this.videoframes[index] = null;
         }
-    }
-
-    queue() {
-        const { player } = this.flv;
-        const videoframe = this.videoframes[this.playIndex];
-        if (!videoframe) {
-            this.stop();
-            return;
-        }
-        this.playing = true;
-        this.draw(this.playIndex);
-        this.playTimer = setTimeout(() => {
-            this.playIndex += 1;
-            this.queue();
-        }, player.frameDuration);
+        return true;
     }
 
     play(startTime = 0) {
-        this.stop();
-        const { player } = this.flv;
-        this.playIndex = startTime * player.frameRate;
-        const videoframe = this.videoframes[this.playIndex];
-        if (!videoframe) {
-            this.stop();
-            return;
-        }
-        this.queue();
+        this.playing = true;
+        this.playIndex = Math.round(startTime * this.flv.player.frameRate);
     }
 
     stop() {
         this.playing = false;
-        clearTimeout(this.playTimer);
-        this.playTimer = null;
     }
 }

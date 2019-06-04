@@ -35,6 +35,12 @@ export default function controls(flv, player) {
         }
     });
 
+    flv.on('seeked', currentTime => {
+        if (!flv.options.live) {
+            timeupdateFn(currentTime);
+        }
+    });
+
     flv.on('play', () => {
         player.$play.style.display = 'none';
         player.$pause.style.display = 'block';

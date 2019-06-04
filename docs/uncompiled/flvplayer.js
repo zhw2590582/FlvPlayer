@@ -1158,6 +1158,11 @@
         timeupdateFn(currentTime);
       }
     });
+    flv.on('seeked', function (currentTime) {
+      if (!flv.options.live) {
+        timeupdateFn(currentTime);
+      }
+    });
     flv.on('play', function () {
       player.$play.style.display = 'none';
       player.$pause.style.display = 'block';
@@ -1955,13 +1960,6 @@
           _this.pause();
         }
       });
-      this.seekedThrottle = throttle(function () {
-        _this.video.draw(_this.video.playIndex);
-
-        if (_this.playing) {
-          _this.play();
-        }
-      }, 200);
     }
 
     createClass(Decoder, [{
@@ -2038,11 +2036,17 @@
     }, {
       key: "seeked",
       value: function seeked(time) {
+        var player = this.flv.player;
         window.cancelAnimationFrame(this.timer);
         this.timer = null;
         this.currentTime = time;
-        this.seekedThrottle();
-        this.flv.emit('seeked');
+        this.video.draw(Math.floor(time * player.frameRate));
+
+        if (this.playing) {
+          this.play();
+        }
+
+        this.flv.emit('seeked', time);
       }
     }]);
 

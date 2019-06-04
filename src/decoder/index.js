@@ -1,4 +1,4 @@
-import { throttle, getNowTime } from '../utils';
+import { getNowTime } from '../utils';
 import VideoDecoder from './video/h264bsd';
 import AudioDecoder from './audio';
 
@@ -39,13 +39,6 @@ export default class Decoder {
                 this.pause();
             }
         });
-
-        this.seekedThrottle = throttle(() => {
-            this.video.draw(this.video.playIndex);
-            if (this.playing) {
-                this.play();
-            }
-        }, 200);
     }
 
     play() {
@@ -104,10 +97,14 @@ export default class Decoder {
     }
 
     seeked(time) {
+        const { player } = this.flv;
         window.cancelAnimationFrame(this.timer);
         this.timer = null;
         this.currentTime = time;
-        this.seekedThrottle();
-        this.flv.emit('seeked');
+        this.video.draw(Math.floor(time * player.frameRate));
+        if (this.playing) {
+            this.play();
+        }
+        this.flv.emit('seeked', time);
     }
 }

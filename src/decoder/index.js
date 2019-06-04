@@ -28,6 +28,18 @@ export default class Decoder {
             this.pause();
         });
 
+        flv.on('timeupdate', currentTime => {
+            if (!flv.options.live && currentTime >= flv.player.duration) {
+                this.pause();
+            }
+        });
+
+        flv.events.proxy(document, 'visibilitychange', () => {
+            if (document.hidden && this.playing) {
+                this.pause();
+            }
+        });
+
         this.seekedThrottle = throttle(() => {
             this.video.draw(this.video.playIndex);
             if (this.playing) {

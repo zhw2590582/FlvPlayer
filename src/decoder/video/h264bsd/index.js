@@ -82,10 +82,6 @@ export default class VideoDecoder {
                     this.stop();
                 }
             }
-
-            if (!options.live && currentTime >= player.duration) {
-                this.stop();
-            }
         });
     }
 

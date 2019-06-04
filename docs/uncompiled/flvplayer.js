@@ -1711,10 +1711,6 @@
             _this.stop();
           }
         }
-
-        if (!options.live && currentTime >= player.duration) {
-          _this.stop();
-        }
       });
     }
 
@@ -1948,6 +1944,16 @@
 
       flv.on('destroy', function () {
         _this.pause();
+      });
+      flv.on('timeupdate', function (currentTime) {
+        if (!flv.options.live && currentTime >= flv.player.duration) {
+          _this.pause();
+        }
+      });
+      flv.events.proxy(document, 'visibilitychange', function () {
+        if (document.hidden && _this.playing) {
+          _this.pause();
+        }
       });
       this.seekedThrottle = throttle(function () {
         _this.video.draw(_this.video.playIndex);

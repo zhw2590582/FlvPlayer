@@ -861,9 +861,9 @@
     Object.defineProperty(player, 'frameRate', {
       get: function get() {
         try {
-          return Math.round(flv.demuxer.scripMeta.amf2.metaData.framerate);
+          return flv.demuxer.scripMeta.amf2.metaData.framerate;
         } catch (error) {
-          return Math.round(flv.options.frameRate || 30);
+          return flv.options.frameRate || 30;
         }
       }
     });
@@ -1620,6 +1620,7 @@
       this.playing = false;
       this.playIndex = 0;
       this.videoframes = [];
+      this.timestamps = [];
       this.videoInputLength = 0;
       this.decoding = false;
       this.byteSize = 0;
@@ -1660,7 +1661,7 @@
       });
       var sps = new Uint8Array();
       var pps = new Uint8Array();
-      flv.on('videoData', function (uint8) {
+      flv.on('videoData', function (uint8, timestamp) {
         var readNalu = readBuffer(uint8);
         readNalu(4);
         var nalHeader = readNalu(1)[0];
@@ -1677,6 +1678,8 @@
                 type: 'queueInput',
                 data: frame.buffer
               }, [frame.buffer]);
+
+              _this.timestamps.push(timestamp);
 
               _this.videoInputLength += 1;
               break;
@@ -1766,6 +1769,7 @@
       this.playing = false;
       this.playIndex = 0;
       this.audiobuffers = [];
+      this.timestamps = [0];
       this.audioInputLength = 0;
       this.decoding = false;
       this.byteSize = 0;
@@ -1797,11 +1801,13 @@
           }
         }, 500);
       });
-      flv.on('audioData', function (uint8) {
+      flv.on('audioData', function (uint8, timestamp) {
         _this.decoding = true;
         _this.audioInputLength += 1;
 
-        if (_this.decodeWaitingBuffer.byteLength >= 1024 * 512) {
+        if (_this.decodeWaitingBuffer.byteLength >= 512 * 512) {
+          _this.timestamps.push(timestamp);
+
           var buffer = mergeBuffer(_this.decodeErrorBuffer, _this.decodeWaitingBuffer).buffer;
           _this.decodeWaitingBuffer = new Uint8Array();
 
@@ -1847,7 +1853,24 @@
         };
 
         this.playing = true;
-        this.source.start();
+        var audioCurrentTime = this.timestamps[this.playIndex];
+        var videoCurrentTime = this.flv.player.currentTime * 1000;
+        var timeDifference = audioCurrentTime - videoCurrentTime;
+        this.flv.debug.log('audio-current-time', audioCurrentTime);
+        this.flv.debug.log('video-current-time', videoCurrentTime);
+        this.flv.debug.log('time-difference', timeDifference);
+
+        if (Math.abs(timeDifference) > 500) {
+          if (audioCurrentTime > videoCurrentTime) {
+            setTimeout(function () {
+              _this2.source.start();
+            }, audioCurrentTime - videoCurrentTime);
+          } else {
+            this.source.start(0, (videoCurrentTime - audioCurrentTime) / 1000);
+          }
+        } else {
+          this.source.start();
+        }
       }
     }, {
       key: "play",

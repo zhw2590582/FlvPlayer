@@ -10,6 +10,7 @@ export default class AudioDecoder {
         this.playing = false;
         this.playIndex = 0;
         this.audiobuffers = [];
+        this.timestamps = [0];
         this.audioInputLength = 0;
         this.decoding = false;
         this.byteSize = 0;
@@ -42,10 +43,11 @@ export default class AudioDecoder {
             }, 500);
         });
 
-        flv.on('audioData', uint8 => {
+        flv.on('audioData', (uint8, timestamp) => {
             this.decoding = true;
             this.audioInputLength += 1;
-            if (this.decodeWaitingBuffer.byteLength >= 1024 * 512) {
+            if (this.decodeWaitingBuffer.byteLength >= 512 * 512) {
+                this.timestamps.push(timestamp);
                 const buffer = mergeBuffer(this.decodeErrorBuffer, this.decodeWaitingBuffer).buffer;
                 this.decodeWaitingBuffer = new Uint8Array();
                 this.context
@@ -82,7 +84,23 @@ export default class AudioDecoder {
             }
         };
         this.playing = true;
-        this.source.start();
+        const audioCurrentTime = this.timestamps[this.playIndex];
+        const videoCurrentTime = this.flv.player.currentTime * 1000;
+        const timeDifference = audioCurrentTime - videoCurrentTime;
+        this.flv.debug.log('audio-current-time', audioCurrentTime);
+        this.flv.debug.log('video-current-time', videoCurrentTime);
+        this.flv.debug.log('time-difference', timeDifference);
+        if (Math.abs(timeDifference) > 500) {
+            if (audioCurrentTime > videoCurrentTime) {
+                setTimeout(() => {
+                    this.source.start();
+                }, audioCurrentTime - videoCurrentTime);
+            } else {
+                this.source.start(0, (videoCurrentTime - audioCurrentTime) / 1000);
+            }
+        } else {
+            this.source.start();
+        }
     }
 
     play(startTime = 0) {
@@ -92,6 +110,7 @@ export default class AudioDecoder {
             time += item.duration;
             return startTime <= time;
         });
+
         const audiobuffer = this.audiobuffers[this.playIndex];
         if (!audiobuffer) {
             this.stop();

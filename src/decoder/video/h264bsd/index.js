@@ -10,6 +10,7 @@ export default class VideoDecoder {
         this.playing = false;
         this.playIndex = 0;
         this.videoframes = [];
+        this.timestamps = [];
         this.videoInputLength = 0;
         this.decoding = false;
         this.byteSize = 0;
@@ -45,7 +46,7 @@ export default class VideoDecoder {
 
         let sps = new Uint8Array();
         let pps = new Uint8Array();
-        flv.on('videoData', uint8 => {
+        flv.on('videoData', (uint8, timestamp) => {
             const readNalu = readBuffer(uint8);
             readNalu(4);
             const nalHeader = readNalu(1)[0];
@@ -56,6 +57,7 @@ export default class VideoDecoder {
                     this.decoding = true;
                     const frame = mergeBuffer(sps, pps, uint8);
                     this.decoderWorker.postMessage({ type: 'queueInput', data: frame.buffer }, [frame.buffer]);
+                    this.timestamps.push(timestamp);
                     this.videoInputLength += 1;
                     break;
                 }

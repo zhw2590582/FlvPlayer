@@ -81,6 +81,9 @@ export default class VideoDecoder {
             videoframe.croppingParams,
             new Uint8Array(videoframe.data),
         );
+        if (this.flv.options.live) {
+            this.videoframes[index] = null;
+        }
     }
 
     queue() {

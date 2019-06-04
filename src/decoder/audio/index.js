@@ -81,6 +81,9 @@ export default class AudioDecoder {
         this.source.onended = () => {
             if (this.playing) {
                 this.queue();
+                if (this.flv.options.live) {
+                    this.audiobuffers[this.playIndex] = null;
+                }
             }
         };
         this.playing = true;
@@ -124,6 +127,9 @@ export default class AudioDecoder {
         this.source.onended = () => {
             if (this.playing) {
                 this.queue();
+                if (this.flv.options.live) {
+                    this.audiobuffers[this.playIndex] = null;
+                }
             }
         };
         this.playing = true;

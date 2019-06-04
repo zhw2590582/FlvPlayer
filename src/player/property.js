@@ -21,7 +21,9 @@ export default function property(flv, player) {
             return flv.decoder.video.playIndex / player.frameRate;
         },
         set: time => {
-            flv.decoder.seeked(clamp(time, 0, player.loaded));
+            if (!flv.options.live) {
+                flv.decoder.seeked(clamp(time, 0, player.loaded));
+            }
         },
     });
 

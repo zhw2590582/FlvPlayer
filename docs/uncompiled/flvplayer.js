@@ -826,7 +826,9 @@
         return flv.decoder.video.playIndex / player.frameRate;
       },
       set: function set(time) {
-        flv.decoder.seeked(clamp(time, 0, player.loaded));
+        if (!flv.options.live) {
+          flv.decoder.seeked(clamp(time, 0, player.loaded));
+        }
       }
     });
     Object.defineProperty(player, 'streaming', {
@@ -1704,6 +1706,10 @@
       value: function draw(index) {
         var videoframe = this.videoframes[index];
         this.renderer.drawNextOutputPicture(videoframe.width, videoframe.height, videoframe.croppingParams, new Uint8Array(videoframe.data));
+
+        if (this.flv.options.live) {
+          this.videoframes[index] = null;
+        }
       }
     }, {
       key: "queue",
@@ -1849,6 +1855,10 @@
         this.source.onended = function () {
           if (_this2.playing) {
             _this2.queue();
+
+            if (_this2.flv.options.live) {
+              _this2.audiobuffers[_this2.playIndex] = null;
+            }
           }
         };
 
@@ -1900,6 +1910,10 @@
         this.source.onended = function () {
           if (_this3.playing) {
             _this3.queue();
+
+            if (_this3.flv.options.live) {
+              _this3.audiobuffers[_this3.playIndex] = null;
+            }
           }
         };
 
@@ -2003,7 +2017,7 @@
               _this2.playing = false;
               _this2.waiting = false;
 
-              if (options.loop) {
+              if (options.loop && !options.live) {
                 return _this2.play();
               }
 

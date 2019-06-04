@@ -64,7 +64,7 @@ export default class Decoder {
                     this.ended = true;
                     this.playing = false;
                     this.waiting = false;
-                    if (options.loop) {
+                    if (options.loop && !options.live) {
                         return this.play();
                     }
                     return this.pause();

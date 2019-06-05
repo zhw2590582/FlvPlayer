@@ -29,27 +29,34 @@
 
     <body>
         <div class="container">
-            <div class="flvplayer-app"></div>
+            <div class="flvplayer-app">
+                <input type="file" id="file" />
+            </div>
         </div>
-        <script src="https://cdn.bootcss.com/vConsole/3.2.0/vconsole.min.js"></script>
         <script src="./uncompiled/flvplayer.js"></script>
         <script>
-            var vConsole = new VConsole();
-            var url = 'https://zhw2590582.github.io/assets-cdn';
-            var flv = new FlvPlayer({
-                url: url + '/video/weathering-with-you-H264(Baseline@L52)-AAC.flv',
-                poster: url + '/image/weathering-with-you-poster.jpg',
-                container: '.flvplayer-app',
-                debug: true,
-                live: false,
-                loop: true,
-                hotkey: true,
-                controls: true,
-                hasAudio: false,
-                frameRate: 30,
-                width: 640,
-                height: 360,
-            });
+            document.getElementById('file').addEventListener(
+                'change',
+                function(event) {
+                    var file = event.target.files[0];
+                    if (file) {
+                        var flv = new FlvPlayer({
+                            url: file,
+                            container: '.flvplayer-app',
+                            debug: true,
+                            live: false,
+                            loop: true,
+                            hotkey: true,
+                            controls: true,
+                            hasAudio: true,
+                            volume: 7,
+                            width: 640,
+                            height: 360,
+                        });
+                    }
+                },
+                false,
+            );
         </script>
     </body>
 </html>

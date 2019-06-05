@@ -356,7 +356,13 @@
     return buffers.reduce(function (pre, val) {
       var merge = new Cons((pre.byteLength | 0) + (val.byteLength | 0));
       merge.set(pre, 0);
-      merge.set(val, pre.byteLength | 0);
+
+      try {
+        merge.set(val, pre.byteLength | 0);
+      } catch (error) {
+        console.log(error);
+      }
+
       return merge;
     }, new Cons());
   }
@@ -1819,7 +1825,7 @@
 
             flv.emit('audioLoaded', _this.loaded);
             _this.decodeErrorBuffer = new Uint8Array();
-          })["catch"](function () {
+          }).catch(function () {
             _this.decodeErrorBuffer = mergeBuffer(_this.decodeErrorBuffer, _this.decodeWaitingBuffer);
           });
         } else {
@@ -2175,7 +2181,7 @@
 
           flv.emit('streaming', new Uint8Array(value));
           read();
-        })["catch"](function (error) {
+        }).catch(function (error) {
           throw error;
         });
       })();
@@ -2402,7 +2408,7 @@
     }, {
       key: "version",
       get: function get() {
-        return '1.0.1';
+        return '1.0.2';
       }
     }, {
       key: "env",

@@ -25,27 +25,6 @@ export default class AudioDecoder {
         this.decodeErrorBuffer = new Uint8Array();
         this.decodeWaitingBuffer = new Uint8Array();
 
-        flv.on('demuxDone', () => {
-            // TODO...
-            setTimeout(() => {
-                if (this.decodeWaitingBuffer.buffer) {
-                    this.timestamps.push(timestampTmp[0]);
-                    timestampTmp = [];
-                    this.context.decodeAudioData(this.decodeWaitingBuffer.buffer, audiobuffer => {
-                        this.decodeWaitingBuffer = new Uint8Array();
-                        this.decodeErrorBuffer = new Uint8Array();
-                        this.loaded += audiobuffer.duration;
-                        this.byteSize += audiobuffer.length;
-                        this.audiobuffers.push(audiobuffer);
-                        flv.emit('audioLoaded', this.loaded);
-                        this.decoding = false;
-                    });
-                } else {
-                    this.decoding = false;
-                }
-            }, 500);
-        });
-
         flv.on('audioData', (uint8, timestamp) => {
             this.decoding = true;
             this.audioInputLength += 1;
@@ -72,6 +51,20 @@ export default class AudioDecoder {
         });
 
         flv.on('timeupdate', currentTime => {
+            if (this.flv.demuxer.demuxed && this.decodeWaitingBuffer.length) {
+                this.timestamps.push(timestampTmp[0]);
+                timestampTmp = [];
+                this.context.decodeAudioData(this.decodeWaitingBuffer.buffer, audiobuffer => {
+                    this.decodeWaitingBuffer = new Uint8Array();
+                    this.decodeErrorBuffer = new Uint8Array();
+                    this.loaded += audiobuffer.duration;
+                    this.byteSize += audiobuffer.length;
+                    this.audiobuffers.push(audiobuffer);
+                    flv.emit('audioLoaded', this.loaded);
+                    this.decoding = false;
+                });
+            }
+
             const timestamp = this.timestamps[this.playIndex];
             if (timestamp && currentTime * 1000 >= timestamp) {
                 const state = this.queue(this.playIndex);

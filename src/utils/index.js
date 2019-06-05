@@ -35,11 +35,7 @@ export function mergeBuffer(...buffers) {
     return buffers.reduce((pre, val) => {
         const merge = new Cons((pre.byteLength | 0) + (val.byteLength | 0));
         merge.set(pre, 0);
-        try {
-            merge.set(val, pre.byteLength | 0);
-        } catch (error) {
-            console.log(error);
-        }
+        merge.set(val, pre.byteLength | 0);
         return merge;
     }, new Cons());
 }

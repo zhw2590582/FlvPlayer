@@ -356,13 +356,7 @@
     return buffers.reduce(function (pre, val) {
       var merge = new Cons((pre.byteLength | 0) + (val.byteLength | 0));
       merge.set(pre, 0);
-
-      try {
-        merge.set(val, pre.byteLength | 0);
-      } catch (error) {
-        console.log(error);
-      }
-
+      merge.set(val, pre.byteLength | 0);
       return merge;
     }, new Cons());
   }
@@ -1782,30 +1776,6 @@
       var timestampTmp = [];
       this.decodeErrorBuffer = new Uint8Array();
       this.decodeWaitingBuffer = new Uint8Array();
-      flv.on('demuxDone', function () {
-        // TODO...
-        setTimeout(function () {
-          if (_this.decodeWaitingBuffer.buffer) {
-            _this.timestamps.push(timestampTmp[0]);
-
-            timestampTmp = [];
-
-            _this.context.decodeAudioData(_this.decodeWaitingBuffer.buffer, function (audiobuffer) {
-              _this.decodeWaitingBuffer = new Uint8Array();
-              _this.decodeErrorBuffer = new Uint8Array();
-              _this.loaded += audiobuffer.duration;
-              _this.byteSize += audiobuffer.length;
-
-              _this.audiobuffers.push(audiobuffer);
-
-              flv.emit('audioLoaded', _this.loaded);
-              _this.decoding = false;
-            });
-          } else {
-            _this.decoding = false;
-          }
-        }, 500);
-      });
       flv.on('audioData', function (uint8, timestamp) {
         _this.decoding = true;
         _this.audioInputLength += 1;
@@ -1834,6 +1804,24 @@
         }
       });
       flv.on('timeupdate', function (currentTime) {
+        if (_this.flv.demuxer.demuxed && _this.decodeWaitingBuffer.length) {
+          _this.timestamps.push(timestampTmp[0]);
+
+          timestampTmp = [];
+
+          _this.context.decodeAudioData(_this.decodeWaitingBuffer.buffer, function (audiobuffer) {
+            _this.decodeWaitingBuffer = new Uint8Array();
+            _this.decodeErrorBuffer = new Uint8Array();
+            _this.loaded += audiobuffer.duration;
+            _this.byteSize += audiobuffer.length;
+
+            _this.audiobuffers.push(audiobuffer);
+
+            flv.emit('audioLoaded', _this.loaded);
+            _this.decoding = false;
+          });
+        }
+
         var timestamp = _this.timestamps[_this.playIndex];
 
         if (timestamp && currentTime * 1000 >= timestamp) {

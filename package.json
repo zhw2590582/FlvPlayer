@@ -1,6 +1,6 @@
 {
     "name": "flvplayer",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "FlvPlayer is a JavaScript player for decode flv to the canvas",
     "main": "dist/flvplayer.js",
     "style": "dist/flvplayer.css",

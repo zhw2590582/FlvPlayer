@@ -17,6 +17,7 @@
 
 ## Demo
 [Play online demo](https://zhw2590582.github.io/FlvPlayer/)
+
 [Play local demo](https://zhw2590582.github.io/FlvPlayer/fileReader.html)
 
 ## Install

@@ -8,7 +8,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 [![dependencies Status](https://david-dm.org/zhw2590582/flvplayer/status.svg)](https://david-dm.org/zhw2590582/flvplayer)
 
-> FlvPlayer is a JavaScript player for decode flv to the canvas
+> FlvPlayer.js is a JavaScript player for decode flv to the canvas
 
 ## Attention
 

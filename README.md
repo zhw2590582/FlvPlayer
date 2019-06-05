@@ -12,7 +12,7 @@
 
 ## Attention
 
-1. H264 decoder comes from [h264bsd](https://github.com/oneam/h264bsd), currently only supports flv of `Baseline Profile`.
+1. H264 decoder comes from [h264bsd](https://github.com/oneam/h264bsd)/[tinyh264](https://github.com/udevbe/tinyh264), currently only supports flv of `Baseline Profile`.
 2. In theory, it can be played on the mobile side, but there are still many compatibility problems, please do not use it in the production environment.
 
 ## Install

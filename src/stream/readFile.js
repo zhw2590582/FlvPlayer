@@ -1,5 +1,5 @@
 export default function readFile(flv, file) {
-    flv.emit('streamStart');
+    flv.emit('streamStart', 'FileReader');
     const { proxy } = flv.events;
     const reader = new FileReader();
     proxy(reader, 'load', e => {

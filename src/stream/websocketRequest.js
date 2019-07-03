@@ -1,6 +1,7 @@
 export default function websocketRequest(flv, url) {
     flv.emit('streamStart', 'websocket-request');
     const {
+        options,
         events: { proxy },
     } = flv;
 
@@ -8,7 +9,7 @@ export default function websocketRequest(flv, url) {
     socket.binaryType = 'arraybuffer';
 
     proxy(socket, 'open', () => {
-        socket.send();
+        socket.send(options.socketSend);
     });
 
     proxy(socket, 'message', event => {

@@ -49,6 +49,7 @@ class FlvPlayer extends Emitter {
             frameRate: 30,
             width: 400,
             height: 300,
+            socketSend: '',
             headers: {},
         };
     }

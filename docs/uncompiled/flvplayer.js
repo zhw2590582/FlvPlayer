@@ -2247,11 +2247,12 @@
 
   function websocketRequest(flv, url) {
     flv.emit('streamStart', 'websocket-request');
-    var proxy = flv.events.proxy;
+    var options = flv.options,
+        proxy = flv.events.proxy;
     var socket = new WebSocket(url);
     socket.binaryType = 'arraybuffer';
     proxy(socket, 'open', function () {
-      socket.send();
+      socket.send(options.socketSend);
     });
     proxy(socket, 'message', function (event) {
       flv.emit('streaming', new Uint8Array(event.data));
@@ -2269,7 +2270,7 @@
   }
 
   function readFile(flv, file) {
-    flv.emit('streamStart');
+    flv.emit('streamStart', 'FileReader');
     var proxy = flv.events.proxy;
     var reader = new FileReader();
     proxy(reader, 'load', function (e) {
@@ -2390,13 +2391,14 @@
           frameRate: 30,
           width: 400,
           height: 300,
+          socketSend: '',
           headers: {}
         };
       }
     }, {
       key: "version",
       get: function get() {
-        return '1.0.2';
+        return '1.0.3';
       }
     }, {
       key: "env",

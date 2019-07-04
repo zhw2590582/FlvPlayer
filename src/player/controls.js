@@ -74,7 +74,7 @@ export default function controls(flv, player) {
     const autoHide = debounce(() => {
         player.$player.classList.add('flv-player-hide-cursor');
         player.controls = false;
-    }, 3000);
+    }, 5000);
 
     proxy(player.$player, 'mousemove', () => {
         autoHide.clearTimeout();

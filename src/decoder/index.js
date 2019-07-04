@@ -13,7 +13,9 @@ export default class Decoder {
         this.ended = false;
         this.playing = false;
         this.waiting = false;
-        this.timer = null;
+        this.loopTimer = null;
+        this.waitingTimer = null;
+        this.endedTimer = null;
         this.currentTime = 0;
         this.lastUpdateTime = 0;
 
@@ -53,7 +55,7 @@ export default class Decoder {
         this.audio.play(this.currentTime);
         this.flv.emit('play');
         const loop = () => {
-            this.timer = window.requestAnimationFrame(() => {
+            this.loopTimer = window.requestAnimationFrame(() => {
                 if (this.video.playing && this.audio.playing) {
                     this.ended = false;
                     this.playing = true;
@@ -67,9 +69,10 @@ export default class Decoder {
                     this.playing = false;
                     this.waiting = true;
                     this.flv.emit('waiting', this.currentTime);
-                    return setTimeout(() => {
+                    this.waitingTimer = setTimeout(() => {
                         this.play();
                     }, 1000);
+                    return;
                 } else {
                     this.ended = true;
                     this.playing = false;
@@ -77,22 +80,27 @@ export default class Decoder {
                     this.flv.emit('ended', this.currentTime);
                     if (options.loop && !options.live) {
                         this.currentTime = 0;
-                        return setTimeout(() => {
+                        this.endedTimer = setTimeout(() => {
                             this.play();
                             this.flv.emit('loop');
                         }, 1000);
+                        return;
                     }
-                    return this.pause();
+                    this.pause();
                 }
-                return loop();
+                loop();
             });
         };
         loop();
     }
 
     pause() {
-        window.cancelAnimationFrame(this.timer);
-        this.timer = null;
+        window.cancelAnimationFrame(this.loopTimer);
+        window.clearTimeout(this.waitingTimer);
+        window.clearTimeout(this.endedTimer);
+        this.loopTimer = null;
+        this.waitingTimer = null;
+        this.endedTimer = null;
         this.video.stop();
         this.audio.stop();
         this.ended = false;
@@ -103,8 +111,12 @@ export default class Decoder {
 
     seeked(time) {
         const { player } = this.flv;
-        window.cancelAnimationFrame(this.timer);
-        this.timer = null;
+        window.cancelAnimationFrame(this.loopTimer);
+        window.clearTimeout(this.waitingTimer);
+        window.clearTimeout(this.endedTimer);
+        this.loopTimer = null;
+        this.waitingTimer = null;
+        this.endedTimer = null;
         this.currentTime = time;
         this.video.draw(Math.floor(time * player.frameRate));
         if (this.playing) {

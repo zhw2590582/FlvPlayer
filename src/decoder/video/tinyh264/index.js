@@ -76,13 +76,21 @@ export default class VideoDecoder {
         });
 
         flv.on('timeupdate', currentTime => {
-            const timestamp = this.timestamps[this.playIndex];
+            const index = this.playIndex;
+            const timestamp = this.timestamps[index];
             if (timestamp !== undefined && currentTime * 1000 >= timestamp) {
-                const state = this.draw(this.playIndex);
-                if (state) {
+                if (this.draw(index)) {
+                    if (this.flv.options.live && (index !== 0 && index % this.freeNumber === 0)) {
+                        this.playIndex = -1;
+                        this.videoframes.splice(0, index + 1);
+                        this.timestamps.splice(0, index + 1);
+                        this.flv.decoder.currentTime = this.timestamps[0] / 1000 || 0;
+                    }
                     this.playIndex += 1;
-                } else if (!options.live) {
-                    this.stop();
+                } else {
+                    if (!options.live) {
+                        this.stop();
+                    }
                 }
             }
         });
@@ -92,11 +100,6 @@ export default class VideoDecoder {
         const videoframe = this.videoframes[index];
         if (!videoframe) return false;
         this.renderer.drawNextOutputPicture(videoframe.width, videoframe.height, null, new Uint8Array(videoframe.data));
-        if (this.flv.options.live && (index !== 0 && index % this.freeNumber === 0)) {
-            this.playIndex = 0;
-            this.videoframes.splice(0, index + 1);
-            this.timestamps.splice(0, index + 1);
-        }
         return true;
     }
 

@@ -1191,7 +1191,7 @@
     var autoHide = debounce(function () {
       player.$player.classList.add('flv-player-hide-cursor');
       player.controls = false;
-    }, 3000);
+    }, 5000);
     proxy(player.$player, 'mousemove', function () {
       autoHide.clearTimeout();
       player.$player.classList.remove('flv-player-hide-cursor');
@@ -1869,15 +1869,26 @@
         }
       });
       flv.on('timeupdate', function (currentTime) {
-        var timestamp = _this.timestamps[_this.playIndex];
+        var index = _this.playIndex;
+        var timestamp = _this.timestamps[index];
 
         if (timestamp !== undefined && currentTime * 1000 >= timestamp) {
-          var state = _this.draw(_this.playIndex);
+          if (_this.draw(index)) {
+            if (_this.flv.options.live && index !== 0 && index % _this.freeNumber === 0) {
+              _this.playIndex = -1;
 
-          if (state) {
+              _this.videoframes.splice(0, index + 1);
+
+              _this.timestamps.splice(0, index + 1);
+
+              _this.flv.decoder.currentTime = _this.timestamps[0] / 1000 || 0;
+            }
+
             _this.playIndex += 1;
-          } else if (!options.live) {
-            _this.stop();
+          } else {
+            if (!options.live) {
+              _this.stop();
+            }
           }
         }
       });
@@ -1889,13 +1900,6 @@
         var videoframe = this.videoframes[index];
         if (!videoframe) return false;
         this.renderer.drawNextOutputPicture(videoframe.width, videoframe.height, null, new Uint8Array(videoframe.data));
-
-        if (this.flv.options.live && index !== 0 && index % this.freeNumber === 0) {
-          this.playIndex = 0;
-          this.videoframes.splice(0, index + 1);
-          this.timestamps.splice(0, index + 1);
-        }
-
         return true;
       }
     }, {
@@ -1936,7 +1940,9 @@
       this.ended = false;
       this.playing = false;
       this.waiting = false;
-      this.timer = null;
+      this.loopTimer = null;
+      this.waitingTimer = null;
+      this.endedTimer = null;
       this.currentTime = 0;
       this.lastUpdateTime = 0;
       this.video = new VideoDecoder(flv, this);
@@ -1985,7 +1991,7 @@
         this.flv.emit('play');
 
         var loop = function loop() {
-          _this2.timer = window.requestAnimationFrame(function () {
+          _this2.loopTimer = window.requestAnimationFrame(function () {
             if (_this2.video.playing && _this2.audio.playing) {
               _this2.ended = false;
               _this2.playing = true;
@@ -2002,9 +2008,10 @@
 
               _this2.flv.emit('waiting', _this2.currentTime);
 
-              return setTimeout(function () {
+              _this2.waitingTimer = setTimeout(function () {
                 _this2.play();
               }, 1000);
+              return;
             } else {
               _this2.ended = true;
               _this2.playing = false;
@@ -2014,17 +2021,18 @@
 
               if (options.loop && !options.live) {
                 _this2.currentTime = 0;
-                return setTimeout(function () {
+                _this2.endedTimer = setTimeout(function () {
                   _this2.play();
 
                   _this2.flv.emit('loop');
                 }, 1000);
+                return;
               }
 
-              return _this2.pause();
+              _this2.pause();
             }
 
-            return loop();
+            loop();
           });
         };
 
@@ -2033,8 +2041,12 @@
     }, {
       key: "pause",
       value: function pause() {
-        window.cancelAnimationFrame(this.timer);
-        this.timer = null;
+        window.cancelAnimationFrame(this.loopTimer);
+        window.clearTimeout(this.waitingTimer);
+        window.clearTimeout(this.endedTimer);
+        this.loopTimer = null;
+        this.waitingTimer = null;
+        this.endedTimer = null;
         this.video.stop();
         this.audio.stop();
         this.ended = false;
@@ -2046,8 +2058,12 @@
       key: "seeked",
       value: function seeked(time) {
         var player = this.flv.player;
-        window.cancelAnimationFrame(this.timer);
-        this.timer = null;
+        window.cancelAnimationFrame(this.loopTimer);
+        window.clearTimeout(this.waitingTimer);
+        window.clearTimeout(this.endedTimer);
+        this.loopTimer = null;
+        this.waitingTimer = null;
+        this.endedTimer = null;
         this.currentTime = time;
         this.video.draw(Math.floor(time * player.frameRate));
 

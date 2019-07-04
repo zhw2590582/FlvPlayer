@@ -23,6 +23,7 @@ export default class VideoDecoder {
             this.videoframes = [];
             this.timestamps = [];
             this.decoderWorker.terminate();
+            this.renderer.SR_Destroy();
             this.stop();
         });
 

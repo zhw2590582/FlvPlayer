@@ -63,10 +63,11 @@ export default function property(flv, player) {
 
     Object.defineProperty(player, 'frameRate', {
         get: () => {
+            const defaultFrameRate = Math.round(flv.options.frameRate || 30);
             try {
-                return Math.round(flv.demuxer.scripMeta.amf2.metaData.framerate) || 30;
+                return Math.round(flv.demuxer.scripMeta.amf2.metaData.framerate) || defaultFrameRate;
             } catch (error) {
-                return Math.round(flv.options.frameRate || 30);
+                return defaultFrameRate;
             }
         },
     });
@@ -114,9 +115,9 @@ export default function property(flv, player) {
     });
 
     Object.defineProperty(player, 'play', {
-        value: (time = 0) => {
+        value: () => {
             if (!player.playing) {
-                flv.decoder.play(time);
+                flv.decoder.play();
             }
         },
     });

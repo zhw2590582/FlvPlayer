@@ -1,6 +1,11 @@
 import { getNowTime } from '../utils';
-import VideoDecoder from './video/wsPlayer';
 import AudioDecoder from './audio';
+
+// 支持多种 Baseline Profil / Main Profile / High Profile, 但体积有 2M
+// import VideoDecoder from './video/wsPlayer';
+
+// 只支持 Baseline Profile, 但体积只有 1M
+import VideoDecoder from './video/tinyh264';
 
 export default class Decoder {
     constructor(flv) {

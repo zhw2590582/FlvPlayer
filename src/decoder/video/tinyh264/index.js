@@ -15,12 +15,13 @@ export default class VideoDecoder {
         this.decoding = false;
         this.byteSize = 0;
         this.loaded = 0;
-        this.playTimer = null;
+        this.freeNumber = player.frameRate * 60;
         this.decoderWorker = createWorker(workerString);
         this.renderer = new H264bsdCanvas(player.$canvas);
 
         flv.on('destroy', () => {
             this.videoframes = [];
+            this.timestamps = [];
             this.decoderWorker.terminate();
             this.stop();
         });
@@ -34,8 +35,11 @@ export default class VideoDecoder {
                     this.decoding = this.videoframes.length !== this.videoInputLength;
                     this.loaded = this.videoframes.length / player.frameRate;
                     flv.emit('videoLoaded', this.loaded);
-                    if (this.videoframes.length === 1 && !options.poster) {
-                        this.draw(0);
+                    if (this.videoframes.length === 1) {
+                        flv.emit('ready');
+                        if (!options.poster) {
+                            this.draw(0, false);
+                        }
                     }
                     break;
                 default:
@@ -73,11 +77,11 @@ export default class VideoDecoder {
 
         flv.on('timeupdate', currentTime => {
             const timestamp = this.timestamps[this.playIndex];
-            if (timestamp && currentTime * 1000 >= timestamp) {
+            if (timestamp !== undefined && currentTime * 1000 >= timestamp) {
                 const state = this.draw(this.playIndex);
                 if (state) {
                     this.playIndex += 1;
-                } else {
+                } else if (!options.live) {
                     this.stop();
                 }
             }
@@ -88,15 +92,25 @@ export default class VideoDecoder {
         const videoframe = this.videoframes[index];
         if (!videoframe) return false;
         this.renderer.drawNextOutputPicture(videoframe.width, videoframe.height, null, new Uint8Array(videoframe.data));
-        if (this.flv.options.live) {
-            this.videoframes[index] = null;
+        if (this.flv.options.live && (index !== 0 && index % this.freeNumber === 0)) {
+            this.playIndex = 0;
+            this.videoframes.splice(0, index + 1);
+            this.timestamps.splice(0, index + 1);
         }
         return true;
     }
 
     play(startTime = 0) {
         this.playing = true;
-        this.playIndex = Math.round(startTime * this.flv.player.frameRate);
+        if (this.flv.options.live) {
+            const startIndex = Math.max(0, this.videoframes.length);
+            this.playIndex = 0;
+            this.videoframes.splice(0, startIndex);
+            this.timestamps.splice(0, startIndex);
+            this.flv.decoder.currentTime = this.timestamps[0] || 0;
+        } else {
+            this.playIndex = Math.round(startTime * this.flv.player.frameRate);
+        }
     }
 
     stop() {

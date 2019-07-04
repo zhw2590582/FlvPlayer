@@ -1,5 +1,5 @@
 import { getNowTime } from '../utils';
-import VideoDecoder from './video/tinyh264';
+import VideoDecoder from './video/wsPlayer';
 import AudioDecoder from './audio';
 
 export default class Decoder {

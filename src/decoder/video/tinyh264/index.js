@@ -1,4 +1,4 @@
-import { mergeBuffer, readBuffer, createWorker } from '../../../utils';
+import { createWorker } from '../../../utils';
 import Renderer from './renderer';
 import workerString from './decoder.worker';
 
@@ -7,6 +7,7 @@ export default class VideoDecoder {
         this.flv = flv;
         const { player, events, options } = flv;
 
+        this.ready = false;
         this.playing = false;
         this.playIndex = 0;
         this.videoframes = [];
@@ -35,10 +36,11 @@ export default class VideoDecoder {
                     this.decoding = this.videoframes.length !== this.videoInputLength;
                     this.loaded = this.videoframes.length / player.frameRate;
                     flv.emit('videoLoaded', this.loaded);
-                    if (this.videoframes.length === 1) {
+                    if (!this.ready && this.videoframes.length === 1) {
+                        this.ready = true;
                         flv.emit('ready');
                         if (!options.poster) {
-                            this.draw(0, false);
+                            this.draw(0);
                         }
                     }
                     break;
@@ -47,32 +49,11 @@ export default class VideoDecoder {
             }
         });
 
-        let sps = new Uint8Array();
-        let pps = new Uint8Array();
-        flv.on('videoData', (uint8, timestamp) => {
-            const readNalu = readBuffer(uint8);
-            readNalu(4);
-            const nalHeader = readNalu(1)[0];
-            const naluType = nalHeader & 31;
-            switch (naluType) {
-                case 1:
-                case 5: {
-                    this.decoding = true;
-                    const frame = mergeBuffer(sps, pps, uint8);
-                    this.decoderWorker.postMessage({ type: 'decode', data: frame.buffer }, [frame.buffer]);
-                    this.timestamps.push(timestamp);
-                    this.videoInputLength += 1;
-                    break;
-                }
-                case 7:
-                    sps = uint8;
-                    break;
-                case 8:
-                    pps = uint8;
-                    break;
-                default:
-                    break;
-            }
+        flv.on('videoData', (frame, timestamp) => {
+            this.decoding = true;
+            this.decoderWorker.postMessage({ type: 'decode', data: frame.buffer }, [frame.buffer]);
+            this.timestamps.push(timestamp);
+            this.videoInputLength += 1;
         });
 
         flv.on('timeupdate', currentTime => {

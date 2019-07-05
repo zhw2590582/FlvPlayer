@@ -1788,6 +1788,7 @@
       var player = flv.player,
           events = flv.events,
           options = flv.options;
+      this.ready = false;
       this.playing = false;
       this.playIndex = 0;
       this.videoframes = [];
@@ -1820,11 +1821,12 @@
             _this.loaded = _this.videoframes.length / player.frameRate;
             flv.emit('videoLoaded', _this.loaded);
 
-            if (_this.videoframes.length === 1) {
+            if (!_this.ready && _this.videoframes.length === 1) {
+              _this.ready = true;
               flv.emit('ready');
 
               if (!options.poster) {
-                _this.draw(0, false);
+                _this.draw(0);
               }
             }
 
@@ -1834,43 +1836,17 @@
             break;
         }
       });
-      var sps = new Uint8Array();
-      var pps = new Uint8Array();
-      flv.on('videoData', function (uint8, timestamp) {
-        var readNalu = readBuffer(uint8);
-        readNalu(4);
-        var nalHeader = readNalu(1)[0];
-        var naluType = nalHeader & 31;
+      flv.on('videoData', function (frame, timestamp) {
+        _this.decoding = true;
 
-        switch (naluType) {
-          case 1:
-          case 5:
-            {
-              _this.decoding = true;
-              var frame = mergeBuffer(sps, pps, uint8);
+        _this.decoderWorker.postMessage({
+          type: 'decode',
+          data: frame.buffer
+        }, [frame.buffer]);
 
-              _this.decoderWorker.postMessage({
-                type: 'decode',
-                data: frame.buffer
-              }, [frame.buffer]);
+        _this.timestamps.push(timestamp);
 
-              _this.timestamps.push(timestamp);
-
-              _this.videoInputLength += 1;
-              break;
-            }
-
-          case 7:
-            sps = uint8;
-            break;
-
-          case 8:
-            pps = uint8;
-            break;
-
-          default:
-            break;
-        }
+        _this.videoInputLength += 1;
       });
       flv.on('timeupdate', function (currentTime) {
         var index = _this.playIndex;
@@ -1944,7 +1920,7 @@
       this.ended = false;
       this.playing = false;
       this.waiting = false;
-      this.loopTimer = null;
+      this.animationFrameTimer = null;
       this.waitingTimer = null;
       this.endedTimer = null;
       this.currentTime = 0;
@@ -1974,9 +1950,18 @@
           _this.pause();
         }
       });
+      var isPlaying = false;
       flv.events.proxy(document, 'visibilitychange', function () {
-        if (document.hidden && _this.playing) {
+        if (document.hidden) {
+          isPlaying = _this.playing;
+
           _this.pause();
+        }
+
+        if (!document.hidden && isPlaying) {
+          isPlaying = _this.playing;
+
+          _this.play();
         }
       });
     }
@@ -1984,71 +1969,71 @@
     createClass(Decoder, [{
       key: "play",
       value: function play() {
+        this.lastUpdateTime = getNowTime();
+        this.video.play(this.currentTime);
+        this.audio.play(this.currentTime);
+        this.animationFrame();
+        this.flv.emit('play');
+      }
+    }, {
+      key: "animationFrame",
+      value: function animationFrame() {
         var _this2 = this;
 
         var _this$flv = this.flv,
             options = _this$flv.options,
             player = _this$flv.player;
-        this.lastUpdateTime = getNowTime();
-        this.video.play(this.currentTime);
-        this.audio.play(this.currentTime);
-        this.flv.emit('play');
+        this.animationFrameTimer = window.requestAnimationFrame(function () {
+          if (_this2.video.playing && _this2.audio.playing) {
+            _this2.ended = false;
+            _this2.playing = true;
+            _this2.waiting = false;
+            var updateTime = getNowTime();
+            _this2.currentTime += (updateTime - _this2.lastUpdateTime) / 1000;
+            _this2.lastUpdateTime = updateTime;
 
-        var loop = function loop() {
-          _this2.loopTimer = window.requestAnimationFrame(function () {
-            if (_this2.video.playing && _this2.audio.playing) {
-              _this2.ended = false;
-              _this2.playing = true;
-              _this2.waiting = false;
-              var updateTime = getNowTime();
-              _this2.currentTime += (updateTime - _this2.lastUpdateTime) / 1000;
-              _this2.lastUpdateTime = updateTime;
+            _this2.flv.emit('timeupdate', _this2.currentTime);
+          } else if (player.streaming || _this2.video.decoding || _this2.audio.decoding) {
+            _this2.ended = false;
+            _this2.playing = false;
+            _this2.waiting = true;
 
-              _this2.flv.emit('timeupdate', _this2.currentTime);
-            } else if (player.streaming || _this2.video.decoding || _this2.audio.decoding) {
-              _this2.ended = false;
-              _this2.playing = false;
-              _this2.waiting = true;
+            _this2.flv.emit('waiting', _this2.currentTime);
 
-              _this2.flv.emit('waiting', _this2.currentTime);
+            _this2.waitingTimer = setTimeout(function () {
+              _this2.play();
+            }, 1000);
+            return;
+          } else {
+            _this2.ended = true;
+            _this2.playing = false;
+            _this2.waiting = false;
 
-              _this2.waitingTimer = setTimeout(function () {
+            _this2.flv.emit('ended', _this2.currentTime);
+
+            if (options.loop && !options.live) {
+              _this2.currentTime = 0;
+              _this2.endedTimer = setTimeout(function () {
                 _this2.play();
+
+                _this2.flv.emit('loop');
               }, 1000);
               return;
-            } else {
-              _this2.ended = true;
-              _this2.playing = false;
-              _this2.waiting = false;
-
-              _this2.flv.emit('ended', _this2.currentTime);
-
-              if (options.loop && !options.live) {
-                _this2.currentTime = 0;
-                _this2.endedTimer = setTimeout(function () {
-                  _this2.play();
-
-                  _this2.flv.emit('loop');
-                }, 1000);
-                return;
-              }
-
-              _this2.pause();
             }
 
-            loop();
-          });
-        };
+            _this2.pause();
+          }
 
-        loop();
+          _this2.animationFrame();
+        });
       }
     }, {
       key: "pause",
       value: function pause() {
-        window.cancelAnimationFrame(this.loopTimer);
+        window.cancelAnimationFrame(this.animationFrameTimer);
         window.clearTimeout(this.waitingTimer);
         window.clearTimeout(this.endedTimer);
-        this.loopTimer = null;
+        this.animationFrameTimer = null;
         this.waitingTimer = null;
         this.endedTimer = null;
         this.video.stop();
@@ -2062,10 +2047,10 @@
       key: "seeked",
       value: function seeked(time) {
         var player = this.flv.player;
-        window.cancelAnimationFrame(this.loopTimer);
+        window.cancelAnimationFrame(this.animationFrameTimer);
         window.clearTimeout(this.waitingTimer);
         window.clearTimeout(this.endedTimer);
-        this.loopTimer = null;
+        this.animationFrameTimer = null;
         this.waitingTimer = null;
         this.endedTimer = null;
         this.currentTime = time;
@@ -2136,6 +2121,8 @@
       flv.emit('demuxDone');
       debug.log('demux-done');
     });
+    var sps = new Uint8Array();
+    var pps = new Uint8Array();
 
     this.demuxWorker.onmessage = function (event) {
       var message = event.data;
@@ -2166,10 +2153,36 @@
           break;
 
         case 'videoData':
-          _this.videoDataLength += 1;
-          _this.videoDataSize += message.data.byteLength;
-          flv.emit('videoData', message.data, message.timestamp);
-          break;
+          {
+            _this.videoDataLength += 1;
+            _this.videoDataSize += message.data.byteLength;
+            var readNalu = readBuffer(message.data);
+            readNalu(4);
+            var nalHeader = readNalu(1)[0];
+            var naluType = nalHeader & 31;
+
+            switch (naluType) {
+              case 1:
+              case 5:
+                {
+                  flv.emit('videoData', mergeBuffer(sps, pps, message.data), message.timestamp);
+                  break;
+                }
+
+              case 7:
+                sps = message.data;
+                break;
+
+              case 8:
+                pps = message.data;
+                break;
+
+              default:
+                break;
+            }
+
+            break;
+          }
 
         case 'audioData':
           _this.audioDataLength += 1;

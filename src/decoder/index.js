@@ -13,7 +13,7 @@ export default class Decoder {
         this.ended = false;
         this.playing = false;
         this.waiting = false;
-        this.loopTimer = null;
+        this.animationFrameTimer = null;
         this.waitingTimer = null;
         this.endedTimer = null;
         this.currentTime = 0;
@@ -41,64 +41,72 @@ export default class Decoder {
             }
         });
 
+        let isPlaying = false;
         flv.events.proxy(document, 'visibilitychange', () => {
-            if (document.hidden && this.playing) {
+            if (document.hidden) {
+                isPlaying = this.playing;
                 this.pause();
+            }
+            
+            if (!document.hidden && isPlaying) {
+                isPlaying = this.playing;
+                this.play();
             }
         });
     }
 
     play() {
-        const { options, player } = this.flv;
         this.lastUpdateTime = getNowTime();
         this.video.play(this.currentTime);
         this.audio.play(this.currentTime);
+        this.animationFrame();
         this.flv.emit('play');
-        const loop = () => {
-            this.loopTimer = window.requestAnimationFrame(() => {
-                if (this.video.playing && this.audio.playing) {
-                    this.ended = false;
-                    this.playing = true;
-                    this.waiting = false;
-                    const updateTime = getNowTime();
-                    this.currentTime += (updateTime - this.lastUpdateTime) / 1000;
-                    this.lastUpdateTime = updateTime;
-                    this.flv.emit('timeupdate', this.currentTime);
-                } else if (player.streaming || this.video.decoding || this.audio.decoding) {
-                    this.ended = false;
-                    this.playing = false;
-                    this.waiting = true;
-                    this.flv.emit('waiting', this.currentTime);
-                    this.waitingTimer = setTimeout(() => {
+    }
+
+    animationFrame() {
+        const { options, player } = this.flv;
+        this.animationFrameTimer = window.requestAnimationFrame(() => {
+            if (this.video.playing && this.audio.playing) {
+                this.ended = false;
+                this.playing = true;
+                this.waiting = false;
+                const updateTime = getNowTime();
+                this.currentTime += (updateTime - this.lastUpdateTime) / 1000;
+                this.lastUpdateTime = updateTime;
+                this.flv.emit('timeupdate', this.currentTime);
+            } else if (player.streaming || this.video.decoding || this.audio.decoding) {
+                this.ended = false;
+                this.playing = false;
+                this.waiting = true;
+                this.flv.emit('waiting', this.currentTime);
+                this.waitingTimer = setTimeout(() => {
+                    this.play();
+                }, 1000);
+                return;
+            } else {
+                this.ended = true;
+                this.playing = false;
+                this.waiting = false;
+                this.flv.emit('ended', this.currentTime);
+                if (options.loop && !options.live) {
+                    this.currentTime = 0;
+                    this.endedTimer = setTimeout(() => {
                         this.play();
+                        this.flv.emit('loop');
                     }, 1000);
                     return;
-                } else {
-                    this.ended = true;
-                    this.playing = false;
-                    this.waiting = false;
-                    this.flv.emit('ended', this.currentTime);
-                    if (options.loop && !options.live) {
-                        this.currentTime = 0;
-                        this.endedTimer = setTimeout(() => {
-                            this.play();
-                            this.flv.emit('loop');
-                        }, 1000);
-                        return;
-                    }
-                    this.pause();
                 }
-                loop();
-            });
-        };
-        loop();
+                this.pause();
+            }
+            this.animationFrame();
+        });
     }
 
     pause() {
-        window.cancelAnimationFrame(this.loopTimer);
+        window.cancelAnimationFrame(this.animationFrameTimer);
         window.clearTimeout(this.waitingTimer);
         window.clearTimeout(this.endedTimer);
-        this.loopTimer = null;
+        this.animationFrameTimer = null;
         this.waitingTimer = null;
         this.endedTimer = null;
         this.video.stop();
@@ -111,10 +119,10 @@ export default class Decoder {
 
     seeked(time) {
         const { player } = this.flv;
-        window.cancelAnimationFrame(this.loopTimer);
+        window.cancelAnimationFrame(this.animationFrameTimer);
         window.clearTimeout(this.waitingTimer);
         window.clearTimeout(this.endedTimer);
-        this.loopTimer = null;
+        this.animationFrameTimer = null;
         this.waitingTimer = null;
         this.endedTimer = null;
         this.currentTime = time;

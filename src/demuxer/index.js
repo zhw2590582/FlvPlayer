@@ -1,4 +1,4 @@
-import { getNowTime, createWorker } from '../utils';
+import { getNowTime, createWorker, readBuffer, mergeBuffer } from '../utils';
 import workerString from './demuxer.worker';
 
 export default class Demuxer {
@@ -53,6 +53,8 @@ export default class Demuxer {
             debug.log('demux-done');
         });
 
+        let sps = new Uint8Array();
+        let pps = new Uint8Array();
         this.demuxWorker.onmessage = event => {
             const message = event.data;
             switch (message.type) {
@@ -76,11 +78,30 @@ export default class Demuxer {
                     flv.emit('AudioSpecificConfig', this.AudioSpecificConfig);
                     debug.log('AudioSpecificConfig', this.AudioSpecificConfig);
                     break;
-                case 'videoData':
+                case 'videoData': {
                     this.videoDataLength += 1;
                     this.videoDataSize += message.data.byteLength;
-                    flv.emit('videoData', message.data, message.timestamp);
+                    const readNalu = readBuffer(message.data);
+                    readNalu(4);
+                    const nalHeader = readNalu(1)[0];
+                    const naluType = nalHeader & 31;
+                    switch (naluType) {
+                        case 1:
+                        case 5: {
+                            flv.emit('videoData', mergeBuffer(sps, pps, message.data), message.timestamp);
+                            break;
+                        }
+                        case 7:
+                            sps = message.data;
+                            break;
+                        case 8:
+                            pps = message.data;
+                            break;
+                        default:
+                            break;
+                    }
                     break;
+                }
                 case 'audioData':
                     this.audioDataLength += 1;
                     this.audioDataSize += message.data.byteLength;

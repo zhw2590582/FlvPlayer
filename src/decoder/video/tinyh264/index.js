@@ -1,6 +1,6 @@
 import { mergeBuffer, readBuffer, createWorker } from '../../../utils';
-import H264bsdCanvas from './h264bsd_canvas';
-import workerString from './TinyH264.worker';
+import Renderer from './renderer';
+import workerString from './decoder.worker';
 
 export default class VideoDecoder {
     constructor(flv) {
@@ -17,7 +17,7 @@ export default class VideoDecoder {
         this.loaded = 0;
         this.freeNumber = player.frameRate * 60;
         this.decoderWorker = createWorker(workerString);
-        this.renderer = new H264bsdCanvas(player.$canvas);
+        this.renderer = new Renderer(player.$canvas);
 
         flv.on('destroy', () => {
             this.videoframes = [];
@@ -99,7 +99,7 @@ export default class VideoDecoder {
     draw(index) {
         const videoframe = this.videoframes[index];
         if (!videoframe) return false;
-        this.renderer.drawNextOutputPicture(videoframe.width, videoframe.height, null, new Uint8Array(videoframe.data));
+        this.renderer.drawFrame(videoframe);
         return true;
     }
 
@@ -110,7 +110,7 @@ export default class VideoDecoder {
             this.playIndex = 0;
             this.videoframes.splice(0, startIndex);
             this.timestamps.splice(0, startIndex);
-            this.flv.decoder.currentTime = this.timestamps[0] || 0;
+            this.flv.decoder.currentTime = this.timestamps[0] / 1000 || 0;
         } else {
             this.playIndex = Math.round(startTime * this.flv.player.frameRate);
         }

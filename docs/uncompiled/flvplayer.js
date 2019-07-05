@@ -1698,13 +1698,17 @@
    */
 
 
-  H264bsdCanvas.prototype.drawNextOutputPicture = function (width, height, croppingParams, data) {
+  H264bsdCanvas.prototype.drawFrame = function (frame) {
     var gl = this.contextGL;
+    var width = frame.width,
+        height = frame.height,
+        data = frame.data;
+    var croppingParams = null;
 
     if (gl) {
-      this.drawNextOuptutPictureGL(width, height, croppingParams, data);
+      this.drawNextOuptutPictureGL(width, height, croppingParams, new Uint8Array(data));
     } else {
-      this.drawNextOuptutPictureRGBA(width, height, croppingParams, data);
+      this.drawNextOuptutPictureRGBA(width, height, croppingParams, new Uint8Array(data));
     }
   };
   /**
@@ -1899,7 +1903,7 @@
       value: function draw(index) {
         var videoframe = this.videoframes[index];
         if (!videoframe) return false;
-        this.renderer.drawNextOutputPicture(videoframe.width, videoframe.height, null, new Uint8Array(videoframe.data));
+        this.renderer.drawFrame(videoframe);
         return true;
       }
     }, {
@@ -1913,7 +1917,7 @@
           this.playIndex = 0;
           this.videoframes.splice(0, startIndex);
           this.timestamps.splice(0, startIndex);
-          this.flv.decoder.currentTime = this.timestamps[0] || 0;
+          this.flv.decoder.currentTime = this.timestamps[0] / 1000 || 0;
         } else {
           this.playIndex = Math.round(startTime * this.flv.player.frameRate);
         }

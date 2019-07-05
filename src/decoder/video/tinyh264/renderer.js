@@ -210,13 +210,14 @@ H264bsdCanvas.prototype.initTexture = function() {
  * If this object is using WebGL, the data must be an I420 formatted ArrayBuffer,
  * Otherwise, data must be an RGBA formatted ArrayBuffer.
  */
-H264bsdCanvas.prototype.drawNextOutputPicture = function(width, height, croppingParams, data) {
+H264bsdCanvas.prototype.drawFrame = function(frame) {
     var gl = this.contextGL;
-
+    var { width, height, data } = frame;
+    var croppingParams = null;
     if(gl) {
-        this.drawNextOuptutPictureGL(width, height, croppingParams, data);
+        this.drawNextOuptutPictureGL(width, height, croppingParams, new Uint8Array(data));
     } else {
-        this.drawNextOuptutPictureRGBA(width, height, croppingParams, data);
+        this.drawNextOuptutPictureRGBA(width, height, croppingParams, new Uint8Array(data));
     }
 }
 

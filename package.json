@@ -55,6 +55,8 @@
         "servor": "^2.2.1"
     },
     "dependencies": {
-        "screenfull": "^4.2.0"
+        "screenfull": "^4.2.0",
+        "yuv-buffer": "^1.0.0",
+        "yuv-canvas": "^1.2.6"
     }
 }

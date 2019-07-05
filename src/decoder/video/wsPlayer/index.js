@@ -1,6 +1,6 @@
 import { mergeBuffer, readBuffer, createWorker } from '../../../utils';
-import SuperRender from './SuperRender_20';
-import workerString from './wsPlayer.worker';
+import Renderer from './renderer';
+import workerString from './decoder.worker';
 
 export default class VideoDecoder {
     constructor(flv) {
@@ -17,13 +17,12 @@ export default class VideoDecoder {
         this.loaded = 0;
         this.freeNumber = player.frameRate * 60;
         this.decoderWorker = createWorker(workerString);
-        this.renderer = new SuperRender(player.$canvas);
+        this.renderer = new Renderer(player.$canvas);
 
         flv.on('destroy', () => {
             this.videoframes = [];
             this.timestamps = [];
             this.decoderWorker.terminate();
-            this.renderer.SR_Destroy();
             this.stop();
         });
 
@@ -100,13 +99,7 @@ export default class VideoDecoder {
     draw(index) {
         const videoframe = this.videoframes[index];
         if (!videoframe) return false;
-        this.renderer.SR_DisplayFrameData(
-            videoframe.width,
-            videoframe.height,
-            new Uint8Array(videoframe.YData),
-            new Uint8Array(videoframe.UData),
-            new Uint8Array(videoframe.VData),
-        );
+        this.renderer.drawFrame(videoframe);
         return true;
     }
 

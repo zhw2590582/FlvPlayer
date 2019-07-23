@@ -32,6 +32,8 @@
             <div class="flvplayer-app"></div>
         </div>
         <script src="https://cdn.bootcss.com/vConsole/3.2.0/vconsole.min.js"></script>
+        <script src="./uncompiled/baselineProfileDecoder.js"></script>
+        <!-- <script src="./uncompiled/allProfileDecoder.js"></script> -->
         <script src="./uncompiled/flvplayer.js"></script>
         <script>
             var vConsole = new VConsole();
@@ -39,6 +41,8 @@
             var flv = new FlvPlayer({
                 url: url + '/video/weathering-with-you-H264(Baseline@L52)-AAC.flv',
                 poster: url + '/image/weathering-with-you-poster.jpg',
+                videoDecoder: './uncompiled/baselineProfileDecoder.js',
+                // videoDecoder: './uncompiled/allProfileDecoder.js',
                 container: '.flvplayer-app',
                 debug: true,
                 live: false,

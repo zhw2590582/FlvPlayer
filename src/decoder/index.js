@@ -1,12 +1,6 @@
 import { getNowTime } from '../utils';
 import AudioDecoder from './audio';
 
-// 支持多种 Baseline Profil / Main Profile / High Profile, 但体积有 2M
-// import VideoDecoder from './video/wsPlayer';
-
-// 只支持 Baseline Profile, 但体积只有 200k
-import VideoDecoder from './video/tinyh264';
-
 export default class Decoder {
     constructor(flv) {
         this.flv = flv;
@@ -19,7 +13,7 @@ export default class Decoder {
         this.currentTime = 0;
         this.lastUpdateTime = 0;
 
-        this.video = new VideoDecoder(flv, this);
+        this.video = new window.VideoDecoder(flv, this);
         if (flv.options.hasAudio) {
             this.audio = new AudioDecoder(flv, this);
         } else {
@@ -47,7 +41,7 @@ export default class Decoder {
                 isPlaying = this.playing;
                 this.pause();
             }
-            
+
             if (!document.hidden && isPlaying) {
                 isPlaying = this.playing;
                 this.play();

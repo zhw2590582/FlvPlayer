@@ -22,9 +22,28 @@ class FlvPlayer extends Emitter {
         this.debug = new Debug(this);
         this.events = new Events(this);
         this.player = new Player(this);
-        this.decoder = new Decoder(this);
-        this.demuxer = new Demuxer(this);
-        this.stream = new Stream(this);
+
+        if (window.VideoDecoder) {
+            this.decoder = new Decoder(this);
+            this.demuxer = new Demuxer(this);
+            this.stream = new Stream(this);
+        } else {
+            const videoDecoderScript = document.createElement('script');
+            videoDecoderScript.src = this.options.videoDecoder;
+            document.body.appendChild(videoDecoderScript);
+            this.events.proxy(videoDecoderScript, 'load', () => {
+                this.decoder = new Decoder(this);
+                this.demuxer = new Demuxer(this);
+                this.stream = new Stream(this);
+            });
+            this.events.proxy(videoDecoderScript, 'error', () => {
+                const path = new URL(this.options.videoDecoder, window.location.href).href;
+                this.debug.error(
+                    false,
+                    `It seems that the path of the video decoder(options.videoDecoder) introduces an error: ${path}`,
+                );
+            });
+        }
 
         id += 1;
         this.id = id;
@@ -51,6 +70,7 @@ class FlvPlayer extends Emitter {
             height: 300,
             socketSend: '',
             headers: {},
+            videoDecoder: './baselineProfileDecoder.js',
         };
     }
 

@@ -50,6 +50,8 @@
                         var flv = new FlvPlayer({
                             url: file,
                             container: '.flvplayer-app',
+                            videoDecoder: './uncompiled/baselineProfileDecoder.js',
+                            // videoDecoder: './uncompiled/allProfileDecoder.js',
                             debug: true,
                             live: false,
                             loop: true,

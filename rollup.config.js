@@ -11,19 +11,9 @@ const { uglify } = require('rollup-plugin-uglify');
 const { version, homepage } = require('./package.json');
 
 const isProd = process.env.NODE_ENV === 'production';
-const banner =
-    '/*!\n' +
-    ` * FlvPlayer.js v${version}\n` +
-    ` * Github: ${homepage}\n` +
-    ` * (c) 2017-${new Date().getFullYear()} Harvey Zack\n` +
-    ' * Released under the MIT License.\n' +
-    ' */\n';
 
-module.exports = {
-    input: 'src/index.js',
+const baseConfig = {
     output: {
-        name: 'FlvPlayer',
-        file: isProd ? 'dist/flvplayer.js' : 'docs/uncompiled/flvplayer.js',
         format: 'umd',
         sourcemap: !isProd,
     },
@@ -31,20 +21,13 @@ module.exports = {
         eslint({
             exclude: ['node_modules/**', 'src/decoder/video', 'src/player/style.scss', 'src/player/icons/*.svg'],
         }),
-        postcss({
-            plugins: [
-                autoprefixer({
-                    browsers: ['last 2 versions'],
-                }),
-                cssnano({
-                    preset: 'default',
-                }),
-            ],
-            sourceMap: !isProd,
-            extract: isProd ? 'dist/flvplayer.css' : 'docs/uncompiled/flvplayer.css',
-        }),
         string({
-            include: ['src/decoder/video/**/*.worker', 'src/decoder/audio/*.worker', 'src/demuxer/*.worker', 'src/player/icons/*.svg'],
+            include: [
+                'src/decoder/video/**/*.worker',
+                'src/decoder/audio/*.worker',
+                'src/demuxer/*.worker',
+                'src/player/icons/*.svg',
+            ],
         }),
         nodeResolve(),
         commonjs(),
@@ -69,8 +52,63 @@ module.exports = {
         isProd &&
             uglify({
                 output: {
-                    preamble: banner,
+                    preamble:
+                        '/*!\n' +
+                        ` * FlvPlayer.js v${version}\n` +
+                        ` * Github: ${homepage}\n` +
+                        ` * (c) 2017-${new Date().getFullYear()} Harvey Zack\n` +
+                        ' * Released under the MIT License.\n' +
+                        ' */\n',
                 },
             }),
     ],
 };
+
+module.exports = [
+    {
+        input: 'src/index.js',
+        output: {
+            name: 'FlvPlayer',
+            file: isProd ? 'dist/flvplayer.js' : 'docs/uncompiled/flvplayer.js',
+        },
+        plugins: [
+            postcss({
+                plugins: [
+                    autoprefixer({
+                        browsers: ['last 2 versions'],
+                    }),
+                    cssnano({
+                        preset: 'default',
+                    }),
+                ],
+                sourceMap: !isProd,
+                extract: isProd ? 'dist/flvplayer.css' : 'docs/uncompiled/flvplayer.css',
+            }),
+        ],
+    },
+    {
+        input: 'src/decoder/video/AllProfileDecoder/index.js',
+        output: {
+            name: 'VideoDecoder',
+            file: isProd ? 'dist/allProfileDecoder.js' : 'docs/uncompiled/allProfileDecoder.js',
+        },
+        plugins: [],
+    },
+    {
+        input: 'src/decoder/video/BaselineProfileDecoder/index.js',
+        output: {
+            name: 'VideoDecoder',
+            file: isProd ? 'dist/baselineProfileDecoder.js' : 'docs/uncompiled/baselineProfileDecoder.js',
+        },
+        plugins: [],
+    },
+].map(config => {
+    return {
+        input: config.input,
+        output: {
+            ...baseConfig.output,
+            ...config.output,
+        },
+        plugins: [...baseConfig.plugins, ...config.plugins],
+    };
+});

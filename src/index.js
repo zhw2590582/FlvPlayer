@@ -38,10 +38,7 @@ class FlvPlayer extends Emitter {
             });
             this.events.proxy(videoDecoderScript, 'error', () => {
                 const path = new URL(this.options.videoDecoder, window.location.href).href;
-                this.debug.error(
-                    false,
-                    `It seems that the path of the video decoder(options.videoDecoder) introduces an error: ${path}`,
-                );
+                this.debug.error(false, `Video decoder not found: ${path}`);
             });
         }
 

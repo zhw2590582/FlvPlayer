@@ -21,9 +21,9 @@ class FlvPlayer extends Emitter {
 
         this.debug = new Debug(this);
         this.events = new Events(this);
-        this.player = new Player(this);
 
         if (window.VideoDecoder) {
+            this.player = new Player(this);
             this.decoder = new Decoder(this);
             this.demuxer = new Demuxer(this);
             this.stream = new Stream(this);
@@ -32,6 +32,7 @@ class FlvPlayer extends Emitter {
             videoDecoderScript.src = this.options.videoDecoder;
             document.body.appendChild(videoDecoderScript);
             this.events.proxy(videoDecoderScript, 'load', () => {
+                this.player = new Player(this);
                 this.decoder = new Decoder(this);
                 this.demuxer = new Demuxer(this);
                 this.stream = new Stream(this);

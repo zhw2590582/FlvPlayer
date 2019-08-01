@@ -2016,9 +2016,9 @@
 
       _this.debug = new Debug(assertThisInitialized(_this));
       _this.events = new Events(assertThisInitialized(_this));
-      _this.player = new Player(assertThisInitialized(_this));
 
       if (window.VideoDecoder) {
+        _this.player = new Player(assertThisInitialized(_this));
         _this.decoder = new Decoder(assertThisInitialized(_this));
         _this.demuxer = new Demuxer(assertThisInitialized(_this));
         _this.stream = new Stream(assertThisInitialized(_this));
@@ -2028,6 +2028,7 @@
         document.body.appendChild(videoDecoderScript);
 
         _this.events.proxy(videoDecoderScript, 'load', function () {
+          _this.player = new Player(assertThisInitialized(_this));
           _this.decoder = new Decoder(assertThisInitialized(_this));
           _this.demuxer = new Demuxer(assertThisInitialized(_this));
           _this.stream = new Stream(assertThisInitialized(_this));
@@ -2036,7 +2037,7 @@
         _this.events.proxy(videoDecoderScript, 'error', function () {
           var path = new URL(_this.options.videoDecoder, window.location.href).href;
 
-          _this.debug.error(false, "It seems that the path of the video decoder(options.videoDecoder) introduces an error: ".concat(path));
+          _this.debug.error(false, "Video decoder not found: ".concat(path));
         });
       }
 
@@ -2083,7 +2084,7 @@
     }, {
       key: "version",
       get: function get() {
-        return '1.0.4';
+        return '1.0.6';
       }
     }, {
       key: "env",

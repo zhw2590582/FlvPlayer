@@ -53,6 +53,7 @@ Will expose the global variable to `window.FlvPlayer`.
 var flv = new FlvPlayer({
     container: '.flvplayer-app', // A div dom element
     url: 'path/to/video.flv', // Url of flv video file
+    videoDecoder: './baselineProfileDecoder.js', // Path to video decoder, baselineProfileDecoder.js or allProfileDecoder.js
     poster: 'path/to/poster.png', // Url of video poster, the first frame of the video is taken as the poster by default
     debug: false, // Show debug information on developer tools
     live: false, // Whether live video

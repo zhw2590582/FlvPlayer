@@ -5,6 +5,7 @@ import Player from './player';
 import Decoder from './decoder';
 import Demuxer from './demuxer';
 import Stream from './stream';
+import { loadScript } from './utils';
 
 let id = 0;
 class FlvPlayer extends Emitter {
@@ -18,30 +19,20 @@ class FlvPlayer extends Emitter {
         if (typeof this.options.container === 'string') {
             this.options.container = document.querySelector(this.options.container);
         }
+    }
 
+    async init() {
+        await loadScript(this.options.decoder, 'videoDecoder');
         this.debug = new Debug(this);
         this.events = new Events(this);
-
-        if (window.VideoDecoder) {
-            this.player = new Player(this);
-            this.decoder = new Decoder(this);
-            this.demuxer = new Demuxer(this);
-            this.stream = new Stream(this);
-        } else {
-            const videoDecoderScript = document.createElement('script');
-            videoDecoderScript.src = this.options.videoDecoder;
-            document.body.appendChild(videoDecoderScript);
-            this.events.proxy(videoDecoderScript, 'load', () => {
-                this.player = new Player(this);
-                this.decoder = new Decoder(this);
-                this.demuxer = new Demuxer(this);
-                this.stream = new Stream(this);
-            });
-            this.events.proxy(videoDecoderScript, 'error', () => {
-                const path = new URL(this.options.videoDecoder, window.location.href).href;
-                this.debug.error(false, `Video decoder not found: ${path}`);
-            });
+        this.player = new Player(this);
+        if (this.options.control) {
+            const Control = await loadScript(this.options.control, 'videoControl');
+            this.control = new Control(this);
         }
+        this.Decoder = new Decoder(this);
+        this.demuxer = new Demuxer(this);
+        this.stream = new Stream(this);
 
         id += 1;
         this.id = id;
@@ -59,8 +50,6 @@ class FlvPlayer extends Emitter {
             debug: false,
             live: false,
             loop: false,
-            hotkey: true,
-            controls: true,
             hasAudio: true,
             volume: 7,
             frameRate: 30,
@@ -68,7 +57,8 @@ class FlvPlayer extends Emitter {
             height: 300,
             socketSend: '',
             headers: {},
-            videoDecoder: './baselineProfileDecoder.js',
+            decoder: './decoder-baseline-profile.js',
+            control: './control-default.js',
         };
     }
 

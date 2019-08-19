@@ -87,18 +87,26 @@ module.exports = [
         ],
     },
     {
-        input: 'src/decoder/video/AllProfileDecoder/index.js',
+        input: 'src/decoder/video/DecoderMultipleProfile/index.js',
         output: {
-            name: 'VideoDecoder',
-            file: isProd ? 'dist/allProfileDecoder.js' : 'docs/uncompiled/allProfileDecoder.js',
+            name: 'decoder',
+            file: isProd ? 'dist/decoder-multiple-profile.js' : 'docs/uncompiled/decoder-multiple-profile.js',
         },
         plugins: [],
     },
     {
-        input: 'src/decoder/video/BaselineProfileDecoder/index.js',
+        input: 'src/decoder/video/DecoderBaselineProfile/index.js',
         output: {
-            name: 'VideoDecoder',
-            file: isProd ? 'dist/baselineProfileDecoder.js' : 'docs/uncompiled/baselineProfileDecoder.js',
+            name: 'decoder',
+            file: isProd ? 'dist/decoder-baseline-profile.js' : 'docs/uncompiled/decoder-baseline-profile.js',
+        },
+        plugins: [],
+    },
+    {
+        input: 'src/control/index.js',
+        output: {
+            name: 'control',
+            file: isProd ? 'dist/control-default.js' : 'docs/uncompiled/control-default.js',
         },
         plugins: [],
     },

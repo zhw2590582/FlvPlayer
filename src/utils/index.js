@@ -117,3 +117,19 @@ export function getStyle(element, key, numberType = true) {
     const value = window.getComputedStyle(element, null).getPropertyValue(key);
     return numberType ? parseFloat(value) : value;
 }
+
+export function loadScript(url, name) {
+    return new Promise((resolve, reject) => {
+        const $script = document.createElement('script');
+        $script.onload = () => {
+            if (window[name]) {
+                resolve(window[name]);
+            } else {
+                reject(new Error(`Unable to find global variable '${name}' from '${url}'`));
+            }
+        };
+        $script.onerror = reject;
+        $script.src = url;
+        document.body.appendChild($script);
+    });
+}

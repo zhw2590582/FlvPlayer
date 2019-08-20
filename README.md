@@ -45,14 +45,14 @@ Will expose the global variable to `window.FlvPlayer`.
 
 ```js
 import 'flvplayer/dist/flvplayer-control.css';
-import 'path/to/flvplayer-control.js';
+import 'flvplayer/dist/flvplayer-control.js';
 ```
 
 Or umd builds are also available
 
 ```html
-<link rel="stylesheet" href="path/to/flvplayer-control.css" />
-<script src="path/to/flvplayer-control.js"></script>
+<link rel="stylesheet" href="flvplayer/dist/flvplayer-control.css" />
+<script src="flvplayer/dist/flvplayer-control.js"></script>
 ```
 
 Will expose the global variable to `window.FlvplayerControl`.

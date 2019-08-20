@@ -11,9 +11,9 @@
 > FlvPlayer.js is a JavaScript player for decode flv to the canvas
 
 ## Demo
-[Play online demo](https://zhw2590582.github.io/FlvPlayer/)
+[Play online demo](https://flvplayer.js.org/)
 
-[Play local demo](https://zhw2590582.github.io/FlvPlayer/fileReader.html)
+[Play local demo](https://flvplayer.js.org/fileReader.html)
 
 ## Install
 

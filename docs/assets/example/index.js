@@ -9,7 +9,7 @@ var flv = new FlvPlayer({
     live: false,
     loop: true,
     hotkey: true,
-    autoPlay: true,
+    autoPlay: false,
     hasAudio: true,
     volume: 7,
     width: 640,

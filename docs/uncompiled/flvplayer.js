@@ -1382,6 +1382,9 @@
     createClass(FlvPlayer, [{
       key: "init",
       value: function init() {
+        this.isDestroy = false;
+        this.userAgent = window.navigator.userAgent;
+        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(this.userAgent);
         this.debug = new Debug(this);
         this.events = new Events(this);
         this.player = new Player(this);
@@ -1395,9 +1398,6 @@
 
         id += 1;
         this.id = id;
-        this.isDestroy = false;
-        this.userAgent = window.navigator.userAgent;
-        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(this.userAgent);
         FlvPlayer.instances.push(this);
       }
     }, {

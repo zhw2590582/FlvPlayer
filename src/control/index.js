@@ -6,10 +6,11 @@ import events from './events';
 
 export default class Control {
     constructor(flv) {
-        this.flv = flv;
         template(flv, this);
         events(flv, this);
         property(flv, this);
-        hotkey(flv, this);
+        if (!flv.isMobile) {
+            hotkey(flv, this);
+        }
     }
 }

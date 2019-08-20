@@ -185,7 +185,7 @@ export default function controls(flv, control) {
         return { second, time, width, percentage };
     }
 
-    if (!flv.options.live) {
+    if (!flv.options.live && !flv.isMobile) {
         proxy(control.$progress, 'click', event => {
             if (event.target !== control.$indicator) {
                 const { second, percentage } = getPosFromEvent(event);
@@ -214,33 +214,6 @@ export default function controls(flv, control) {
         proxy(document, 'mouseup', () => {
             if (isIndicatorDroging) {
                 isIndicatorDroging = false;
-            }
-        });
-
-        let isCanvasDroging = false;
-        let touchstartX = 0;
-        let touchSecond = 0;
-        proxy(player.$canvas, 'touchstart', event => {
-            isCanvasDroging = true;
-            touchstartX = event.targetTouches[0].clientX;
-        });
-
-        proxy(player.$canvas, 'touchmove', event => {
-            if (isCanvasDroging) {
-                const { $progress } = control;
-                const moveWidth = event.targetTouches[0].clientX - touchstartX;
-                touchSecond = (moveWidth / $progress.clientWidth) * player.duration;
-            }
-        });
-
-        proxy(player.$canvas, 'touchend', () => {
-            if (isCanvasDroging) {
-                isCanvasDroging = false;
-                if (touchSecond <= player.loaded) {
-                    player.currentTime += touchSecond;
-                }
-                touchstartX = 0;
-                touchSecond = 0;
             }
         });
     }

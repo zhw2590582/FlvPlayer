@@ -30,20 +30,23 @@ class FlvPlayer extends Emitter {
     }
 
     init() {
+        this.isDestroy = false;
+        this.userAgent = window.navigator.userAgent;
+        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(this.userAgent);
+
         this.debug = new Debug(this);
         this.events = new Events(this);
         this.player = new Player(this);
         this.decoder = new Decoder(this);
         this.demuxer = new Demuxer(this);
         this.stream = new Stream(this);
+
         if (window.FlvplayerControl) {
             this.control = new window.FlvplayerControl(this);
         }
+
         id += 1;
         this.id = id;
-        this.isDestroy = false;
-        this.userAgent = window.navigator.userAgent;
-        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(this.userAgent);
         FlvPlayer.instances.push(this);
     }
 

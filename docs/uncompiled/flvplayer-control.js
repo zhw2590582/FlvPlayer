@@ -693,7 +693,7 @@
       };
     }
 
-    if (!flv.options.live) {
+    if (!flv.options.live && !flv.isMobile) {
       proxy(control.$progress, 'click', function (event) {
         if (event.target !== control.$indicator) {
           var _getPosFromEvent = getPosFromEvent(event),
@@ -727,43 +727,19 @@
           isIndicatorDroging = false;
         }
       });
-      var isCanvasDroging = false;
-      var touchstartX = 0;
-      var touchSecond = 0;
-      proxy(player.$canvas, 'touchstart', function (event) {
-        isCanvasDroging = true;
-        touchstartX = event.targetTouches[0].clientX;
-      });
-      proxy(player.$canvas, 'touchmove', function (event) {
-        if (isCanvasDroging) {
-          var $progress = control.$progress;
-          var moveWidth = event.targetTouches[0].clientX - touchstartX;
-          touchSecond = moveWidth / $progress.clientWidth * player.duration;
-        }
-      });
-      proxy(player.$canvas, 'touchend', function () {
-        if (isCanvasDroging) {
-          isCanvasDroging = false;
-
-          if (touchSecond <= player.loaded) {
-            player.currentTime += touchSecond;
-          }
-
-          touchstartX = 0;
-          touchSecond = 0;
-        }
-      });
     }
   }
 
   var Control = function Control(flv) {
     classCallCheck(this, Control);
 
-    this.flv = flv;
     template(flv, this);
     controls(flv, this);
     property(flv, this);
-    hotkey(flv, this);
+
+    if (!flv.isMobile) {
+      hotkey(flv, this);
+    }
   };
 
   return Control;

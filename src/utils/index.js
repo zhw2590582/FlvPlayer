@@ -121,7 +121,9 @@ export function loadScript(url, name) {
                 reject(new Error(`Unable to find global variable '${name}' from '${url}'`));
             }
         };
-        $script.onerror = reject;
+        $script.onerror = () => {
+            reject(new Error(`Resource loading failed '${url}'`));
+        };
         $script.src = url;
         document.head.appendChild($script);
     });

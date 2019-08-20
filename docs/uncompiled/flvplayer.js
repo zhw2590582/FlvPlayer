@@ -456,7 +456,10 @@
         }
       };
 
-      $script.onerror = reject;
+      $script.onerror = function () {
+        reject(new Error("Resource loading failed '".concat(url, "'")));
+      };
+
       $script.src = url;
       document.head.appendChild($script);
     });

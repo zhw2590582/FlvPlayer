@@ -1,15 +1,9 @@
-.flv-player-container {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    box-sizing: border-box;
-
+.flvplayer-container {
     * {
         box-sizing: border-box;
     }
 
-    .flv-player-icon {
+    .flvplayer-icon {
         display: inline-flex;
         justify-content: center;
         align-items: center;
@@ -20,22 +14,8 @@
         }
     }
 
-    .flv-player-inner {
-        position: relative;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-        height: 100%;
-
-        .flv-player-canvas {
-            cursor: pointer;
-            width: 100%;
-            height: 100%;
-            background-color: #000;
-        }
-
-        .flv-player-poster {
+    .flvplayer-inner {
+        .flvplayer-poster {
             position: absolute;
             z-index: 10;
             left: 0;
@@ -50,7 +30,7 @@
             pointer-events: none;
         }
 
-        .flv-player-loading {
+        .flvplayer-loading {
             display: none;
             justify-content: center;
             align-items: center;
@@ -65,7 +45,7 @@
             pointer-events: none;
         }
 
-        .flv-player-controls {
+        .flvplayer-controls {
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
@@ -85,19 +65,19 @@
             background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAADGCAYAAAAT+OqFAAAAdklEQVQoz42QQQ7AIAgEF/T/D+kbq/RWAlnQyyazA4aoAB4FsBSA/bFjuF1EOL7VbrIrBuusmrt4ZZORfb6ehbWdnRHEIiITaEUKa5EJqUakRSaEYBJSCY2dEstQY7AuxahwXFrvZmWl2rh4JZ07z9dLtesfNj5q0FU3A5ObbwAAAABJRU5ErkJggg==)
                 repeat-x bottom;
 
-            .flv-player-controls-item {
+            .flvplayer-controls-item {
                 display: flex;
                 justify-content: center;
                 padding: 0 7px;
             }
 
-            .flv-player-controls-progress {
+            .flvplayer-controls-progress {
                 position: relative;
                 height: 3px;
                 border-radius: 3px;
                 background: rgba(255, 255, 255, 0.25);
 
-                .flv-player-loaded {
+                .flvplayer-loaded {
                     cursor: pointer;
                     position: absolute;
                     left: 0;
@@ -109,7 +89,7 @@
                     background: rgba(255, 255, 255, 0.5);
                 }
 
-                .flv-player-played {
+                .flvplayer-played {
                     cursor: pointer;
                     position: absolute;
                     left: 0;
@@ -120,7 +100,7 @@
                     border-radius: 3px;
                     background: rgba(255, 255, 255, 1);
 
-                    .flv-player-indicator {
+                    .flvplayer-indicator {
                         position: absolute;
                         top: 50%;
                         right: 0;
@@ -133,36 +113,36 @@
                 }
             }
 
-            .flv-player-controls-bottom {
+            .flvplayer-controls-bottom {
                 display: flex;
                 justify-content: space-between;
                 height: 22px;
                 margin-top: 15px;
 
-                .flv-player-controls-left {
+                .flvplayer-controls-left {
                     display: flex;
                     align-items: center;
-                    .flv-player-state {
+                    .flvplayer-state {
                         height: 100%;
-                        .flv-player-pause {
+                        .flvplayer-pause {
                             display: none;
                         }
                     }
-                    .flv-player-volume {
+                    .flvplayer-volume {
                         display: flex;
                         height: 100%;
 
-                        .flv-player-volume-off {
+                        .flvplayer-volume-off {
                             display: none;
                         }
 
-                        .flv-player-volume-panel {
+                        .flvplayer-volume-panel {
                             position: relative;
                             width: 0;
                             height: 100%;
                             transition: margin .2s cubic-bezier(0.4,0.0,1,1),width .2s cubic-bezier(0.4,0.0,1,1);
                             overflow: hidden;
-                            .flv-player-volume-panel-handle {
+                            .flvplayer-volume-panel-handle {
                                 position: absolute;
                                 top: 50%;
                                 left: 0;
@@ -194,41 +174,41 @@
                             }
                         }
 
-                        &:hover .flv-player-volume-panel {
+                        &:hover .flvplayer-volume-panel {
                             width: 60px;
                             margin-left: 5px;
                         }
                     }
                 }
 
-                .flv-player-controls-right {
+                .flvplayer-controls-right {
                     display: flex;
                     align-items: center;
                 }
             }
         }
 
-        &.flv-player-loading-show {
-            .flv-player-loading {
+        &.flvplayer-loading-show {
+            .flvplayer-loading {
                 display: flex;
             }
         }
 
-        &.flv-player-controls-show {
-            .flv-player-controls {
+        &.flvplayer-controls-show {
+            .flvplayer-controls {
                 opacity: 1;
                 visibility: visible;
             }
         }
 
-        &.flv-player-hide-cursor {
+        &.flvplayer-hide-cursor {
             * {
                 cursor: none !important;
             }
         }
     }
 
-    &.flv-player-fullscreen-web {
+    &.flvplayer-fullscreen-web {
         position: fixed;
         z-index: 9999;
         left: 0;
@@ -238,17 +218,5 @@
         width: 100% !important;
         height: 100% !important;
         background: #000;
-    }
-
-    & >>> object {
-        display: block;
-        position: absolute;
-        top: 0;
-        left: 0;
-        height: 100%;
-        width: 100%;
-        overflow: hidden;
-        pointer-events: none;
-        z-index: -1;
     }
 }

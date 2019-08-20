@@ -113,6 +113,7 @@ export function getStyle(element, key, numberType = true) {
 export function loadScript(url, name) {
     return new Promise((resolve, reject) => {
         const $script = document.createElement('script');
+        $script.type = 'text/javascript';
         $script.onload = () => {
             if (window[name]) {
                 resolve(window[name]);
@@ -122,7 +123,7 @@ export function loadScript(url, name) {
         };
         $script.onerror = reject;
         $script.src = url;
-        document.body.appendChild($script);
+        document.head.appendChild($script);
     });
 }
 

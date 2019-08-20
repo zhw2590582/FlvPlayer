@@ -74,26 +74,26 @@ module.exports = [
         plugins: [],
     },
     {
-        input: 'src/decoder/video/DecoderMultipleProfile/index.js',
+        input: 'src/decoder/video/multiple/index.js',
         output: {
-            name: 'VideoDecoder',
-            file: isProd ? 'dist/decoder-multiple-profile.js' : 'docs/uncompiled/decoder-multiple-profile.js',
+            name: 'FlvplayerDecoder',
+            file: isProd ? 'dist/flvplayer-decoder-multiple.js' : 'docs/uncompiled/flvplayer-decoder-multiple.js',
         },
         plugins: [],
     },
     {
-        input: 'src/decoder/video/DecoderBaselineProfile/index.js',
+        input: 'src/decoder/video/baseline/index.js',
         output: {
-            name: 'VideoDecoder',
-            file: isProd ? 'dist/decoder-baseline-profile.js' : 'docs/uncompiled/decoder-baseline-profile.js',
+            name: 'FlvplayerDecoder',
+            file: isProd ? 'dist/flvplayer-decoder-baseline.js' : 'docs/uncompiled/flvplayer-decoder-baseline.js',
         },
         plugins: [],
     },
     {
         input: 'src/control/index.js',
         output: {
-            name: 'VideoControl',
-            file: isProd ? 'dist/control-default.js' : 'docs/uncompiled/control-default.js',
+            name: 'FlvplayerControl',
+            file: isProd ? 'dist/flvplayer-control.js' : 'docs/uncompiled/flvplayer-control.js',
         },
         plugins: [
             postcss({
@@ -104,7 +104,7 @@ module.exports = [
                     }),
                 ],
                 sourceMap: !isProd,
-                extract: isProd ? 'dist/control-default.css' : 'docs/uncompiled/control-default.css',
+                extract: isProd ? 'dist/flvplayer-control.css' : 'docs/uncompiled/flvplayer-control.css',
             }),
         ],
     },

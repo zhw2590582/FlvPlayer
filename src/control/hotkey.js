@@ -1,5 +1,8 @@
-export default function hotkey(flv, player) {
-    const { proxy } = flv.events;
+export default function hotkey(flv, control) {
+    const {
+        events: { proxy },
+        player,
+    } = flv;
 
     const keys = {};
 
@@ -12,7 +15,7 @@ export default function hotkey(flv, player) {
     }
 
     addHotkey(27, () => {
-        if (player.fullscreen) {
+        if (control.fullscreen) {
             player.fullscreen = false;
         }
     });

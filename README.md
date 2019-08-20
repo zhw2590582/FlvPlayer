@@ -11,11 +11,12 @@
 > FlvPlayer.js is a JavaScript player for decode flv to the canvas
 
 ## Demo
+
 [Play online demo](https://zhw2590582.github.io/FlvPlayer/)
 
 [Play local demo](https://zhw2590582.github.io/FlvPlayer/fileReader.html)
 
-## Install
+## Install player
 
 Install with `npm`
 
@@ -31,17 +32,31 @@ $ yarn add flvplayer
 
 ```js
 import FlvPlayer from 'flvplayer';
-import 'flvplayer/dist/flvplayer.css';
 ```
 
 Or umd builds are also available
 
 ```html
-<link rel="stylesheet" href="path/to/flvplayer.css" />
 <script src="path/to/flvplayer.js"></script>
 ```
 
 Will expose the global variable to `window.FlvPlayer`.
+
+## Install control(optional)
+
+```js
+import 'flvplayer/dist/flvplayer-control.css';
+import 'path/to/flvplayer-control.js';
+```
+
+Or umd builds are also available
+
+```html
+<link rel="stylesheet" href="path/to/flvplayer-control.css" />
+<script src="path/to/flvplayer-control.js"></script>
+```
+
+Will expose the global variable to `window.FlvplayerControl`.
 
 ## Usage
 
@@ -53,13 +68,13 @@ Will expose the global variable to `window.FlvPlayer`.
 var flv = new FlvPlayer({
     container: '.flvplayer-app', // A div dom element
     url: 'path/to/video.flv', // Url of flv video file
-    videoDecoder: './baselineProfileDecoder.js', // Path to video decoder, baselineProfileDecoder.js or allProfileDecoder.js
+    decoder: './flvplayer-decoder-baseline.js', // Path to video decoder, flvplayer-decoder-baseline.js or flvplayer-decoder-multiple.js
     poster: 'path/to/poster.png', // Url of video poster, the first frame of the video is taken as the poster by default
+    autoPlay: false, // Whether auto play
     debug: false, // Show debug information on developer tools
     live: false, // Whether live video
     loop: false, // Whether to automatically loop play
     hotkey: true, // Whether to use hotkeys
-    controls: true, // Whether to display the controller
     hasAudio: true, // Whether to include audio
     volume: 7, // Default volume, ranging from 0 to 10
     frameRate: 30, // Video frame rate, which will be extracted from the flv file by default

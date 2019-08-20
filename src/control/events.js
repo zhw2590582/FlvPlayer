@@ -1,21 +1,45 @@
 import { secondToTime, throttle, debounce, clamp, getStyle, setStyle } from '../utils';
 
-export default function controls(flv, player) {
+export default function controls(flv, control) {
     const {
+        options: { poster },
         events: { proxy },
+        player,
     } = flv;
 
-    proxy(player.$play, 'click', () => {
+    if (poster) {
+        flv.on('play', () => {
+            control.$poster.style.display = 'none';
+        });
+
+        flv.on('seeked', () => {
+            control.$poster.style.display = 'none';
+        });
+    }
+
+    flv.on('waiting', () => {
+        control.loading = true;
+    });
+
+    flv.on('ended', () => {
+        control.loading = false;
+    });
+
+    flv.on('timeupdate', () => {
+        control.loading = false;
+    });
+
+    proxy(control.$play, 'click', () => {
         player.play();
     });
 
-    proxy(player.$pause, 'click', () => {
+    proxy(control.$pause, 'click', () => {
         player.pause();
     });
 
     const loadedFn = throttle(timestamp => {
         const time = clamp(timestamp / player.duration, 0, 1);
-        player.$loaded.style.width = `${time * 100}%`;
+        control.$loaded.style.width = `${time * 100}%`;
     }, 500);
 
     flv.on('videoLoaded', timestamp => {
@@ -25,8 +49,8 @@ export default function controls(flv, player) {
     });
 
     const timeupdateFn = throttle(currentTime => {
-        player.$played.style.width = `${(currentTime / player.duration) * 100}%`;
-        player.$current.innerText = secondToTime(currentTime);
+        control.$played.style.width = `${(currentTime / player.duration) * 100}%`;
+        control.$current.innerText = secondToTime(currentTime);
     }, 500);
 
     flv.on('timeupdate', currentTime => {
@@ -42,52 +66,52 @@ export default function controls(flv, player) {
     });
 
     flv.on('play', () => {
-        player.$play.style.display = 'none';
-        player.$pause.style.display = 'block';
+        control.$play.style.display = 'none';
+        control.$pause.style.display = 'block';
     });
 
     flv.on('ended', () => {
-        player.controls = true;
-        player.$play.style.display = 'block';
-        player.$pause.style.display = 'none';
+        control.controls = true;
+        control.$play.style.display = 'block';
+        control.$pause.style.display = 'none';
     });
 
     flv.on('pause', () => {
-        player.$play.style.display = 'block';
-        player.$pause.style.display = 'none';
+        control.$play.style.display = 'block';
+        control.$pause.style.display = 'none';
     });
 
     flv.on('scripMeta', () => {
         if (!flv.options.live) {
-            player.$duration.innerText = secondToTime(player.duration);
+            control.$duration.innerText = secondToTime(player.duration);
         }
     });
 
-    proxy(player.$fullscreen, 'click', () => {
-        if (player.fullscreen) {
-            player.fullscreen = false;
+    proxy(control.$fullscreen, 'click', () => {
+        if (control.fullscreen) {
+            control.fullscreen = false;
         } else {
-            player.fullscreen = true;
+            control.fullscreen = true;
         }
     });
 
     const autoHide = debounce(() => {
-        player.$player.classList.add('flv-player-hide-cursor');
-        player.controls = false;
+        player.$player.classList.add('flvplayer-hide-cursor');
+        control.controls = false;
     }, 5000);
 
     proxy(player.$player, 'mousemove', () => {
         autoHide.clearTimeout();
-        player.$player.classList.remove('flv-player-hide-cursor');
-        player.controls = true;
+        player.$player.classList.remove('flvplayer-hide-cursor');
+        control.controls = true;
         if (player.playing) {
             autoHide();
         }
     });
 
     function volumeChangeFromEvent(event) {
-        const { left: panelLeft, width: panelWidth } = player.$volumePanel.getBoundingClientRect();
-        const { width: handleWidth } = player.$volumeHandle.getBoundingClientRect();
+        const { left: panelLeft, width: panelWidth } = control.$volumePanel.getBoundingClientRect();
+        const { width: handleWidth } = control.$volumeHandle.getBoundingClientRect();
         const percentage =
             clamp(event.x - panelLeft - handleWidth / 2, 0, panelWidth - handleWidth / 2) / (panelWidth - handleWidth);
         return percentage * 10;
@@ -95,16 +119,16 @@ export default function controls(flv, player) {
 
     function setVolumeHandle(percentage) {
         if (percentage === 0) {
-            setStyle(player.$volumeOn, 'display', 'none');
-            setStyle(player.$volumeOff, 'display', 'flex');
-            setStyle(player.$volumeHandle, 'left', '0');
+            setStyle(control.$volumeOn, 'display', 'none');
+            setStyle(control.$volumeOff, 'display', 'flex');
+            setStyle(control.$volumeHandle, 'left', '0');
         } else {
-            const panelWidth = getStyle(player.$volumePanel, 'width') || 60;
-            const handleWidth = getStyle(player.$volumeHandle, 'width');
+            const panelWidth = getStyle(control.$volumePanel, 'width') || 60;
+            const handleWidth = getStyle(control.$volumeHandle, 'width');
             const width = ((panelWidth - handleWidth) * percentage) / 10;
-            setStyle(player.$volumeOn, 'display', 'flex');
-            setStyle(player.$volumeOff, 'display', 'none');
-            setStyle(player.$volumeHandle, 'left', `${width}px`);
+            setStyle(control.$volumeOn, 'display', 'flex');
+            setStyle(control.$volumeOff, 'display', 'none');
+            setStyle(control.$volumeHandle, 'left', `${width}px`);
         }
     }
 
@@ -117,28 +141,28 @@ export default function controls(flv, player) {
             setVolumeHandle(player.volume);
         });
 
-        proxy(player.$volumeOn, 'click', () => {
-            player.$volumeOn.style.display = 'none';
-            player.$volumeOff.style.display = 'block';
+        proxy(control.$volumeOn, 'click', () => {
+            control.$volumeOn.style.display = 'none';
+            control.$volumeOff.style.display = 'block';
             lastVolume = player.volume;
             player.volume = 0;
         });
 
-        proxy(player.$volumeOff, 'click', () => {
-            player.$volumeOn.style.display = 'block';
-            player.$volumeOff.style.display = 'none';
+        proxy(control.$volumeOff, 'click', () => {
+            control.$volumeOn.style.display = 'block';
+            control.$volumeOff.style.display = 'none';
             player.volume = lastVolume || 7;
         });
 
-        proxy(player.$volumePanel, 'click', event => {
+        proxy(control.$volumePanel, 'click', event => {
             player.volume = volumeChangeFromEvent(event);
         });
 
-        proxy(player.$volumeHandle, 'mousedown', () => {
+        proxy(control.$volumeHandle, 'mousedown', () => {
             isVolumeDroging = true;
         });
 
-        proxy(player.$volumeHandle, 'mousemove', event => {
+        proxy(control.$volumeHandle, 'mousemove', event => {
             if (isVolumeDroging) {
                 player.volume = volumeChangeFromEvent(event);
             }
@@ -152,7 +176,7 @@ export default function controls(flv, player) {
     }
 
     function getPosFromEvent(event) {
-        const { $progress } = player;
+        const { $progress } = control;
         const { left } = $progress.getBoundingClientRect();
         const width = clamp(event.x - left, 0, $progress.clientWidth);
         const second = (width / $progress.clientWidth) * player.duration;
@@ -162,18 +186,18 @@ export default function controls(flv, player) {
     }
 
     if (!flv.options.live) {
-        proxy(player.$progress, 'click', event => {
-            if (event.target !== player.$indicator) {
+        proxy(control.$progress, 'click', event => {
+            if (event.target !== control.$indicator) {
                 const { second, percentage } = getPosFromEvent(event);
                 if (second <= player.loaded) {
-                    player.$played.style.width = `${percentage * 100}%`;
+                    control.$played.style.width = `${percentage * 100}%`;
                     player.currentTime = second;
                 }
             }
         });
 
         let isIndicatorDroging = false;
-        proxy(player.$indicator, 'mousedown', () => {
+        proxy(control.$indicator, 'mousedown', () => {
             isIndicatorDroging = true;
         });
 
@@ -181,7 +205,7 @@ export default function controls(flv, player) {
             if (isIndicatorDroging) {
                 const { second, percentage } = getPosFromEvent(event);
                 if (second <= player.loaded) {
-                    player.$played.style.width = `${percentage * 100}%`;
+                    control.$played.style.width = `${percentage * 100}%`;
                     player.currentTime = second;
                 }
             }
@@ -203,7 +227,7 @@ export default function controls(flv, player) {
 
         proxy(player.$canvas, 'touchmove', event => {
             if (isCanvasDroging) {
-                const { $progress } = player;
+                const { $progress } = control;
                 const moveWidth = event.targetTouches[0].clientX - touchstartX;
                 touchSecond = (moveWidth / $progress.clientWidth) * player.duration;
             }

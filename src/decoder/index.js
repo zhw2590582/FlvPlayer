@@ -13,7 +13,7 @@ export default class Decoder {
         this.currentTime = 0;
         this.lastUpdateTime = 0;
 
-        this.video = new window.VideoDecoder(flv, this);
+        this.video = new window.FlvplayerDecoder(flv, this);
         if (flv.options.hasAudio) {
             this.audio = new AudioDecoder(flv, this);
         } else {

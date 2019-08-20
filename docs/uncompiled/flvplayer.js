@@ -446,6 +446,7 @@
   function loadScript(url, name) {
     return new Promise(function (resolve, reject) {
       var $script = document.createElement('script');
+      $script.type = 'text/javascript';
 
       $script.onload = function () {
         if (window[name]) {
@@ -457,7 +458,7 @@
 
       $script.onerror = reject;
       $script.src = url;
-      document.body.appendChild($script);
+      document.head.appendChild($script);
     });
   }
   function proxyPropertys(target) {
@@ -476,6 +477,7 @@
 
   function template(flv, player) {
     var options = flv.options;
+    options.container.classList.add('flvplayer-container');
     setStyle(options.container, {
       position: 'relative',
       display: 'flex',
@@ -483,21 +485,15 @@
       alignItems: 'center',
       boxSizing: 'border-box'
     });
+    options.container.innerHTML = "\n        <div class=\"flvplayer-inner\" style=\"position: relative;display: flex;justify-content: center;align-items: center;width: 100%;height: 100%;\">\n            <canvas class=\"flvplayer-canvas\" width=\"".concat(options.width, "\" height=\"").concat(options.height, "\" style=\"cursor: pointer;width: 100%;height: 100%;background-color: #000;\"></canvas>\n        </div>\n    ");
     Object.defineProperty(player, '$container', {
       value: options.container
     });
-    var $canvas = document.createElement('canvas');
-    $canvas.width = options.width;
-    $canvas.height = options.height;
-    setStyle($canvas, {
-      cursor: 'pointer',
-      width: '100%',
-      height: '100%',
-      backgroundColor: '#000'
+    Object.defineProperty(player, '$player', {
+      value: options.container.querySelector('.flvplayer-inner')
     });
-    options.container.appendChild($canvas);
     Object.defineProperty(player, '$canvas', {
-      value: $canvas
+      value: options.container.querySelector('.flvplayer-canvas')
     });
   }
 
@@ -888,7 +884,7 @@
       this.endedTimer = null;
       this.currentTime = 0;
       this.lastUpdateTime = 0;
-      this.video = new window.VideoDecoder(flv, this);
+      this.video = new window.FlvplayerDecoder(flv, this);
 
       if (flv.options.hasAudio) {
         this.audio = new AudioDecoder(flv, this);
@@ -906,10 +902,10 @@
       }
 
       flv.on('ready', function () {
-        _this.video.draw(0);
-
         if (flv.options.autoPlay) {
           _this.play();
+        } else {
+          _this.video.draw(0);
         }
       });
       flv.on('destroy', function () {
@@ -1372,35 +1368,39 @@
         _this.options.container = document.querySelector(_this.options.container);
       }
 
-      loadScript(_this.options.decoder, 'VideoDecoder').then(function () {
-        _this.debug = new Debug(assertThisInitialized(_this));
-        _this.events = new Events(assertThisInitialized(_this));
-        _this.player = new Player(assertThisInitialized(_this));
+      if (window.FlvplayerDecoder) {
+        _this.init();
+      } else {
+        loadScript(_this.options.decoder, 'FlvplayerDecoder').then(function () {
+          _this.init();
+        });
+      }
 
-        if (_this.options.control) {
-          loadScript(_this.options.control, 'VideoControl').then(function (Control) {
-            _this.control = new Control(assertThisInitialized(_this));
-            _this.decoder = new Decoder(assertThisInitialized(_this));
-            _this.demuxer = new Demuxer(assertThisInitialized(_this));
-            _this.stream = new Stream(assertThisInitialized(_this));
-          });
-        } else {
-          _this.decoder = new Decoder(assertThisInitialized(_this));
-          _this.demuxer = new Demuxer(assertThisInitialized(_this));
-          _this.stream = new Stream(assertThisInitialized(_this));
-        }
-
-        id += 1;
-        _this.id = id;
-        _this.isDestroy = false;
-        _this.userAgent = window.navigator.userAgent;
-        _this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(_this.userAgent);
-        FlvPlayer.instances.push(assertThisInitialized(_this));
-      });
       return _this;
     }
 
     createClass(FlvPlayer, [{
+      key: "init",
+      value: function init() {
+        this.debug = new Debug(this);
+        this.events = new Events(this);
+        this.player = new Player(this);
+        this.decoder = new Decoder(this);
+        this.demuxer = new Demuxer(this);
+        this.stream = new Stream(this);
+
+        if (window.FlvplayerControl) {
+          this.control = new window.FlvplayerControl(this);
+        }
+
+        id += 1;
+        this.id = id;
+        this.isDestroy = false;
+        this.userAgent = window.navigator.userAgent;
+        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(this.userAgent);
+        FlvPlayer.instances.push(this);
+      }
+    }, {
       key: "destroy",
       value: function destroy() {
         this.events.destroy();
@@ -1426,8 +1426,7 @@
           height: 300,
           socketSend: '',
           headers: {},
-          decoder: './decoder-baseline-profile.js',
-          control: './control-default.js'
+          decoder: './flvplayer-decoder-baseline.js'
         };
       }
     }, {

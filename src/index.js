@@ -20,31 +20,31 @@ class FlvPlayer extends Emitter {
             this.options.container = document.querySelector(this.options.container);
         }
 
-        loadScript(this.options.decoder, 'VideoDecoder').then(() => {
-            this.debug = new Debug(this);
-            this.events = new Events(this);
-            this.player = new Player(this);
+        if (window.FlvplayerDecoder) {
+            this.init();
+        } else {
+            loadScript(this.options.decoder, 'FlvplayerDecoder').then(() => {
+                this.init();
+            });
+        }
+    }
 
-            if (this.options.control) {
-                loadScript(this.options.control, 'VideoControl').then(Control => {
-                    this.control = new Control(this);
-                    this.decoder = new Decoder(this);
-                    this.demuxer = new Demuxer(this);
-                    this.stream = new Stream(this);
-                });
-            } else {
-                this.decoder = new Decoder(this);
-                this.demuxer = new Demuxer(this);
-                this.stream = new Stream(this);
-            }
-
-            id += 1;
-            this.id = id;
-            this.isDestroy = false;
-            this.userAgent = window.navigator.userAgent;
-            this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(this.userAgent);
-            FlvPlayer.instances.push(this);
-        });
+    init() {
+        this.debug = new Debug(this);
+        this.events = new Events(this);
+        this.player = new Player(this);
+        this.decoder = new Decoder(this);
+        this.demuxer = new Demuxer(this);
+        this.stream = new Stream(this);
+        if (window.FlvplayerControl) {
+            this.control = new window.FlvplayerControl(this);
+        }
+        id += 1;
+        this.id = id;
+        this.isDestroy = false;
+        this.userAgent = window.navigator.userAgent;
+        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(this.userAgent);
+        FlvPlayer.instances.push(this);
     }
 
     static get options() {
@@ -62,8 +62,7 @@ class FlvPlayer extends Emitter {
             height: 300,
             socketSend: '',
             headers: {},
-            decoder: './decoder-baseline-profile.js',
-            control: './control-default.js',
+            decoder: './flvplayer-decoder-baseline.js',
         };
     }
 

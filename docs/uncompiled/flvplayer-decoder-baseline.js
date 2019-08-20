@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
-  (global = global || self, global.VideoDecoder = factory());
+  (global = global || self, global.FlvplayerDecoder = factory());
 }(this, function () { 'use strict';
 
   function _classCallCheck(instance, Constructor) {
@@ -444,4 +444,4 @@
   return VideoDecoder;
 
 }));
-//# sourceMappingURL=decoder-baseline-profile.js.map
+//# sourceMappingURL=flvplayer-decoder-baseline.js.map

@@ -9,7 +9,7 @@
         <meta name="description" content="FlvPlayer.js is a JavaScript player for decode flv to the canvas" />
         <link rel="shortcut icon" href="./assets/img/favicon.ico" type="image/x-icon" />
         <link rel="stylesheet" href="./assets/css/normalize.css" />
-        <link rel="stylesheet" href="./uncompiled/flvplayer.css" />
+        <link rel="stylesheet" href="./uncompiled/flvplayer-control.css" />
         <style>
             html,
             body {
@@ -32,8 +32,7 @@
             <div class="flvplayer-app"></div>
         </div>
         <script src="https://cdn.bootcss.com/vConsole/3.2.0/vconsole.min.js"></script>
-        <script src="./uncompiled/baselineProfileDecoder.js"></script>
-        <!-- <script src="./uncompiled/allProfileDecoder.js"></script> -->
+        <script src="./uncompiled/flvplayer-control.js"></script>
         <script src="./uncompiled/flvplayer.js"></script>
         <script>
             var _hmt = _hmt || [];
@@ -50,20 +49,21 @@
             var vConsole = new VConsole();
             var url = 'https://zhw2590582.github.io/assets-cdn';
             var flv = new FlvPlayer({
+                container: '.flvplayer-app',
                 url: url + '/video/weathering-with-you-H264(Baseline@L52)-AAC.flv',
                 poster: url + '/image/weathering-with-you-poster.jpg',
-                videoDecoder: './uncompiled/baselineProfileDecoder.js',
-                // videoDecoder: './uncompiled/allProfileDecoder.js',
-                container: '.flvplayer-app',
+                decoder: './uncompiled/flvplayer-decoder-baseline.js',
+                // decoder: './uncompiled/flvplayer-decoder-multiple.js',
                 debug: true,
                 live: false,
                 loop: true,
                 hotkey: true,
-                controls: true,
+                autoPlay: true,
                 hasAudio: false,
-                frameRate: 30,
+                volume: 7,
                 width: 640,
                 height: 360,
+                control: true,
             });
         </script>
     </body>

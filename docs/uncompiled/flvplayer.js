@@ -384,6 +384,9 @@
     return Events;
   }();
 
+  function hasOwnProperty(obj, name) {
+    return Object.prototype.hasOwnProperty.call(obj, name);
+  }
   function readBuffer(buffer) {
     var index = 0;
 
@@ -455,6 +458,19 @@
       $script.onerror = reject;
       $script.src = url;
       document.body.appendChild($script);
+    });
+  }
+  function proxyPropertys(target) {
+    for (var _len4 = arguments.length, sources = new Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
+      sources[_key4 - 1] = arguments[_key4];
+    }
+
+    sources.forEach(function (source) {
+      Object.getOwnPropertyNames(source).forEach(function (key) {
+        if (!hasOwnProperty(target, key)) {
+          Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+        }
+      });
     });
   }
 
@@ -692,6 +708,7 @@
     property(flv, this);
     observer(flv, this);
     events(flv, this);
+    proxyPropertys(flv, this);
   };
 
   var AudioDecoder =

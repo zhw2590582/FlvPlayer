@@ -98,9 +98,7 @@ module.exports = [
         plugins: [
             postcss({
                 plugins: [
-                    autoprefixer({
-                        browsers: ['last 2 versions'],
-                    }),
+                    autoprefixer(),
                     cssnano({
                         preset: 'default',
                     }),

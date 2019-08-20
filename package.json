@@ -3,7 +3,6 @@
     "version": "1.0.6",
     "description": "FlvPlayer is a JavaScript player for decode flv to the canvas",
     "main": "dist/flvplayer.js",
-    "style": "dist/flvplayer.css",
     "scripts": {
         "dev": "cross-env NODE_ENV=development rollup -c -m -w",
         "build": "cross-env NODE_ENV=production rollup -c",

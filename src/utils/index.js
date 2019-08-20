@@ -1,3 +1,7 @@
+export function hasOwnProperty(obj, name) {
+    return Object.prototype.hasOwnProperty.call(obj, name);
+}
+
 export function readBuffer(buffer) {
     let index = 0;
     function read(length) {
@@ -119,5 +123,15 @@ export function loadScript(url, name) {
         $script.onerror = reject;
         $script.src = url;
         document.body.appendChild($script);
+    });
+}
+
+export function proxyPropertys(target, ...sources) {
+    sources.forEach(source => {
+        Object.getOwnPropertyNames(source).forEach(key => {
+            if (!hasOwnProperty(target, key)) {
+                Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+            }
+        });
     });
 }

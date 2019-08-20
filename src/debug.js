@@ -1,4 +1,9 @@
-import { FlvPlayerError } from './utils';
+class FlvPlayerError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'FlvPlayerError';
+    }
+}
 
 export default class Debug {
     constructor(flv) {

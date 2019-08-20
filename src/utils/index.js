@@ -1,20 +1,3 @@
-export class FlvPlayerError extends Error {
-    constructor(message, context) {
-        super(message);
-        if (typeof Error.captureStackTrace === 'function') {
-            Error.captureStackTrace(this, context || this.constructor);
-        }
-        this.name = 'FlvPlayerError';
-    }
-}
-
-export function errorHandle(condition, msg) {
-    if (!condition) {
-        throw new FlvPlayerError(msg);
-    }
-    return condition;
-}
-
 export function readBuffer(buffer) {
     let index = 0;
     function read(length) {
@@ -109,6 +92,11 @@ export function clamp(num, a, b) {
 }
 
 export function setStyle(element, key, value) {
+    if (typeof key === 'object') {
+        Object.keys(key).forEach(item => {
+            setStyle(element, item, key[item]);
+        });
+    }
     element.style[key] = value;
     return element;
 }

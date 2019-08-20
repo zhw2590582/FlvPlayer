@@ -19,14 +19,14 @@ const baseConfig = {
     },
     plugins: [
         eslint({
-            exclude: ['node_modules/**', 'src/decoder/video', 'src/player/style.scss', 'src/player/icons/*.svg'],
+            exclude: ['node_modules/**', 'src/decoder/video', 'src/control/style.scss', 'src/control/icons/*.svg'],
         }),
         string({
             include: [
                 'src/decoder/video/**/*.worker',
                 'src/decoder/audio/*.worker',
                 'src/demuxer/*.worker',
-                'src/player/icons/*.svg',
+                'src/control/icons/*.svg',
             ],
         }),
         nodeResolve(),
@@ -71,6 +71,30 @@ module.exports = [
             name: 'FlvPlayer',
             file: isProd ? 'dist/flvplayer.js' : 'docs/uncompiled/flvplayer.js',
         },
+        plugins: [],
+    },
+    {
+        input: 'src/decoder/video/DecoderMultipleProfile/index.js',
+        output: {
+            name: 'VideoDecoder',
+            file: isProd ? 'dist/decoder-multiple-profile.js' : 'docs/uncompiled/decoder-multiple-profile.js',
+        },
+        plugins: [],
+    },
+    {
+        input: 'src/decoder/video/DecoderBaselineProfile/index.js',
+        output: {
+            name: 'VideoDecoder',
+            file: isProd ? 'dist/decoder-baseline-profile.js' : 'docs/uncompiled/decoder-baseline-profile.js',
+        },
+        plugins: [],
+    },
+    {
+        input: 'src/control/index.js',
+        output: {
+            name: 'VideoControl',
+            file: isProd ? 'dist/control-default.js' : 'docs/uncompiled/control-default.js',
+        },
         plugins: [
             postcss({
                 plugins: [
@@ -82,33 +106,9 @@ module.exports = [
                     }),
                 ],
                 sourceMap: !isProd,
-                extract: isProd ? 'dist/flvplayer.css' : 'docs/uncompiled/flvplayer.css',
+                extract: isProd ? 'dist/control-default.css' : 'docs/uncompiled/control-default.css',
             }),
         ],
-    },
-    {
-        input: 'src/decoder/video/DecoderMultipleProfile/index.js',
-        output: {
-            name: 'decoder',
-            file: isProd ? 'dist/decoder-multiple-profile.js' : 'docs/uncompiled/decoder-multiple-profile.js',
-        },
-        plugins: [],
-    },
-    {
-        input: 'src/decoder/video/DecoderBaselineProfile/index.js',
-        output: {
-            name: 'decoder',
-            file: isProd ? 'dist/decoder-baseline-profile.js' : 'docs/uncompiled/decoder-baseline-profile.js',
-        },
-        plugins: [],
-    },
-    {
-        input: 'src/control/index.js',
-        output: {
-            name: 'control',
-            file: isProd ? 'dist/control-default.js' : 'docs/uncompiled/control-default.js',
-        },
-        plugins: [],
     },
 ].map(config => {
     return {

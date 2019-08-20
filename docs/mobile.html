@@ -36,6 +36,17 @@
         <!-- <script src="./uncompiled/allProfileDecoder.js"></script> -->
         <script src="./uncompiled/flvplayer.js"></script>
         <script>
+            var _hmt = _hmt || [];
+            (function () {
+                if (window.location.hostname !== 'localhost') {
+                    var hm = document.createElement('script');
+                    hm.src = 'https://hm.baidu.com/hm.js?b6c9b8bafbf5fe7225160101dafbbc7d';
+                    var s = document.getElementsByTagName('script')[0];
+                    s.parentNode.insertBefore(hm, s);
+                }
+            })();
+        </script>
+        <script>
             var vConsole = new VConsole();
             var url = 'https://zhw2590582.github.io/assets-cdn';
             var flv = new FlvPlayer({

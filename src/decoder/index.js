@@ -25,6 +25,13 @@ export default class Decoder {
             };
         }
 
+        flv.on('ready', () => {
+            this.video.draw(0);
+            if (flv.options.autoPlay) {
+                this.play();
+            }
+        });
+
         flv.on('destroy', () => {
             this.pause();
         });

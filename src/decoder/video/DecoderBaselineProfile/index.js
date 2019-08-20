@@ -39,9 +39,6 @@ export default class VideoDecoder {
                     if (!this.ready && this.videoframes.length === 1) {
                         this.ready = true;
                         flv.emit('ready');
-                        if (!options.poster) {
-                            this.draw(0);
-                        }
                     }
                     break;
                 default:

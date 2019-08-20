@@ -1,6 +1,5 @@
 export default function events(flv, player) {
     const {
-        options: { poster },
         events: { proxy },
     } = flv;
 
@@ -27,27 +26,5 @@ export default function events(flv, player) {
 
     proxy(player.$canvas, 'click', () => {
         player.toggle();
-    });
-
-    if (poster) {
-        flv.on('play', () => {
-            player.$poster.style.display = 'none';
-        });
-
-        flv.on('seeked', () => {
-            player.$poster.style.display = 'none';
-        });
-    }
-
-    flv.on('waiting', () => {
-        player.loading = true;
-    });
-
-    flv.on('ended', () => {
-        player.loading = false;
-    });
-
-    flv.on('timeupdate', () => {
-        player.loading = false;
     });
 }

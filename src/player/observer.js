@@ -1,3 +1,5 @@
+import { setStyle } from '../utils';
+
 export default function observer(flv, player) {
     const { proxy } = flv.events;
     const object = document.createElement('object');
@@ -5,6 +7,18 @@ export default function observer(flv, player) {
     object.setAttribute('tabindex', -1);
     object.type = 'text/html';
     object.data = 'about:blank';
+
+    setStyle(object, {
+        display: 'block',
+        position: 'absolute',
+        top: '0',
+        left: '0',
+        height: '100%',
+        width: '100%',
+        overflow: 'hidden',
+        pointerEvents: 'none',
+        zIndex: '-1',
+    });
 
     let playerWidth = player.width;
     let playerHeight = player.height;

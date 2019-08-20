@@ -19,37 +19,42 @@ class FlvPlayer extends Emitter {
         if (typeof this.options.container === 'string') {
             this.options.container = document.querySelector(this.options.container);
         }
-    }
 
-    async init() {
-        await loadScript(this.options.decoder, 'videoDecoder');
-        this.debug = new Debug(this);
-        this.events = new Events(this);
-        this.player = new Player(this);
-        if (this.options.control) {
-            const Control = await loadScript(this.options.control, 'videoControl');
-            this.control = new Control(this);
-        }
-        this.Decoder = new Decoder(this);
-        this.demuxer = new Demuxer(this);
-        this.stream = new Stream(this);
+        loadScript(this.options.decoder, 'VideoDecoder').then(() => {
+            this.debug = new Debug(this);
+            this.events = new Events(this);
+            this.player = new Player(this);
 
-        id += 1;
-        this.id = id;
-        this.isDestroy = false;
-        this.userAgent = window.navigator.userAgent;
-        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(this.userAgent);
-        FlvPlayer.instances.push(this);
+            if (this.options.control) {
+                loadScript(this.options.control, 'VideoControl').then(Control => {
+                    this.control = new Control(this);
+                    this.decoder = new Decoder(this);
+                    this.demuxer = new Demuxer(this);
+                    this.stream = new Stream(this);
+                });
+            } else {
+                this.decoder = new Decoder(this);
+                this.demuxer = new Demuxer(this);
+                this.stream = new Stream(this);
+            }
+
+            id += 1;
+            this.id = id;
+            this.isDestroy = false;
+            this.userAgent = window.navigator.userAgent;
+            this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(this.userAgent);
+            FlvPlayer.instances.push(this);
+        });
     }
 
     static get options() {
         return {
             url: '',
-            poster: '',
             container: '',
             debug: false,
             live: false,
             loop: false,
+            autoPlay: false,
             hasAudio: true,
             volume: 7,
             frameRate: 30,

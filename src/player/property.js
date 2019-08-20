@@ -1,4 +1,3 @@
-import screenfull from 'screenfull';
 import { clamp } from '../utils';
 
 export default function property(flv, player) {
@@ -152,68 +151,6 @@ export default function property(flv, player) {
             } else {
                 const padding = (playerHeight - playerWidth / canvasRatio) / 2;
                 player.$container.style.padding = `${padding}px 0`;
-            }
-        },
-    });
-
-    Object.defineProperty(player, 'controls', {
-        get: () => {
-            return player.$player.classList.contains('flv-player-controls-show');
-        },
-        set: type => {
-            if (type) {
-                player.$player.classList.add('flv-player-controls-show');
-            } else {
-                player.$player.classList.remove('flv-player-controls-show');
-            }
-        },
-    });
-
-    Object.defineProperty(player, 'loading', {
-        get: () => {
-            return player.$player.classList.contains('flv-player-loading-show');
-        },
-        set: type => {
-            if (type) {
-                player.$player.classList.add('flv-player-loading-show');
-            } else {
-                player.$player.classList.remove('flv-player-loading-show');
-            }
-        },
-    });
-
-    try {
-        const screenfullChange = () => {
-            if (player.fullscreen) {
-                player.$container.classList.add('flv-player-fullscreen');
-            } else {
-                player.$container.classList.remove('flv-player-fullscreen');
-            }
-            player.autoSize();
-        };
-        screenfull.on('change', screenfullChange);
-        flv.events.destroyEvents.push(() => {
-            screenfull.off('change', screenfullChange);
-        });
-    } catch (error) {
-        flv.debug.warn(false, 'Does not seem to support full screen events');
-    }
-
-    Object.defineProperty(player, 'fullscreen', {
-        get: () => screenfull.isFullscreen || player.$container.classList.contains('flv-player-fullscreen-web'),
-        set: type => {
-            if (type) {
-                try {
-                    screenfull.request(player.$container);
-                } catch (error) {
-                    player.$container.classList.add('flv-player-fullscreen-web');
-                }
-            } else {
-                try {
-                    screenfull.exit();
-                } catch (error) {
-                    player.$container.classList.remove('flv-player-fullscreen-web');
-                }
             }
         },
     });

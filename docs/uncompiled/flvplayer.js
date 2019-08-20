@@ -21,27 +21,6 @@
 
   var defineProperty = _defineProperty;
 
-  function _objectSpread(target) {
-    for (var i = 1; i < arguments.length; i++) {
-      var source = arguments[i] != null ? arguments[i] : {};
-      var ownKeys = Object.keys(source);
-
-      if (typeof Object.getOwnPropertySymbols === 'function') {
-        ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) {
-          return Object.getOwnPropertyDescriptor(source, sym).enumerable;
-        }));
-      }
-
-      ownKeys.forEach(function (key) {
-        defineProperty(target, key, source[key]);
-      });
-    }
-
-    return target;
-  }
-
-  var objectSpread = _objectSpread;
-
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
@@ -312,142 +291,18 @@
   function (_Error) {
     inherits(FlvPlayerError, _Error);
 
-    function FlvPlayerError(message, context) {
+    function FlvPlayerError(message) {
       var _this;
 
       classCallCheck(this, FlvPlayerError);
 
       _this = possibleConstructorReturn(this, getPrototypeOf(FlvPlayerError).call(this, message));
-
-      if (typeof Error.captureStackTrace === 'function') {
-        Error.captureStackTrace(assertThisInitialized(_this), context || _this.constructor);
-      }
-
       _this.name = 'FlvPlayerError';
       return _this;
     }
 
     return FlvPlayerError;
   }(wrapNativeSuper(Error));
-  function readBuffer(buffer) {
-    var index = 0;
-
-    function read(length) {
-      var tempUint8 = new Uint8Array(length);
-
-      for (var i = 0; i < length; i += 1) {
-        tempUint8[i] = buffer[index];
-        index += 1;
-      }
-
-      read.index = index;
-      return tempUint8;
-    }
-
-    read.index = 0;
-    return read;
-  }
-  function mergeBuffer() {
-    for (var _len = arguments.length, buffers = new Array(_len), _key = 0; _key < _len; _key++) {
-      buffers[_key] = arguments[_key];
-    }
-
-    var Cons = buffers[0].constructor;
-    return buffers.reduce(function (pre, val) {
-      var merge = new Cons((pre.byteLength | 0) + (val.byteLength | 0));
-      merge.set(pre, 0);
-      merge.set(val, pre.byteLength | 0);
-      return merge;
-    }, new Cons());
-  }
-  function createWorker(workerString) {
-    return new Worker(URL.createObjectURL(new Blob([workerString], {
-      type: 'application/javascript'
-    })));
-  }
-  function secondToTime(second) {
-    var add0 = function add0(num) {
-      return num < 10 ? "0".concat(num) : String(num);
-    };
-
-    var hour = Math.floor(second / 3600);
-    var min = Math.floor((second - hour * 3600) / 60);
-    var sec = Math.floor(second - hour * 3600 - min * 60);
-    return (hour > 0 ? [hour, min, sec] : [min, sec]).map(add0).join(':');
-  }
-  function getNowTime() {
-    if (performance && typeof performance.now === 'function') {
-      return performance.now();
-    }
-
-    return Date.now();
-  }
-  function debounce(func, wait, context) {
-    var timeout;
-
-    function fn() {
-      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-        args[_key2] = arguments[_key2];
-      }
-
-      var later = function later() {
-        timeout = null;
-        func.apply(context, args);
-      };
-
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
-    }
-
-    fn.clearTimeout = function ct() {
-      clearTimeout(timeout);
-    };
-
-    return fn;
-  }
-  function throttle(callback, delay) {
-    var isThrottled = false;
-    var args;
-    var context;
-
-    function fn() {
-      for (var _len3 = arguments.length, args2 = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-        args2[_key3] = arguments[_key3];
-      }
-
-      if (isThrottled) {
-        args = args2;
-        context = this;
-        return;
-      }
-
-      isThrottled = true;
-      callback.apply(this, args2);
-      setTimeout(function () {
-        isThrottled = false;
-
-        if (args) {
-          fn.apply(context, args);
-          args = null;
-          context = null;
-        }
-      }, delay);
-    }
-
-    return fn;
-  }
-  function clamp(num, a, b) {
-    return Math.max(Math.min(num, Math.max(a, b)), Math.min(a, b));
-  }
-  function setStyle(element, key, value) {
-    element.style[key] = value;
-    return element;
-  }
-  function getStyle(element, key) {
-    var numberType = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
-    var value = window.getComputedStyle(element, null).getPropertyValue(key);
-    return numberType ? parseFloat(value) : value;
-  }
 
   var Debug = function Debug(flv) {
     classCallCheck(this, Debug);
@@ -491,7 +346,7 @@
     function Events() {
       classCallCheck(this, Events);
 
-      this.destroyEvents = [];
+      this.destroys = [];
       this.proxy = this.proxy.bind(this);
     }
 
@@ -503,21 +358,24 @@
         var option = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
 
         if (Array.isArray(name)) {
-          name.forEach(function (item) {
+          return name.map(function (item) {
             return _this.proxy(target, item, callback, option);
           });
-          return;
         }
 
         target.addEventListener(name, callback, option);
-        this.destroyEvents.push(function () {
-          target.removeEventListener(name, callback, option);
-        });
+
+        var destroy = function destroy() {
+          return target.removeEventListener(name, callback, option);
+        };
+
+        this.destroys.push(destroy);
+        return destroy;
       }
     }, {
       key: "destroy",
       value: function destroy() {
-        this.destroyEvents.forEach(function (event) {
+        this.destroys.forEach(function (event) {
           return event();
         });
       }
@@ -526,287 +384,106 @@
     return Events;
   }();
 
-  var play = "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"22\" width=\"22\" viewBox=\"0 0 22 22\">\n  <path d=\"M17.982 9.275L8.06 3.27A2.013 2.013 0 0 0 5 4.994v12.011a2.017 2.017 0 0 0 3.06 1.725l9.922-6.005a2.017 2.017 0 0 0 0-3.45z\"></path>\n</svg>";
+  function readBuffer(buffer) {
+    var index = 0;
 
-  var pause = "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"22\" width=\"22\" viewBox=\"0 0 22 22\">\n    <path d=\"M7 3a2 2 0 0 0-2 2v12a2 2 0 1 0 4 0V5a2 2 0 0 0-2-2zM15 3a2 2 0 0 0-2 2v12a2 2 0 1 0 4 0V5a2 2 0 0 0-2-2z\"></path>\n</svg>";
+    function read(length) {
+      var tempUint8 = new Uint8Array(length);
 
-  var volume = "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"22\" width=\"22\" viewBox=\"0 0 22 22\">\n    <path d=\"M10.188 4.65L6 8H5a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1l4.188 3.35a.5.5 0 0 0 .812-.39V5.04a.498.498 0 0 0-.812-.39zM14.446 3.778a1 1 0 0 0-.862 1.804 6.002 6.002 0 0 1-.007 10.838 1 1 0 0 0 .86 1.806A8.001 8.001 0 0 0 19 11a8.001 8.001 0 0 0-4.554-7.222z\"></path>\n    <path d=\"M15 11a3.998 3.998 0 0 0-2-3.465v6.93A3.998 3.998 0 0 0 15 11z\"></path>\n</svg>";
+      for (var i = 0; i < length; i += 1) {
+        tempUint8[i] = buffer[index];
+        index += 1;
+      }
 
-  var volumeClose = "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"22\" width=\"22\" viewBox=\"0 0 22 22\">\n    <path d=\"M15 11a3.998 3.998 0 0 0-2-3.465v2.636l1.865 1.865A4.02 4.02 0 0 0 15 11z\"></path>\n    <path d=\"M13.583 5.583A5.998 5.998 0 0 1 17 11a6 6 0 0 1-.585 2.587l1.477 1.477a8.001 8.001 0 0 0-3.446-11.286 1 1 0 0 0-.863 1.805zM18.778 18.778l-2.121-2.121-1.414-1.414-1.415-1.415L13 13l-2-2-3.889-3.889-3.889-3.889a.999.999 0 1 0-1.414 1.414L5.172 8H5a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1l4.188 3.35a.5.5 0 0 0 .812-.39v-3.131l2.587 2.587-.01.005a1 1 0 0 0 .86 1.806c.215-.102.424-.214.627-.333l2.3 2.3a1.001 1.001 0 0 0 1.414-1.416zM11 5.04a.5.5 0 0 0-.813-.39L8.682 5.854 11 8.172V5.04z\"></path>\n</svg>";
+      read.index = index;
+      return tempUint8;
+    }
 
-  var fullscreen = "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"36\" width=\"36\" viewBox=\"0 0 36 36\">\n\t<path d=\"m 10,16 2,0 0,-4 4,0 0,-2 L 10,10 l 0,6 0,0 z\"></path>\n\t<path d=\"m 20,10 0,2 4,0 0,4 2,0 L 26,10 l -6,0 0,0 z\"></path>\n\t<path d=\"m 24,24 -4,0 0,2 L 26,26 l 0,-6 -2,0 0,4 0,0 z\"></path>\n\t<path d=\"M 12,20 10,20 10,26 l 6,0 0,-2 -4,0 0,-4 0,0 z\"></path>\n</svg>";
+    read.index = 0;
+    return read;
+  }
+  function mergeBuffer() {
+    for (var _len = arguments.length, buffers = new Array(_len), _key = 0; _key < _len; _key++) {
+      buffers[_key] = arguments[_key];
+    }
 
-  var loading = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"50px\" height=\"50px\" viewBox=\"0 0 100 100\" preserveAspectRatio=\"xMidYMid\" class=\"uil-default\">\n  <rect x=\"0\" y=\"0\" width=\"100\" height=\"100\" fill=\"none\" class=\"bk\"/>\n  <rect x=\"47\" y=\"40\" width=\"6\" height=\"20\" rx=\"5\" ry=\"5\" fill=\"#ffffff\" transform=\"rotate(0 50 50) translate(0 -30)\">\n    <animate attributeName=\"opacity\" from=\"1\" to=\"0\" dur=\"1s\" begin=\"-1s\" repeatCount=\"indefinite\"/>\n  </rect>\n  <rect x=\"47\" y=\"40\" width=\"6\" height=\"20\" rx=\"5\" ry=\"5\" fill=\"#ffffff\" transform=\"rotate(30 50 50) translate(0 -30)\">\n    <animate attributeName=\"opacity\" from=\"1\" to=\"0\" dur=\"1s\" begin=\"-0.9166666666666666s\" repeatCount=\"indefinite\"/>\n  </rect>\n  <rect x=\"47\" y=\"40\" width=\"6\" height=\"20\" rx=\"5\" ry=\"5\" fill=\"#ffffff\" transform=\"rotate(60 50 50) translate(0 -30)\">\n    <animate attributeName=\"opacity\" from=\"1\" to=\"0\" dur=\"1s\" begin=\"-0.8333333333333334s\" repeatCount=\"indefinite\"/>\n  </rect>\n  <rect x=\"47\" y=\"40\" width=\"6\" height=\"20\" rx=\"5\" ry=\"5\" fill=\"#ffffff\" transform=\"rotate(90 50 50) translate(0 -30)\">\n    <animate attributeName=\"opacity\" from=\"1\" to=\"0\" dur=\"1s\" begin=\"-0.75s\" repeatCount=\"indefinite\"/></rect>\n  <rect x=\"47\" y=\"40\" width=\"6\" height=\"20\" rx=\"5\" ry=\"5\" fill=\"#ffffff\" transform=\"rotate(120 50 50) translate(0 -30)\">\n    <animate attributeName=\"opacity\" from=\"1\" to=\"0\" dur=\"1s\" begin=\"-0.6666666666666666s\" repeatCount=\"indefinite\"/>\n  </rect>\n  <rect x=\"47\" y=\"40\" width=\"6\" height=\"20\" rx=\"5\" ry=\"5\" fill=\"#ffffff\" transform=\"rotate(150 50 50) translate(0 -30)\">\n    <animate attributeName=\"opacity\" from=\"1\" to=\"0\" dur=\"1s\" begin=\"-0.5833333333333334s\" repeatCount=\"indefinite\"/>\n  </rect>\n  <rect x=\"47\" y=\"40\" width=\"6\" height=\"20\" rx=\"5\" ry=\"5\" fill=\"#ffffff\" transform=\"rotate(180 50 50) translate(0 -30)\">\n    <animate attributeName=\"opacity\" from=\"1\" to=\"0\" dur=\"1s\" begin=\"-0.5s\" repeatCount=\"indefinite\"/></rect>\n  <rect x=\"47\" y=\"40\" width=\"6\" height=\"20\" rx=\"5\" ry=\"5\" fill=\"#ffffff\" transform=\"rotate(210 50 50) translate(0 -30)\">\n    <animate attributeName=\"opacity\" from=\"1\" to=\"0\" dur=\"1s\" begin=\"-0.4166666666666667s\" repeatCount=\"indefinite\"/>\n  </rect>\n  <rect x=\"47\" y=\"40\" width=\"6\" height=\"20\" rx=\"5\" ry=\"5\" fill=\"#ffffff\" transform=\"rotate(240 50 50) translate(0 -30)\">\n    <animate attributeName=\"opacity\" from=\"1\" to=\"0\" dur=\"1s\" begin=\"-0.3333333333333333s\" repeatCount=\"indefinite\"/>\n  </rect>\n  <rect x=\"47\" y=\"40\" width=\"6\" height=\"20\" rx=\"5\" ry=\"5\" fill=\"#ffffff\" transform=\"rotate(270 50 50) translate(0 -30)\">\n    <animate attributeName=\"opacity\" from=\"1\" to=\"0\" dur=\"1s\" begin=\"-0.25s\" repeatCount=\"indefinite\"/></rect>\n  <rect x=\"47\" y=\"40\" width=\"6\" height=\"20\" rx=\"5\" ry=\"5\" fill=\"#ffffff\" transform=\"rotate(300 50 50) translate(0 -30)\">\n    <animate attributeName=\"opacity\" from=\"1\" to=\"0\" dur=\"1s\" begin=\"-0.16666666666666666s\" repeatCount=\"indefinite\"/>\n  </rect>\n  <rect x=\"47\" y=\"40\" width=\"6\" height=\"20\" rx=\"5\" ry=\"5\" fill=\"#ffffff\" transform=\"rotate(330 50 50) translate(0 -30)\">\n    <animate attributeName=\"opacity\" from=\"1\" to=\"0\" dur=\"1s\" begin=\"-0.08333333333333333s\" repeatCount=\"indefinite\"/>\n  </rect>\n</svg>";
+    var Cons = buffers[0].constructor;
+    return buffers.reduce(function (pre, val) {
+      var merge = new Cons((pre.byteLength | 0) + (val.byteLength | 0));
+      merge.set(pre, 0);
+      merge.set(val, pre.byteLength | 0);
+      return merge;
+    }, new Cons());
+  }
+  function createWorker(workerString) {
+    return new Worker(URL.createObjectURL(new Blob([workerString], {
+      type: 'application/javascript'
+    })));
+  }
+  function getNowTime() {
+    if (performance && typeof performance.now === 'function') {
+      return performance.now();
+    }
 
-  var iconsMap = {
-    play: play,
-    pause: pause,
-    volume: volume,
-    volumeClose: volumeClose,
-    fullscreen: fullscreen,
-    loading: loading
-  };
-  var icons = {};
-  Object.keys(iconsMap).forEach(function (key) {
-    icons[key] = "<i class=\"flv-player-icon flv-player-icon-".concat(key, "\">").concat(iconsMap[key], "</i>");
-  });
+    return Date.now();
+  }
+  function clamp(num, a, b) {
+    return Math.max(Math.min(num, Math.max(a, b)), Math.min(a, b));
+  }
+  function setStyle(element, key, value) {
+    if (_typeof_1(key) === 'object') {
+      Object.keys(key).forEach(function (item) {
+        setStyle(element, item, key[item]);
+      });
+    }
 
-  function template(flv, player) {
-    var options = flv.options;
-    options.container.classList.add('flv-player-container');
-    options.container.innerHTML = "\n        <div class=\"flv-player-inner flv-player-controls-show ".concat(options.live ? 'flv-player-live' : '', " ").concat(options.debug ? 'flv-player-debug' : '', "\">\n            <canvas class=\"flv-player-canvas\" width=\"").concat(options.width, "\" height=\"").concat(options.height, "\"></canvas>\n            ").concat(options.poster ? "<div class=\"flv-player-poster\" style=\"background-image: url(".concat(options.poster, ")\"></div>") : '', "\n            <div class=\"flv-player-loading\">").concat(icons.loading, "</div>\n            ").concat(options.controls ? "\n                <div class=\"flv-player-controls\">\n                    ".concat(!options.live ? "\n                        <div class=\"flv-player-controls-progress\">\n                            <div class=\"flv-player-loaded\"></div>\n                            <div class=\"flv-player-played\">\n                                <div class=\"flv-player-indicator\"></div>\n                            </div>\n                        </div>\n                    " : '', "\n                    <div class=\"flv-player-controls-bottom\">\n                        <div class=\"flv-player-controls-left\">\n                            <div class=\"flv-player-controls-item flv-player-state\">\n                                <div class=\"flv-player-play\">").concat(icons.play, "</div>\n                                <div class=\"flv-player-pause\">").concat(icons.pause, "</div>\n                            </div>\n                            ").concat(options.hasAudio ? "\n                                <div class=\"flv-player-controls-item flv-player-volume\">\n                                    <div class=\"flv-player-volume-on\">".concat(icons.volume, "</div>\n                                    <div class=\"flv-player-volume-off\">").concat(icons.volumeClose, "</div>\n                                    <div class=\"flv-player-volume-panel\">\n                                        <div class=\"flv-player-volume-panel-handle\"></div>\n                                    </div>\n                                </div>\n                            ") : '', "\n                            ").concat(!options.live ? "\n                                <div class=\"flv-player-controls-item flv-player-time\">\n                                    <span class=\"flv-player-current\">00:00</span> / <span class=\"flv-player-duration\">00:00</span>\n                                </div>\n                            " : '', "\n                        </div>\n                        <div class=\"flv-player-controls-right\">\n                            <div class=\"flv-player-controls-item flv-player-fullscreen\">").concat(icons.fullscreen, "</div>\n                        </div>\n                    </div>\n                </div>\n            ") : '', "\n        </div>\n    ");
-    Object.defineProperty(player, '$container', {
-      value: options.container
-    });
-    Object.defineProperty(player, '$player', {
-      value: options.container.querySelector('.flv-player-inner')
-    });
-    Object.defineProperty(player, '$canvas', {
-      value: options.container.querySelector('.flv-player-canvas')
-    });
-    Object.defineProperty(player, '$poster', {
-      value: options.container.querySelector('.flv-player-poster')
-    });
-    Object.defineProperty(player, '$loading', {
-      value: options.container.querySelector('.flv-player-loading')
-    });
-    Object.defineProperty(player, '$controls', {
-      value: options.container.querySelector('.flv-player-controls')
-    });
-    Object.defineProperty(player, '$state', {
-      value: options.container.querySelector('.flv-player-state')
-    });
-    Object.defineProperty(player, '$play', {
-      value: options.container.querySelector('.flv-player-play')
-    });
-    Object.defineProperty(player, '$pause', {
-      value: options.container.querySelector('.flv-player-pause')
-    });
-    Object.defineProperty(player, '$current', {
-      value: options.container.querySelector('.flv-player-current')
-    });
-    Object.defineProperty(player, '$duration', {
-      value: options.container.querySelector('.flv-player-duration')
-    });
-    Object.defineProperty(player, '$volumeOn', {
-      value: options.container.querySelector('.flv-player-volume-on')
-    });
-    Object.defineProperty(player, '$volumeOff', {
-      value: options.container.querySelector('.flv-player-volume-off')
-    });
-    Object.defineProperty(player, '$volumePanel', {
-      value: options.container.querySelector('.flv-player-volume-panel')
-    });
-    Object.defineProperty(player, '$volumeHandle', {
-      value: options.container.querySelector('.flv-player-volume-panel-handle')
-    });
-    Object.defineProperty(player, '$fullscreen', {
-      value: options.container.querySelector('.flv-player-fullscreen')
-    });
-    Object.defineProperty(player, '$progress', {
-      value: options.container.querySelector('.flv-player-controls-progress')
-    });
-    Object.defineProperty(player, '$loaded', {
-      value: options.container.querySelector('.flv-player-loaded')
-    });
-    Object.defineProperty(player, '$played', {
-      value: options.container.querySelector('.flv-player-played')
-    });
-    Object.defineProperty(player, '$indicator', {
-      value: options.container.querySelector('.flv-player-indicator')
+    element.style[key] = value;
+    return element;
+  }
+  function loadScript(url, name) {
+    return new Promise(function (resolve, reject) {
+      var $script = document.createElement('script');
+
+      $script.onload = function () {
+        if (window[name]) {
+          resolve(window[name]);
+        } else {
+          reject(new Error("Unable to find global variable '".concat(name, "' from '").concat(url, "'")));
+        }
+      };
+
+      $script.onerror = reject;
+      $script.src = url;
+      document.body.appendChild($script);
     });
   }
 
-  var screenfull = createCommonjsModule(function (module) {
-  /*!
-  * screenfull
-  * v4.2.0 - 2019-04-01
-  * (c) Sindre Sorhus; MIT License
-  */
-  (function () {
-
-  	var document = typeof window !== 'undefined' && typeof window.document !== 'undefined' ? window.document : {};
-  	var isCommonjs = module.exports;
-  	var keyboardAllowed = typeof Element !== 'undefined' && 'ALLOW_KEYBOARD_INPUT' in Element;
-
-  	var fn = (function () {
-  		var val;
-
-  		var fnMap = [
-  			[
-  				'requestFullscreen',
-  				'exitFullscreen',
-  				'fullscreenElement',
-  				'fullscreenEnabled',
-  				'fullscreenchange',
-  				'fullscreenerror'
-  			],
-  			// New WebKit
-  			[
-  				'webkitRequestFullscreen',
-  				'webkitExitFullscreen',
-  				'webkitFullscreenElement',
-  				'webkitFullscreenEnabled',
-  				'webkitfullscreenchange',
-  				'webkitfullscreenerror'
-
-  			],
-  			// Old WebKit (Safari 5.1)
-  			[
-  				'webkitRequestFullScreen',
-  				'webkitCancelFullScreen',
-  				'webkitCurrentFullScreenElement',
-  				'webkitCancelFullScreen',
-  				'webkitfullscreenchange',
-  				'webkitfullscreenerror'
-
-  			],
-  			[
-  				'mozRequestFullScreen',
-  				'mozCancelFullScreen',
-  				'mozFullScreenElement',
-  				'mozFullScreenEnabled',
-  				'mozfullscreenchange',
-  				'mozfullscreenerror'
-  			],
-  			[
-  				'msRequestFullscreen',
-  				'msExitFullscreen',
-  				'msFullscreenElement',
-  				'msFullscreenEnabled',
-  				'MSFullscreenChange',
-  				'MSFullscreenError'
-  			]
-  		];
-
-  		var i = 0;
-  		var l = fnMap.length;
-  		var ret = {};
-
-  		for (; i < l; i++) {
-  			val = fnMap[i];
-  			if (val && val[1] in document) {
-  				for (i = 0; i < val.length; i++) {
-  					ret[fnMap[0][i]] = val[i];
-  				}
-  				return ret;
-  			}
-  		}
-
-  		return false;
-  	})();
-
-  	var eventNameMap = {
-  		change: fn.fullscreenchange,
-  		error: fn.fullscreenerror
-  	};
-
-  	var screenfull = {
-  		request: function (elem) {
-  			return new Promise(function (resolve) {
-  				var request = fn.requestFullscreen;
-
-  				var onFullScreenEntered = function () {
-  					this.off('change', onFullScreenEntered);
-  					resolve();
-  				}.bind(this);
-
-  				elem = elem || document.documentElement;
-
-  				// Work around Safari 5.1 bug: reports support for
-  				// keyboard in fullscreen even though it doesn't.
-  				// Browser sniffing, since the alternative with
-  				// setTimeout is even worse.
-  				if (/ Version\/5\.1(?:\.\d+)? Safari\//.test(navigator.userAgent)) {
-  					elem[request]();
-  				} else {
-  					elem[request](keyboardAllowed ? Element.ALLOW_KEYBOARD_INPUT : {});
-  				}
-
-  				this.on('change', onFullScreenEntered);
-  			}.bind(this));
-  		},
-  		exit: function () {
-  			return new Promise(function (resolve) {
-  				if (!this.isFullscreen) {
-  					resolve();
-  					return;
-  				}
-
-  				var onFullScreenExit = function () {
-  					this.off('change', onFullScreenExit);
-  					resolve();
-  				}.bind(this);
-
-  				document[fn.exitFullscreen]();
-
-  				this.on('change', onFullScreenExit);
-  			}.bind(this));
-  		},
-  		toggle: function (elem) {
-  			return this.isFullscreen ? this.exit() : this.request(elem);
-  		},
-  		onchange: function (callback) {
-  			this.on('change', callback);
-  		},
-  		onerror: function (callback) {
-  			this.on('error', callback);
-  		},
-  		on: function (event, callback) {
-  			var eventName = eventNameMap[event];
-  			if (eventName) {
-  				document.addEventListener(eventName, callback, false);
-  			}
-  		},
-  		off: function (event, callback) {
-  			var eventName = eventNameMap[event];
-  			if (eventName) {
-  				document.removeEventListener(eventName, callback, false);
-  			}
-  		},
-  		raw: fn
-  	};
-
-  	if (!fn) {
-  		if (isCommonjs) {
-  			module.exports = false;
-  		} else {
-  			window.screenfull = false;
-  		}
-
-  		return;
-  	}
-
-  	Object.defineProperties(screenfull, {
-  		isFullscreen: {
-  			get: function () {
-  				return Boolean(document[fn.fullscreenElement]);
-  			}
-  		},
-  		element: {
-  			enumerable: true,
-  			get: function () {
-  				return document[fn.fullscreenElement];
-  			}
-  		},
-  		enabled: {
-  			enumerable: true,
-  			get: function () {
-  				// Coerce to boolean in case of old WebKit
-  				return Boolean(document[fn.fullscreenEnabled]);
-  			}
-  		}
-  	});
-
-  	if (isCommonjs) {
-  		module.exports = screenfull;
-  		// TODO: remove this in the next major version
-  		module.exports.default = screenfull;
-  	} else {
-  		window.screenfull = screenfull;
-  	}
-  })();
-  });
+  function template(flv, player) {
+    var options = flv.options;
+    setStyle(options.container, {
+      position: 'relative',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      boxSizing: 'border-box'
+    });
+    Object.defineProperty(player, '$container', {
+      value: options.container
+    });
+    var $canvas = document.createElement('canvas');
+    $canvas.width = options.width;
+    $canvas.height = options.height;
+    setStyle($canvas, {
+      cursor: 'pointer',
+      width: '100%',
+      height: '100%',
+      backgroundColor: '#000'
+    });
+    options.container.appendChild($canvas);
+    Object.defineProperty(player, '$canvas', {
+      value: $canvas
+    });
+  }
 
   function property(flv, player) {
     Object.defineProperty(player, 'rect', {
@@ -948,70 +625,6 @@
         }
       }
     });
-    Object.defineProperty(player, 'controls', {
-      get: function get() {
-        return player.$player.classList.contains('flv-player-controls-show');
-      },
-      set: function set(type) {
-        if (type) {
-          player.$player.classList.add('flv-player-controls-show');
-        } else {
-          player.$player.classList.remove('flv-player-controls-show');
-        }
-      }
-    });
-    Object.defineProperty(player, 'loading', {
-      get: function get() {
-        return player.$player.classList.contains('flv-player-loading-show');
-      },
-      set: function set(type) {
-        if (type) {
-          player.$player.classList.add('flv-player-loading-show');
-        } else {
-          player.$player.classList.remove('flv-player-loading-show');
-        }
-      }
-    });
-
-    try {
-      var screenfullChange = function screenfullChange() {
-        if (player.fullscreen) {
-          player.$container.classList.add('flv-player-fullscreen');
-        } else {
-          player.$container.classList.remove('flv-player-fullscreen');
-        }
-
-        player.autoSize();
-      };
-
-      screenfull.on('change', screenfullChange);
-      flv.events.destroyEvents.push(function () {
-        screenfull.off('change', screenfullChange);
-      });
-    } catch (error) {
-      flv.debug.warn(false, 'Does not seem to support full screen events');
-    }
-
-    Object.defineProperty(player, 'fullscreen', {
-      get: function get() {
-        return screenfull.isFullscreen || player.$container.classList.contains('flv-player-fullscreen-web');
-      },
-      set: function set(type) {
-        if (type) {
-          try {
-            screenfull.request(player.$container);
-          } catch (error) {
-            player.$container.classList.add('flv-player-fullscreen-web');
-          }
-        } else {
-          try {
-            screenfull.exit();
-          } catch (error) {
-            player.$container.classList.remove('flv-player-fullscreen-web');
-          }
-        }
-      }
-    });
   }
 
   function observer(flv, player) {
@@ -1021,6 +634,17 @@
     object.setAttribute('tabindex', -1);
     object.type = 'text/html';
     object.data = 'about:blank';
+    setStyle(object, {
+      display: 'block',
+      position: 'absolute',
+      top: '0',
+      left: '0',
+      height: '100%',
+      width: '100%',
+      overflow: 'hidden',
+      pointerEvents: 'none',
+      zIndex: '-1'
+    });
     var playerWidth = player.width;
     var playerHeight = player.height;
     proxy(object, 'load', function () {
@@ -1036,8 +660,7 @@
   }
 
   function events(flv, player) {
-    var poster = flv.options.poster,
-        proxy = flv.events.proxy;
+    var proxy = flv.events.proxy;
     player.autoSize();
     flv.on('scripMeta', function (scripMeta) {
       var _scripMeta$amf2$metaD = scripMeta.amf2.metaData,
@@ -1060,290 +683,6 @@
     proxy(player.$canvas, 'click', function () {
       player.toggle();
     });
-
-    if (poster) {
-      flv.on('play', function () {
-        player.$poster.style.display = 'none';
-      });
-      flv.on('seeked', function () {
-        player.$poster.style.display = 'none';
-      });
-    }
-
-    flv.on('waiting', function () {
-      player.loading = true;
-    });
-    flv.on('ended', function () {
-      player.loading = false;
-    });
-    flv.on('timeupdate', function () {
-      player.loading = false;
-    });
-  }
-
-  function hotkey(flv, player) {
-    var proxy = flv.events.proxy;
-    var keys = {};
-
-    function addHotkey(key, event) {
-      if (keys[key]) {
-        keys[key].push(event);
-      } else {
-        keys[key] = [event];
-      }
-    }
-
-    addHotkey(27, function () {
-      if (player.fullscreen) {
-        player.fullscreen = false;
-      }
-    });
-    addHotkey(32, function () {
-      player.toggle();
-    });
-    addHotkey(37, function () {
-      player.currentTime -= 10;
-    });
-    addHotkey(38, function () {
-      player.volume += 1;
-    });
-    addHotkey(39, function () {
-      player.currentTime += 10;
-    });
-    addHotkey(40, function () {
-      player.volume -= 1;
-    });
-    proxy(window, 'keydown', function (event) {
-      if (player.isFocus) {
-        var tag = document.activeElement.tagName.toUpperCase();
-        var editable = document.activeElement.getAttribute('contenteditable');
-
-        if (tag !== 'INPUT' && tag !== 'TEXTAREA' && editable !== '' && editable !== 'true') {
-          var events = keys[event.keyCode];
-
-          if (events) {
-            event.preventDefault();
-            events.forEach(function (fn) {
-              return fn();
-            });
-          }
-        }
-      }
-    });
-  }
-
-  function controls(flv, player) {
-    var proxy = flv.events.proxy;
-    proxy(player.$play, 'click', function () {
-      player.play();
-    });
-    proxy(player.$pause, 'click', function () {
-      player.pause();
-    });
-    var loadedFn = throttle(function (timestamp) {
-      var time = clamp(timestamp / player.duration, 0, 1);
-      player.$loaded.style.width = "".concat(time * 100, "%");
-    }, 500);
-    flv.on('videoLoaded', function (timestamp) {
-      if (!flv.options.live) {
-        loadedFn(timestamp);
-      }
-    });
-    var timeupdateFn = throttle(function (currentTime) {
-      player.$played.style.width = "".concat(currentTime / player.duration * 100, "%");
-      player.$current.innerText = secondToTime(currentTime);
-    }, 500);
-    flv.on('timeupdate', function (currentTime) {
-      if (!flv.options.live) {
-        timeupdateFn(currentTime);
-      }
-    });
-    flv.on('seeked', function (currentTime) {
-      if (!flv.options.live) {
-        timeupdateFn(currentTime);
-      }
-    });
-    flv.on('play', function () {
-      player.$play.style.display = 'none';
-      player.$pause.style.display = 'block';
-    });
-    flv.on('ended', function () {
-      player.controls = true;
-      player.$play.style.display = 'block';
-      player.$pause.style.display = 'none';
-    });
-    flv.on('pause', function () {
-      player.$play.style.display = 'block';
-      player.$pause.style.display = 'none';
-    });
-    flv.on('scripMeta', function () {
-      if (!flv.options.live) {
-        player.$duration.innerText = secondToTime(player.duration);
-      }
-    });
-    proxy(player.$fullscreen, 'click', function () {
-      if (player.fullscreen) {
-        player.fullscreen = false;
-      } else {
-        player.fullscreen = true;
-      }
-    });
-    var autoHide = debounce(function () {
-      player.$player.classList.add('flv-player-hide-cursor');
-      player.controls = false;
-    }, 5000);
-    proxy(player.$player, 'mousemove', function () {
-      autoHide.clearTimeout();
-      player.$player.classList.remove('flv-player-hide-cursor');
-      player.controls = true;
-
-      if (player.playing) {
-        autoHide();
-      }
-    });
-
-    function volumeChangeFromEvent(event) {
-      var _player$$volumePanel$ = player.$volumePanel.getBoundingClientRect(),
-          panelLeft = _player$$volumePanel$.left,
-          panelWidth = _player$$volumePanel$.width;
-
-      var _player$$volumeHandle = player.$volumeHandle.getBoundingClientRect(),
-          handleWidth = _player$$volumeHandle.width;
-
-      var percentage = clamp(event.x - panelLeft - handleWidth / 2, 0, panelWidth - handleWidth / 2) / (panelWidth - handleWidth);
-      return percentage * 10;
-    }
-
-    function setVolumeHandle(percentage) {
-      if (percentage === 0) {
-        setStyle(player.$volumeOn, 'display', 'none');
-        setStyle(player.$volumeOff, 'display', 'flex');
-        setStyle(player.$volumeHandle, 'left', '0');
-      } else {
-        var panelWidth = getStyle(player.$volumePanel, 'width') || 60;
-        var handleWidth = getStyle(player.$volumeHandle, 'width');
-        var width = (panelWidth - handleWidth) * percentage / 10;
-        setStyle(player.$volumeOn, 'display', 'flex');
-        setStyle(player.$volumeOff, 'display', 'none');
-        setStyle(player.$volumeHandle, 'left', "".concat(width, "px"));
-      }
-    }
-
-    if (flv.options.hasAudio) {
-      var lastVolume = 0;
-      var isVolumeDroging = false;
-      setVolumeHandle(flv.options.volume);
-      flv.on('volumechange', function () {
-        setVolumeHandle(player.volume);
-      });
-      proxy(player.$volumeOn, 'click', function () {
-        player.$volumeOn.style.display = 'none';
-        player.$volumeOff.style.display = 'block';
-        lastVolume = player.volume;
-        player.volume = 0;
-      });
-      proxy(player.$volumeOff, 'click', function () {
-        player.$volumeOn.style.display = 'block';
-        player.$volumeOff.style.display = 'none';
-        player.volume = lastVolume || 7;
-      });
-      proxy(player.$volumePanel, 'click', function (event) {
-        player.volume = volumeChangeFromEvent(event);
-      });
-      proxy(player.$volumeHandle, 'mousedown', function () {
-        isVolumeDroging = true;
-      });
-      proxy(player.$volumeHandle, 'mousemove', function (event) {
-        if (isVolumeDroging) {
-          player.volume = volumeChangeFromEvent(event);
-        }
-      });
-      proxy(document, 'mouseup', function () {
-        if (isVolumeDroging) {
-          isVolumeDroging = false;
-        }
-      });
-    }
-
-    function getPosFromEvent(event) {
-      var $progress = player.$progress;
-
-      var _$progress$getBoundin = $progress.getBoundingClientRect(),
-          left = _$progress$getBoundin.left;
-
-      var width = clamp(event.x - left, 0, $progress.clientWidth);
-      var second = width / $progress.clientWidth * player.duration;
-      var time = secondToTime(second);
-      var percentage = clamp(width / $progress.clientWidth, 0, 1);
-      return {
-        second: second,
-        time: time,
-        width: width,
-        percentage: percentage
-      };
-    }
-
-    if (!flv.options.live) {
-      proxy(player.$progress, 'click', function (event) {
-        if (event.target !== player.$indicator) {
-          var _getPosFromEvent = getPosFromEvent(event),
-              second = _getPosFromEvent.second,
-              percentage = _getPosFromEvent.percentage;
-
-          if (second <= player.loaded) {
-            player.$played.style.width = "".concat(percentage * 100, "%");
-            player.currentTime = second;
-          }
-        }
-      });
-      var isIndicatorDroging = false;
-      proxy(player.$indicator, 'mousedown', function () {
-        isIndicatorDroging = true;
-      });
-      proxy(document, 'mousemove', function (event) {
-        if (isIndicatorDroging) {
-          var _getPosFromEvent2 = getPosFromEvent(event),
-              second = _getPosFromEvent2.second,
-              percentage = _getPosFromEvent2.percentage;
-
-          if (second <= player.loaded) {
-            player.$played.style.width = "".concat(percentage * 100, "%");
-            player.currentTime = second;
-          }
-        }
-      });
-      proxy(document, 'mouseup', function () {
-        if (isIndicatorDroging) {
-          isIndicatorDroging = false;
-        }
-      });
-      var isCanvasDroging = false;
-      var touchstartX = 0;
-      var touchSecond = 0;
-      proxy(player.$canvas, 'touchstart', function (event) {
-        isCanvasDroging = true;
-        touchstartX = event.targetTouches[0].clientX;
-      });
-      proxy(player.$canvas, 'touchmove', function (event) {
-        if (isCanvasDroging) {
-          var $progress = player.$progress;
-          var moveWidth = event.targetTouches[0].clientX - touchstartX;
-          touchSecond = moveWidth / $progress.clientWidth * player.duration;
-        }
-      });
-      proxy(player.$canvas, 'touchend', function () {
-        if (isCanvasDroging) {
-          isCanvasDroging = false;
-
-          if (touchSecond <= player.loaded) {
-            player.currentTime += touchSecond;
-          }
-
-          touchstartX = 0;
-          touchSecond = 0;
-        }
-      });
-    }
   }
 
   var Player = function Player(flv) {
@@ -1353,14 +692,6 @@
     property(flv, this);
     observer(flv, this);
     events(flv, this);
-
-    if (flv.options.hotkey) {
-      hotkey(flv, this);
-    }
-
-    if (flv.options.controls) {
-      controls(flv, this);
-    }
   };
 
   var AudioDecoder =
@@ -1557,6 +888,13 @@
         };
       }
 
+      flv.on('ready', function () {
+        _this.video.draw(0);
+
+        if (flv.options.autoPlay) {
+          _this.play();
+        }
+      });
       flv.on('destroy', function () {
         _this.pause();
       });
@@ -1995,6 +1333,9 @@
     return Stream;
   }();
 
+  function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+  function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
   var id = 0;
 
   var FlvPlayer =
@@ -2008,45 +1349,37 @@
       classCallCheck(this, FlvPlayer);
 
       _this = possibleConstructorReturn(this, getPrototypeOf(FlvPlayer).call(this));
-      _this.options = objectSpread({}, FlvPlayer.options, options);
+      _this.options = _objectSpread({}, FlvPlayer.options, {}, options);
 
       if (typeof _this.options.container === 'string') {
         _this.options.container = document.querySelector(_this.options.container);
       }
 
-      _this.debug = new Debug(assertThisInitialized(_this));
-      _this.events = new Events(assertThisInitialized(_this));
-
-      if (window.VideoDecoder) {
+      loadScript(_this.options.decoder, 'VideoDecoder').then(function () {
+        _this.debug = new Debug(assertThisInitialized(_this));
+        _this.events = new Events(assertThisInitialized(_this));
         _this.player = new Player(assertThisInitialized(_this));
-        _this.decoder = new Decoder(assertThisInitialized(_this));
-        _this.demuxer = new Demuxer(assertThisInitialized(_this));
-        _this.stream = new Stream(assertThisInitialized(_this));
-      } else {
-        var videoDecoderScript = document.createElement('script');
-        videoDecoderScript.src = _this.options.videoDecoder;
-        document.body.appendChild(videoDecoderScript);
 
-        _this.events.proxy(videoDecoderScript, 'load', function () {
-          _this.player = new Player(assertThisInitialized(_this));
+        if (_this.options.control) {
+          loadScript(_this.options.control, 'VideoControl').then(function (Control) {
+            _this.control = new Control(assertThisInitialized(_this));
+            _this.decoder = new Decoder(assertThisInitialized(_this));
+            _this.demuxer = new Demuxer(assertThisInitialized(_this));
+            _this.stream = new Stream(assertThisInitialized(_this));
+          });
+        } else {
           _this.decoder = new Decoder(assertThisInitialized(_this));
           _this.demuxer = new Demuxer(assertThisInitialized(_this));
           _this.stream = new Stream(assertThisInitialized(_this));
-        });
+        }
 
-        _this.events.proxy(videoDecoderScript, 'error', function () {
-          var path = new URL(_this.options.videoDecoder, window.location.href).href;
-
-          _this.debug.error(false, "Video decoder not found: ".concat(path));
-        });
-      }
-
-      id += 1;
-      _this.id = id;
-      _this.isDestroy = false;
-      _this.userAgent = window.navigator.userAgent;
-      _this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(_this.userAgent);
-      FlvPlayer.instances.push(assertThisInitialized(_this));
+        id += 1;
+        _this.id = id;
+        _this.isDestroy = false;
+        _this.userAgent = window.navigator.userAgent;
+        _this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(_this.userAgent);
+        FlvPlayer.instances.push(assertThisInitialized(_this));
+      });
       return _this;
     }
 
@@ -2064,13 +1397,11 @@
       get: function get() {
         return {
           url: '',
-          poster: '',
           container: '',
           debug: false,
           live: false,
           loop: false,
-          hotkey: true,
-          controls: true,
+          autoPlay: false,
           hasAudio: true,
           volume: 7,
           frameRate: 30,
@@ -2078,7 +1409,8 @@
           height: 300,
           socketSend: '',
           headers: {},
-          videoDecoder: './baselineProfileDecoder.js'
+          decoder: './decoder-baseline-profile.js',
+          control: './control-default.js'
         };
       }
     }, {

@@ -14,5 +14,4 @@ var flv = new FlvPlayer({
     volume: 7,
     width: 640,
     height: 360,
-    control: true,
 });

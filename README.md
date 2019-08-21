@@ -11,6 +11,7 @@
 > FlvPlayer.js is a JavaScript player for decode flv to the canvas
 
 ## Demo
+
 [Play online demo](https://flvplayer.js.org/)
 
 [Play local demo](https://flvplayer.js.org/fileReader.html)
@@ -43,16 +44,18 @@ Will expose the global variable to `window.FlvPlayer`.
 
 ## Install control(optional)
 
+You should load the control before load the player.
+
 ```js
-import 'flvplayer/dist/flvplayer-control.css';
-import 'flvplayer/dist/flvplayer-control.js';
+import 'path/to/flvplayer-control.css';
+import 'path/to/flvplayer-control.js';
 ```
 
 Or umd builds are also available
 
 ```html
-<link rel="stylesheet" href="flvplayer/dist/flvplayer-control.css" />
-<script src="flvplayer/dist/flvplayer-control.js"></script>
+<link rel="stylesheet" href="path/to/flvplayer-control.css" />
+<script src="path/to/flvplayer-control.js"></script>
 ```
 
 Will expose the global variable to `window.FlvplayerControl`.
@@ -66,7 +69,7 @@ Will expose the global variable to `window.FlvplayerControl`.
 ```js
 var flv = new FlvPlayer({
     container: '.flvplayer-app', // A div dom element
-    url: 'path/to/video.flv', // Url of flv video file
+    url: 'path/to/video.flv', // Url of flv video file or url of websocket
     decoder: './flvplayer-decoder-baseline.js', // Path to video decoder, flvplayer-decoder-baseline.js or flvplayer-decoder-multiple.js
     poster: 'path/to/poster.png', // Url of video poster, the first frame of the video is taken as the poster by default
     autoPlay: false, // Whether auto play

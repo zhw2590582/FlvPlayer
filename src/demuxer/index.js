@@ -63,6 +63,10 @@ export default class Demuxer {
                     flv.emit('flvHeader', this.header);
                     debug.log('flv-header', this.header);
                     break;
+                case 'noAudio':
+                    flv.emit('noAudio');
+                    debug.log('flv-flags', 'FLV header flags not found audio');
+                    break;
                 case 'scripMeta':
                     this.scripMeta = message.data;
                     flv.emit('scripMeta', this.scripMeta);

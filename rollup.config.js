@@ -1,14 +1,14 @@
-const babel = require('rollup-plugin-babel');
-const commonjs = require('rollup-plugin-commonjs');
-const postcss = require('rollup-plugin-postcss');
-const autoprefixer = require('autoprefixer');
-const cssnano = require('cssnano');
-const nodeResolve = require('rollup-plugin-node-resolve');
-const { eslint } = require('rollup-plugin-eslint');
-const replace = require('rollup-plugin-replace');
-const { string } = require('rollup-plugin-string');
-const { uglify } = require('rollup-plugin-uglify');
-const { version, homepage } = require('./package.json');
+import babel from 'rollup-plugin-babel';
+import commonjs from 'rollup-plugin-commonjs';
+import postcss from 'rollup-plugin-postcss';
+import autoprefixer from 'autoprefixer';
+import cssnano from 'cssnano';
+import nodeResolve from 'rollup-plugin-node-resolve';
+import { eslint } from 'rollup-plugin-eslint';
+import replace from 'rollup-plugin-replace';
+import { string } from 'rollup-plugin-string';
+import { uglify } from 'rollup-plugin-uglify';
+import { version, homepage } from './package.json';
 
 const isProd = process.env.NODE_ENV === 'production';
 
@@ -64,7 +64,7 @@ const baseConfig = {
     ],
 };
 
-module.exports = [
+export default [
     {
         input: 'src/index.js',
         output: {

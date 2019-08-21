@@ -693,7 +693,7 @@
       };
     }
 
-    if (!flv.options.live && !flv.isMobile) {
+    if (!flv.options.live && flv.options.cacheFrame) {
       proxy(control.$progress, 'click', function (event) {
         if (event.target !== control.$indicator) {
           var _getPosFromEvent = getPosFromEvent(event),
@@ -725,6 +725,32 @@
       proxy(document, 'mouseup', function () {
         if (isIndicatorDroging) {
           isIndicatorDroging = false;
+        }
+      });
+      var isCanvasDroging = false;
+      var touchstartX = 0;
+      var touchSecond = 0;
+      proxy(player.$canvas, 'touchstart', function (event) {
+        isCanvasDroging = true;
+        touchstartX = event.targetTouches[0].clientX;
+      });
+      proxy(player.$canvas, 'touchmove', function (event) {
+        if (isCanvasDroging) {
+          var $progress = control.$progress;
+          var moveWidth = event.targetTouches[0].clientX - touchstartX;
+          touchSecond = moveWidth / $progress.clientWidth * player.duration;
+        }
+      });
+      proxy(player.$canvas, 'touchend', function () {
+        if (isCanvasDroging) {
+          isCanvasDroging = false;
+
+          if (touchSecond <= player.loaded) {
+            player.currentTime += touchSecond;
+          }
+
+          touchstartX = 0;
+          touchSecond = 0;
         }
       });
     }

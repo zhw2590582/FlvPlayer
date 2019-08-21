@@ -25,6 +25,16 @@ export default class Decoder {
             };
         }
 
+        flv.on('noAudio', () => {
+            flv.options.hasAudio = false;
+            this.audio = {
+                play: () => null,
+                stop: () => null,
+                playing: true,
+                decoding: false,
+            };
+        });
+
         flv.on('ready', () => {
             if (flv.options.autoPlay) {
                 this.play();

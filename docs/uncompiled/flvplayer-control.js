@@ -693,7 +693,7 @@
       };
     }
 
-    if (!flv.options.live && flv.options.cacheFrame) {
+    if (!flv.options.live) {
       proxy(control.$progress, 'click', function (event) {
         if (event.target !== control.$indicator) {
           var _getPosFromEvent = getPosFromEvent(event),

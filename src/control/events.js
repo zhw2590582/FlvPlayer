@@ -185,7 +185,7 @@ export default function controls(flv, control) {
         return { second, time, width, percentage };
     }
 
-    if (!flv.options.live && flv.options.cacheFrame) {
+    if (!flv.options.live) {
         proxy(control.$progress, 'click', event => {
             if (event.target !== control.$indicator) {
                 const { second, percentage } = getPosFromEvent(event);

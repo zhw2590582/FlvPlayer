@@ -356,7 +356,6 @@ onmessage = event => {
         header.version = read(1)[0];
         debug.error(header.signature === 'FLV' && header.version === 1, 'FLV header not found');
         header.flags = read(1)[0];
-        console.log(header.flags);
         debug.error(header.flags === 5 || header.flags === 1, 'FLV header flags not found video');
         if (header.flags === 1) {
             postMessage({

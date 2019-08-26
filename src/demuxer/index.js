@@ -1,6 +1,27 @@
 import { getNowTime, createWorker, readBuffer, mergeBuffer } from '../utils';
 import workerString from './demuxer.worker';
 
+function getProfileString(profileIdc) {
+    switch (profileIdc) {
+        case 66:
+            return 'Baseline';
+        case 77:
+            return 'Main';
+        case 88:
+            return 'Extended';
+        case 100:
+            return 'High';
+        case 110:
+            return 'High10';
+        case 122:
+            return 'High422';
+        case 244:
+            return 'High444';
+        default:
+            return 'Unknown';
+    }
+}
+
 export default class Demuxer {
     constructor(flv) {
         const { options, debug } = flv;
@@ -76,6 +97,7 @@ export default class Demuxer {
                     this.AVCDecoderConfigurationRecord = message.data;
                     flv.emit('AVCDecoderConfigurationRecord', this.AVCDecoderConfigurationRecord);
                     debug.log('AVCDecoderConfigurationRecord', this.AVCDecoderConfigurationRecord);
+                    debug.log('AVCProfile', getProfileString(this.AVCDecoderConfigurationRecord.AVCProfileIndication));
                     break;
                 case 'AudioSpecificConfig':
                     this.AudioSpecificConfig = message.data;

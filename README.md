@@ -85,6 +85,105 @@ var flv = new FlvPlayer({
 });
 ```
 
+## API
+
+### Instance methods and properties
+
+Play video:
+
+```js
+flv.play();
+```
+
+Pause video:
+
+```js
+flv.pause();
+```
+
+Destroy instance:
+
+```js
+flv.destroy();
+```
+
+Whether it is playing:
+
+```js
+flv.playing;
+```
+
+Is the stream being pulled:
+
+```js
+flv.streaming;
+```
+
+Get the current time of the video:
+
+```js
+flv.currentTime;
+```
+
+Get the duration of the video:
+
+```js
+flv.duration;
+```
+
+Get the loaded of the video:
+
+```js
+flv.loaded;
+```
+
+Whether it is focus:
+
+```js
+flv.isFocus;
+```
+
+Get canvas elements:
+
+```js
+flv.$canvas;
+```
+
+### Instance event
+
+| Name          | Description                   |
+| ------------- | ----------------------------- |
+| `destroy`     | When destroying an instance   |
+| `streamStart` | Start pulling the stream      |
+| `streaming`   | When pulling stream           |
+| `streamEnd`   | At the end of the pull stream |
+| `demuxDone`   | Demux completed               |
+| `resize`      | When container resize         |
+| `play`        | When video play               |
+| `timeupdate`  | When video timeupdate         |
+| `waiting`     | When video waiting            |
+| `ended`       | When video ended              |
+| `loop`        | When video loop               |
+| `pause`       | When video pause              |
+| `seeked`      | When video seeked             |
+| `ready`       | When video ready              |
+
+Example:
+
+```js
+flv.on('play', function() {
+    console.log('Video is play!');
+});
+```
+
+### Class methods and properties
+
+Get all instances:
+
+```js
+FlvPlayer.instances;
+```
+
 ## QQ Group
 
 ![QQ Group](./QQgroup.png)

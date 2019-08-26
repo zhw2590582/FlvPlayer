@@ -1079,6 +1079,10 @@
     }
   }
 
+  function getLevelString(levelIdc) {
+    return (levelIdc / 10).toFixed(1);
+  }
+
   var Demuxer = function Demuxer(flv) {
     var _this = this;
 
@@ -1159,7 +1163,8 @@
           _this.AVCDecoderConfigurationRecord = message.data;
           flv.emit('AVCDecoderConfigurationRecord', _this.AVCDecoderConfigurationRecord);
           debug.log('AVCDecoderConfigurationRecord', _this.AVCDecoderConfigurationRecord);
-          debug.log('AVCProfile', getProfileString(_this.AVCDecoderConfigurationRecord.AVCProfileIndication));
+          debug.log('AVC-profile', getProfileString(_this.AVCDecoderConfigurationRecord.AVCProfileIndication));
+          debug.log('AVC-level', getLevelString(_this.AVCDecoderConfigurationRecord.AVCLevelIndication));
           break;
 
         case 'AudioSpecificConfig':

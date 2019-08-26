@@ -22,6 +22,10 @@ function getProfileString(profileIdc) {
     }
 }
 
+function getLevelString(levelIdc) {
+    return (levelIdc / 10).toFixed(1);
+}
+
 export default class Demuxer {
     constructor(flv) {
         const { options, debug } = flv;
@@ -97,7 +101,8 @@ export default class Demuxer {
                     this.AVCDecoderConfigurationRecord = message.data;
                     flv.emit('AVCDecoderConfigurationRecord', this.AVCDecoderConfigurationRecord);
                     debug.log('AVCDecoderConfigurationRecord', this.AVCDecoderConfigurationRecord);
-                    debug.log('AVCProfile', getProfileString(this.AVCDecoderConfigurationRecord.AVCProfileIndication));
+                    debug.log('AVC-profile', getProfileString(this.AVCDecoderConfigurationRecord.AVCProfileIndication));
+                    debug.log('AVC-level', getLevelString(this.AVCDecoderConfigurationRecord.AVCLevelIndication));
                     break;
                 case 'AudioSpecificConfig':
                     this.AudioSpecificConfig = message.data;

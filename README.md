@@ -16,6 +16,10 @@
 
 [Play local demo](https://flvplayer.js.org/fileReader.html)
 
+## Article
+
+[使用阿里云 ECS 搭建 NodeJs 直播服务器](./ecs-live-server.md)
+
 ## Install player
 
 Install with `npm`

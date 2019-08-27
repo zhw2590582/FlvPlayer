@@ -184,6 +184,32 @@ Get all instances:
 FlvPlayer.instances;
 ```
 
+## Contribution
+
+Installation dependency
+
+```bash
+$ npm install
+```
+
+Run the developer mode
+
+```bash
+$ npm run dev
+```
+
+Open web server
+
+```bash
+$ npm start
+```
+
+Open live server: [Node-Media-Server](https://github.com/illuspas/Node-Media-Server)
+
+```bash
+$ npm run server
+```
+
 ## QQ Group
 
 ![QQ Group](./QQgroup.png)

@@ -6,6 +6,7 @@
     "scripts": {
         "dev": "cross-env NODE_ENV=development rollup -c -m -w",
         "build": "cross-env NODE_ENV=production rollup -c",
+        "server": "npx cross-env NODE_ENV=development && node ./server/index.js",
         "start": "npx cross-env NODE_ENV=development && npx servor docs index.html 8080 5000",
         "test": "eslint src"
     },
@@ -41,6 +42,7 @@
         "eslint-config-airbnb-base": "^13.1.0",
         "eslint-config-prettier": "^4.2.0",
         "eslint-plugin-import": "^2.17.2",
+        "node-media-server": "^2.1.2",
         "node-sass": "^4.12.0",
         "rollup": "^1.11.3",
         "rollup-plugin-babel": "^4.3.2",

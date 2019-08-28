@@ -13,6 +13,7 @@ var flv = new FlvPlayer({
     hotkey: true,
     autoPlay: false,
     hasAudio: true,
+    control: true,
     volume: 7,
     width: 640,
     height: 360,

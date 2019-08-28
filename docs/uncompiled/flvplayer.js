@@ -1396,7 +1396,7 @@
         this.demuxer = new Demuxer(this);
         this.stream = new Stream(this);
 
-        if (window.FlvplayerControl) {
+        if (window.FlvplayerControl && this.options.control) {
           this.control = new window.FlvplayerControl(this);
         }
 
@@ -1430,6 +1430,7 @@
           loop: false,
           autoPlay: false,
           hasAudio: true,
+          control: true,
           volume: 7,
           frameRate: 30,
           width: 400,

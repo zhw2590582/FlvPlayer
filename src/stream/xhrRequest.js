@@ -29,6 +29,7 @@ export default function xhrRequest(flv, url) {
     });
 
     proxy(xhr, 'error', error => {
+        flv.retry();
         throw error;
     });
 

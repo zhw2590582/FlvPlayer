@@ -21,6 +21,7 @@ export default function websocketRequest(flv, url) {
     });
 
     proxy(socket, 'error', error => {
+        flv.retry();
         throw error;
     });
 

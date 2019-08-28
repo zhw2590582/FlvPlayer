@@ -26,5 +26,7 @@ export default function fetchRequest(flv, url) {
         })();
 
         return reader;
+    }).catch(() => {
+        flv.retry();
     });
 }

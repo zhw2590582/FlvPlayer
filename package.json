@@ -7,7 +7,7 @@
         "dev": "cross-env NODE_ENV=development rollup -c -m -w",
         "build": "cross-env NODE_ENV=production rollup -c",
         "server": "npx cross-env NODE_ENV=development && node ./server/index.js",
-        "start": "npx cross-env NODE_ENV=development && npx servor docs index.html 8080 5000",
+        "start": "npx cross-env NODE_ENV=development && npx servor docs index.html 8081 5000",
         "test": "eslint src"
     },
     "repository": {

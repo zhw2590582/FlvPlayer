@@ -24,6 +24,7 @@ export default function mozXhrRequest(flv, url) {
     });
 
     proxy(xhr, 'error', error => {
+        flv.retry();
         throw error;
     });
 

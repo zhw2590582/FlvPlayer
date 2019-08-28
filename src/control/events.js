@@ -7,6 +7,14 @@ export default function controls(flv, control) {
         player,
     } = flv;
 
+    flv.on('resize', () => {
+        control.autoSize();
+    });
+
+    flv.on('scripMeta', () => {
+        control.autoSize();
+    });
+
     if (poster) {
         flv.on('play', () => {
             control.$poster.style.display = 'none';

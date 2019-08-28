@@ -3,17 +3,10 @@ export default function events(flv, player) {
         events: { proxy },
     } = flv;
 
-    player.autoSize();
-
     flv.on('scripMeta', scripMeta => {
         const { width, height } = scripMeta.amf2.metaData;
         player.$canvas.width = width;
         player.$canvas.height = height;
-        player.autoSize();
-    });
-
-    flv.on('resize', () => {
-        player.autoSize();
     });
 
     proxy(window, ['click', 'contextmenu'], event => {

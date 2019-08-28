@@ -1,7 +1,10 @@
 import { setStyle } from '../utils';
 
-export default function observer(flv, player) {
-    const { proxy } = flv.events;
+export default function observer(flv) {
+    const {
+        events: { proxy },
+        player,
+    } = flv;
     const object = document.createElement('object');
     object.setAttribute('aria-hidden', 'true');
     object.setAttribute('tabindex', -1);

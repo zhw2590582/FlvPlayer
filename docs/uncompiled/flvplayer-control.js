@@ -99,6 +99,146 @@
     });
   }
 
+  function createCommonjsModule(fn, module) {
+  	return module = { exports: {} }, fn(module, module.exports), module.exports;
+  }
+
+  var _typeof_1 = createCommonjsModule(function (module) {
+  function _typeof2(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof2 = function _typeof2(obj) { return typeof obj; }; } else { _typeof2 = function _typeof2(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof2(obj); }
+
+  function _typeof(obj) {
+    if (typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol") {
+      module.exports = _typeof = function _typeof(obj) {
+        return _typeof2(obj);
+      };
+    } else {
+      module.exports = _typeof = function _typeof(obj) {
+        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : _typeof2(obj);
+      };
+    }
+
+    return _typeof(obj);
+  }
+
+  module.exports = _typeof;
+  });
+
+  function secondToTime(second) {
+    var add0 = function add0(num) {
+      return num < 10 ? "0".concat(num) : String(num);
+    };
+
+    var hour = Math.floor(second / 3600);
+    var min = Math.floor((second - hour * 3600) / 60);
+    var sec = Math.floor(second - hour * 3600 - min * 60);
+    return (hour > 0 ? [hour, min, sec] : [min, sec]).map(add0).join(':');
+  }
+  function debounce(func, wait, context) {
+    var timeout;
+
+    function fn() {
+      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        args[_key2] = arguments[_key2];
+      }
+
+      var later = function later() {
+        timeout = null;
+        func.apply(context, args);
+      };
+
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    }
+
+    fn.clearTimeout = function ct() {
+      clearTimeout(timeout);
+    };
+
+    return fn;
+  }
+  function throttle(callback, delay) {
+    var isThrottled = false;
+    var args;
+    var context;
+
+    function fn() {
+      for (var _len3 = arguments.length, args2 = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+        args2[_key3] = arguments[_key3];
+      }
+
+      if (isThrottled) {
+        args = args2;
+        context = this;
+        return;
+      }
+
+      isThrottled = true;
+      callback.apply(this, args2);
+      setTimeout(function () {
+        isThrottled = false;
+
+        if (args) {
+          fn.apply(context, args);
+          args = null;
+          context = null;
+        }
+      }, delay);
+    }
+
+    return fn;
+  }
+  function clamp(num, a, b) {
+    return Math.max(Math.min(num, Math.max(a, b)), Math.min(a, b));
+  }
+  function setStyle(element, key, value) {
+    if (_typeof_1(key) === 'object') {
+      Object.keys(key).forEach(function (item) {
+        setStyle(element, item, key[item]);
+      });
+    }
+
+    element.style[key] = value;
+    return element;
+  }
+  function getStyle(element, key) {
+    var numberType = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+    var value = window.getComputedStyle(element, null).getPropertyValue(key);
+    return numberType ? parseFloat(value) : value;
+  }
+
+  function observer(flv) {
+    var proxy = flv.events.proxy,
+        player = flv.player;
+    var object = document.createElement('object');
+    object.setAttribute('aria-hidden', 'true');
+    object.setAttribute('tabindex', -1);
+    object.type = 'text/html';
+    object.data = 'about:blank';
+    setStyle(object, {
+      display: 'block',
+      position: 'absolute',
+      top: '0',
+      left: '0',
+      height: '100%',
+      width: '100%',
+      overflow: 'hidden',
+      pointerEvents: 'none',
+      zIndex: '-1'
+    });
+    var playerWidth = player.width;
+    var playerHeight = player.height;
+    proxy(object, 'load', function () {
+      proxy(object.contentDocument.defaultView, 'resize', function () {
+        if (player.width !== playerWidth || player.height !== playerHeight) {
+          playerWidth = player.width;
+          playerHeight = player.height;
+          flv.emit('resize');
+        }
+      });
+    });
+    player.$container.appendChild(object);
+  }
+
   function hotkey(flv, control) {
     var proxy = flv.events.proxy,
         player = flv.player;
@@ -149,10 +289,6 @@
         }
       }
     });
-  }
-
-  function createCommonjsModule(fn, module) {
-  	return module = { exports: {} }, fn(module, module.exports), module.exports;
   }
 
   var screenfull = createCommonjsModule(function (module) {
@@ -416,115 +552,37 @@
         }
       }
     });
-  }
+    Object.defineProperty(control, 'autoSize', {
+      value: function value() {
+        var playerWidth = player.width;
+        var playerHeight = player.height;
+        var playerRatio = playerWidth / playerHeight;
+        var canvasWidth = player.$canvas.width;
+        var canvasHeight = player.$canvas.height;
+        var canvasRatio = canvasWidth / canvasHeight;
 
-  var _typeof_1 = createCommonjsModule(function (module) {
-  function _typeof2(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof2 = function _typeof2(obj) { return typeof obj; }; } else { _typeof2 = function _typeof2(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof2(obj); }
+        if (playerRatio > canvasRatio) {
+          var padding = (playerWidth - playerHeight * canvasRatio) / 2;
+          player.$container.style.padding = "0 ".concat(padding, "px");
+        } else {
+          var _padding = (playerHeight - playerWidth / canvasRatio) / 2;
 
-  function _typeof(obj) {
-    if (typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol") {
-      module.exports = _typeof = function _typeof(obj) {
-        return _typeof2(obj);
-      };
-    } else {
-      module.exports = _typeof = function _typeof(obj) {
-        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : _typeof2(obj);
-      };
-    }
-
-    return _typeof(obj);
-  }
-
-  module.exports = _typeof;
-  });
-
-  function secondToTime(second) {
-    var add0 = function add0(num) {
-      return num < 10 ? "0".concat(num) : String(num);
-    };
-
-    var hour = Math.floor(second / 3600);
-    var min = Math.floor((second - hour * 3600) / 60);
-    var sec = Math.floor(second - hour * 3600 - min * 60);
-    return (hour > 0 ? [hour, min, sec] : [min, sec]).map(add0).join(':');
-  }
-  function debounce(func, wait, context) {
-    var timeout;
-
-    function fn() {
-      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-        args[_key2] = arguments[_key2];
-      }
-
-      var later = function later() {
-        timeout = null;
-        func.apply(context, args);
-      };
-
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
-    }
-
-    fn.clearTimeout = function ct() {
-      clearTimeout(timeout);
-    };
-
-    return fn;
-  }
-  function throttle(callback, delay) {
-    var isThrottled = false;
-    var args;
-    var context;
-
-    function fn() {
-      for (var _len3 = arguments.length, args2 = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-        args2[_key3] = arguments[_key3];
-      }
-
-      if (isThrottled) {
-        args = args2;
-        context = this;
-        return;
-      }
-
-      isThrottled = true;
-      callback.apply(this, args2);
-      setTimeout(function () {
-        isThrottled = false;
-
-        if (args) {
-          fn.apply(context, args);
-          args = null;
-          context = null;
+          player.$container.style.padding = "".concat(_padding, "px 0");
         }
-      }, delay);
-    }
-
-    return fn;
-  }
-  function clamp(num, a, b) {
-    return Math.max(Math.min(num, Math.max(a, b)), Math.min(a, b));
-  }
-  function setStyle(element, key, value) {
-    if (_typeof_1(key) === 'object') {
-      Object.keys(key).forEach(function (item) {
-        setStyle(element, item, key[item]);
-      });
-    }
-
-    element.style[key] = value;
-    return element;
-  }
-  function getStyle(element, key) {
-    var numberType = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
-    var value = window.getComputedStyle(element, null).getPropertyValue(key);
-    return numberType ? parseFloat(value) : value;
+      }
+    });
   }
 
   function controls(flv, control) {
     var poster = flv.options.poster,
         proxy = flv.events.proxy,
         player = flv.player;
+    flv.on('resize', function () {
+      control.autoSize();
+    });
+    flv.on('scripMeta', function () {
+      control.autoSize();
+    });
 
     if (poster) {
       flv.on('play', function () {
@@ -760,6 +818,7 @@
     classCallCheck(this, Control);
 
     template(flv, this);
+    observer(flv);
     controls(flv, this);
     property(flv, this);
 

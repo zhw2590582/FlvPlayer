@@ -1,7 +1,11 @@
 export default class Events {
-    constructor() {
+    constructor(flv) {
         this.destroys = [];
         this.proxy = this.proxy.bind(this);
+
+        flv.on('destroy', () => {
+            this.destroy();
+        });
     }
 
     proxy(target, name, callback, option = {}) {

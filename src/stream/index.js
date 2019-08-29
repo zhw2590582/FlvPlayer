@@ -16,6 +16,10 @@ export default class Stream {
         flv.on('destroy', () => {
             this.transport.cancel();
         });
+
+        flv.on('reconnect', () => {
+            this.reconnect();
+        });
     }
 
     static supportsXhrResponseType(type) {

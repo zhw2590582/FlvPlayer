@@ -343,23 +343,28 @@
   var Events =
   /*#__PURE__*/
   function () {
-    function Events() {
+    function Events(flv) {
+      var _this = this;
+
       classCallCheck(this, Events);
 
       this.destroys = [];
       this.proxy = this.proxy.bind(this);
+      flv.on('destroy', function () {
+        _this.destroy();
+      });
     }
 
     createClass(Events, [{
       key: "proxy",
       value: function proxy(target, name, callback) {
-        var _this = this;
+        var _this2 = this;
 
         var option = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
 
         if (Array.isArray(name)) {
           return name.map(function (item) {
-            return _this.proxy(target, item, callback, option);
+            return _this2.proxy(target, item, callback, option);
           });
         }
 
@@ -543,7 +548,7 @@
         if (!hasOwnProperty(target, key)) {
           Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
         } else {
-          throw new Error("Instance attribute name is duplicated: ".concat(key));
+          throw new Error("Target attribute name is duplicated: ".concat(key));
         }
       });
     });
@@ -583,6 +588,7 @@
 
   function template(flv, player) {
     var options = flv.options;
+    var cacheCss = options.container.style.cssText;
     options.container.classList.add('flvplayer-container');
     setStyle(options.container, {
       position: 'relative',
@@ -592,6 +598,11 @@
       boxSizing: 'border-box'
     });
     options.container.innerHTML = "\n        <div class=\"flvplayer-inner\" style=\"position: relative;display: flex;justify-content: center;align-items: center;width: 100%;height: 100%;\">\n            <canvas class=\"flvplayer-canvas\" width=\"".concat(options.width, "\" height=\"").concat(options.height, "\" style=\"cursor: pointer;width: 100%;height: 100%;background-color: #000;\"></canvas>\n        </div>\n    ");
+    flv.on('destroy', function () {
+      options.container.innerHTML = '';
+      options.container.style.cssText = cacheCss;
+      options.container.classList.remove('flvplayer-container');
+    });
     Object.defineProperty(player, '$container', {
       value: options.container
     });
@@ -728,8 +739,11 @@
       var _scripMeta$amf2$metaD = scripMeta.amf2.metaData,
           width = _scripMeta$amf2$metaD.width,
           height = _scripMeta$amf2$metaD.height;
-      player.$canvas.width = width;
-      player.$canvas.height = height;
+
+      if (width && height) {
+        player.$canvas.width = width;
+        player.$canvas.height = height;
+      }
     });
     proxy(player.$canvas, 'click', function () {
       player.toggle();
@@ -1199,7 +1213,6 @@
 
         case 'noAudio':
           flv.emit('noAudio');
-          debug.log('flv-flags', 'FLV header flags not found audio');
           break;
 
         case 'scripMeta':
@@ -1429,6 +1442,9 @@
       flv.on('destroy', function () {
         _this.transport.cancel();
       });
+      flv.on('reconnect', function () {
+        _this.reconnect();
+      });
     }
 
     createClass(Stream, [{
@@ -1537,11 +1553,9 @@
     }, {
       key: "destroy",
       value: function destroy() {
-        this.events.destroy();
         this.isDestroy = true;
-        this.options.container.innerHTML = '';
-        FlvPlayer.instances.splice(FlvPlayer.instances.indexOf(this), 1);
         this.emit('destroy');
+        FlvPlayer.instances.splice(FlvPlayer.instances.indexOf(this), 1);
       }
     }], [{
       key: "options",

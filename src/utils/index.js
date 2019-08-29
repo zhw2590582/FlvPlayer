@@ -135,7 +135,7 @@ export function proxyPropertys(target, ...sources) {
             if (!hasOwnProperty(target, key)) {
                 Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
             } else {
-                throw new Error(`Instance attribute name is duplicated: ${key}`);
+                throw new Error(`Target attribute name is duplicated: ${key}`);
             }
         });
     });

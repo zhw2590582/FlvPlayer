@@ -16,7 +16,7 @@ export default class VideoDecoder {
         this.decoding = false;
         this.byteSize = 0;
         this.loaded = 0;
-        this.freeNumber = player.frameRate * 60;
+        this.freeNumber = 512;
         this.decoderWorker = createWorker(workerString);
         this.renderer = new Renderer(player.$canvas);
 

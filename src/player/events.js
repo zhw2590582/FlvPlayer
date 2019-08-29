@@ -1,12 +1,12 @@
 export default function events(flv, player) {
-    const {
-        events: { proxy },
-    } = flv;
+    const { proxy } = flv.events;
 
     flv.on('scripMeta', scripMeta => {
         const { width, height } = scripMeta.amf2.metaData;
-        player.$canvas.width = width;
-        player.$canvas.height = height;
+        if (width && height) {
+            player.$canvas.width = width;
+            player.$canvas.height = height;
+        }
     });
 
     proxy(player.$canvas, 'click', () => {

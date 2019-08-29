@@ -2,7 +2,9 @@ import { setStyle } from '../utils';
 
 export default function template(flv, player) {
     const { options } = flv;
+    const cacheCss = options.container.style.cssText;
     options.container.classList.add('flvplayer-container');
+
     setStyle(options.container, {
         position: 'relative',
         display: 'flex',
@@ -16,6 +18,12 @@ export default function template(flv, player) {
             <canvas class="flvplayer-canvas" width="${options.width}" height="${options.height}" style="cursor: pointer;width: 100%;height: 100%;background-color: #000;"></canvas>
         </div>
     `;
+
+    flv.on('destroy', () => {
+        options.container.innerHTML = '';
+        options.container.style.cssText = cacheCss;
+        options.container.classList.remove('flvplayer-container');
+    });
 
     Object.defineProperty(player, '$container', {
         value: options.container,

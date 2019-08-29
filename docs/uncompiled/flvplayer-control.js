@@ -218,7 +218,7 @@
         if (!hasOwnProperty(target, key)) {
           Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
         } else {
-          throw new Error("Instance attribute name is duplicated: ".concat(key));
+          throw new Error("Target attribute name is duplicated: ".concat(key));
         }
       });
     });

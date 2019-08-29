@@ -84,11 +84,9 @@ class FlvPlayer extends Emitter {
     }
 
     destroy() {
-        this.events.destroy();
         this.isDestroy = true;
-        this.options.container.innerHTML = '';
-        FlvPlayer.instances.splice(FlvPlayer.instances.indexOf(this), 1);
         this.emit('destroy');
+        FlvPlayer.instances.splice(FlvPlayer.instances.indexOf(this), 1);
     }
 }
 

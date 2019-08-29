@@ -38,7 +38,7 @@ export default function property(flv, control) {
             } else {
                 player.$container.classList.remove('flvplayer-fullscreen');
             }
-            player.autoSize();
+            control.autoSize();
         };
         screenfull.on('change', screenfullChange);
         flv.events.destroys.push(() => {

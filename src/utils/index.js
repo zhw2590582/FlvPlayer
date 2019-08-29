@@ -106,7 +106,7 @@ export function setStyle(element, key, value) {
 }
 
 export function getStyle(element, key, numberType = true) {
-    const value = window.getComputedStyle(element, null).getPropertyValue(key);
+    const value = getComputedStyle(element, null).getPropertyValue(key);
     return numberType ? parseFloat(value) : value;
 }
 

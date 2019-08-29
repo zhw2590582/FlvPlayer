@@ -9,7 +9,6 @@ export default class Decoder {
         this.waiting = false;
         this.animationFrameTimer = null;
         this.waitingTimer = null;
-        this.endedTimer = null;
         this.currentTime = 0;
         this.lastUpdateTime = 0;
 
@@ -58,10 +57,7 @@ export default class Decoder {
             if (document.hidden) {
                 isPlaying = this.playing;
                 this.pause();
-            }
-
-            if (!document.hidden && isPlaying) {
-                isPlaying = this.playing;
+            } else if (isPlaying) {
                 this.play();
             }
         });
@@ -77,7 +73,7 @@ export default class Decoder {
 
     animationFrame() {
         const { options, player } = this.flv;
-        this.animationFrameTimer = window.requestAnimationFrame(() => {
+        this.animationFrameTimer = requestAnimationFrame(() => {
             if (this.video.playing && this.audio.playing) {
                 this.ended = false;
                 this.playing = true;
@@ -102,10 +98,8 @@ export default class Decoder {
                 this.flv.emit('ended', this.currentTime);
                 if (options.loop && !options.live) {
                     this.currentTime = 0;
-                    this.endedTimer = setTimeout(() => {
-                        this.play();
-                        this.flv.emit('loop');
-                    }, 1000);
+                    this.play();
+                    this.flv.emit('loop');
                     return;
                 }
                 this.pause();
@@ -115,12 +109,10 @@ export default class Decoder {
     }
 
     pause() {
-        window.cancelAnimationFrame(this.animationFrameTimer);
-        window.clearTimeout(this.waitingTimer);
-        window.clearTimeout(this.endedTimer);
+        cancelAnimationFrame(this.animationFrameTimer);
+        clearTimeout(this.waitingTimer);
         this.animationFrameTimer = null;
         this.waitingTimer = null;
-        this.endedTimer = null;
         this.video.stop();
         this.audio.stop();
         this.ended = false;
@@ -131,12 +123,10 @@ export default class Decoder {
 
     seeked(time) {
         const { player } = this.flv;
-        window.cancelAnimationFrame(this.animationFrameTimer);
-        window.clearTimeout(this.waitingTimer);
-        window.clearTimeout(this.endedTimer);
+        cancelAnimationFrame(this.animationFrameTimer);
+        clearTimeout(this.waitingTimer);
         this.animationFrameTimer = null;
         this.waitingTimer = null;
-        this.endedTimer = null;
         this.currentTime = time;
         this.video.draw(Math.floor(time * player.frameRate));
         if (this.playing) {

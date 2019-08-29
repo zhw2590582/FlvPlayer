@@ -45,12 +45,10 @@ export default class Demuxer {
         this.demuxWorker = createWorker(workerString);
 
         const streamRate = calculationRate(rate => {
-            debug.log('stream-rate', `${rate} bytes/s`);
             flv.emit('streamRate', rate);
         });
 
         const demuxRate = calculationRate(rate => {
-            debug.log('demux-rate', `${rate} p/s`);
             flv.emit('demuxRate', rate);
         });
 

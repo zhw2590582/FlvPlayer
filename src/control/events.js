@@ -93,6 +93,10 @@ export default function controls(flv, control) {
         control.$pause.style.display = 'none';
     });
 
+    flv.on('loop', () => {
+        control.controls = false;
+    });
+
     flv.on('pause', () => {
         control.$play.style.display = 'block';
         control.$pause.style.display = 'none';

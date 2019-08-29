@@ -324,7 +324,8 @@
       this.flv = flv;
       var player = flv.player,
           events = flv.events,
-          options = flv.options;
+          options = flv.options,
+          debug = flv.debug;
       this.ready = false;
       this.playing = false;
       this.playIndex = 0;
@@ -334,7 +335,7 @@
       this.decoding = false;
       this.byteSize = 0;
       this.loaded = 0;
-      this.freeNumber = 512;
+      this.freeMemory = 128 * 1024 * 1024;
       this.decoderWorker = createWorker(workerString);
       this.renderer = new H264bsdCanvas(player.$canvas);
       flv.on('destroy', function () {
@@ -387,17 +388,20 @@
 
         if (timestamp !== undefined && currentTime * 1000 >= timestamp) {
           if (_this.draw(index)) {
-            if (_this.flv.options.live && index !== 0 && index % _this.freeNumber === 0) {
-              _this.playIndex = -1;
+            var framesSize = _this.getFramesSize(index);
+
+            if (_this.flv.options.live && framesSize >= _this.freeMemory) {
+              _this.playIndex = 0;
 
               _this.videoframes.splice(0, index + 1);
 
               _this.timestamps.splice(0, index + 1);
 
               _this.flv.decoder.currentTime = _this.timestamps[0] / 1000 || 0;
+              debug.log('Free Memory', "Size: ".concat(framesSize / 1024 / 1024, " M"), "Index: ".concat(index));
+            } else {
+              _this.playIndex += 1;
             }
-
-            _this.playIndex += 1;
           } else {
             if (!options.live) {
               _this.stop();
@@ -408,6 +412,17 @@
     }
 
     createClass(VideoDecoder, [{
+      key: "getFramesSize",
+      value: function getFramesSize(framesIndex) {
+        var framesSize = 0;
+
+        for (var index = 0; index < framesIndex; index++) {
+          framesSize += this.videoframes[index].data.byteLength;
+        }
+
+        return framesSize;
+      }
+    }, {
       key: "draw",
       value: function draw(index) {
         var videoframe = this.videoframes[index];

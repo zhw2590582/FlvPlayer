@@ -32,7 +32,7 @@ class FlvPlayer extends Emitter {
     init() {
         this.isDestroy = false;
         this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-            window.navigator.userAgent,
+            navigator.userAgent,
         );
 
         this.debug = new Debug(this);

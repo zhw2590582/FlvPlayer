@@ -205,7 +205,7 @@
   }
   function getStyle(element, key) {
     var numberType = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
-    var value = window.getComputedStyle(element, null).getPropertyValue(key);
+    var value = getComputedStyle(element, null).getPropertyValue(key);
     return numberType ? parseFloat(value) : value;
   }
   function proxyPropertys(target) {
@@ -665,6 +665,9 @@
       control.controls = true;
       control.$play.style.display = 'block';
       control.$pause.style.display = 'none';
+    });
+    flv.on('loop', function () {
+      control.controls = false;
     });
     flv.on('pause', function () {
       control.$play.style.display = 'block';

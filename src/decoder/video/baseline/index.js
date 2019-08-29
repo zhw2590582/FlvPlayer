@@ -5,7 +5,7 @@ import workerString from './decoder.worker';
 export default class VideoDecoder {
     constructor(flv) {
         this.flv = flv;
-        const { player, events, options } = flv;
+        const { player, events, options, debug } = flv;
 
         this.ready = false;
         this.playing = false;
@@ -16,7 +16,7 @@ export default class VideoDecoder {
         this.decoding = false;
         this.byteSize = 0;
         this.loaded = 0;
-        this.freeNumber = 512;
+        this.freeMemory = 128 * 1024 * 1024;
         this.decoderWorker = createWorker(workerString);
         this.renderer = new Renderer(player.$canvas);
 
@@ -58,13 +58,16 @@ export default class VideoDecoder {
             const timestamp = this.timestamps[index];
             if (timestamp !== undefined && currentTime * 1000 >= timestamp) {
                 if (this.draw(index)) {
-                    if (this.flv.options.live && (index !== 0 && index % this.freeNumber === 0)) {
-                        this.playIndex = -1;
+                    const framesSize = this.getFramesSize(index);
+                    if (this.flv.options.live && framesSize >= this.freeMemory) {
+                        this.playIndex = 0;
                         this.videoframes.splice(0, index + 1);
                         this.timestamps.splice(0, index + 1);
                         this.flv.decoder.currentTime = this.timestamps[0] / 1000 || 0;
+                        debug.log('Free Memory', `Size: ${framesSize / 1024 / 1024} M`, `Index: ${index}`);
+                    } else {
+                        this.playIndex += 1;
                     }
-                    this.playIndex += 1;
                 } else {
                     if (!options.live) {
                         this.stop();
@@ -72,6 +75,14 @@ export default class VideoDecoder {
                 }
             }
         });
+    }
+
+    getFramesSize(framesIndex) {
+        let framesSize = 0;
+        for (let index = 0; index < framesIndex; index++) {
+            framesSize += this.videoframes[index].data.byteLength;
+        }
+        return framesSize;
     }
 
     draw(index) {

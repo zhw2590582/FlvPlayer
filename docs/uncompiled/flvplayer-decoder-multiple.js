@@ -1327,7 +1327,8 @@
       this.flv = flv;
       var player = flv.player,
           events = flv.events,
-          options = flv.options;
+          options = flv.options,
+          debug = flv.debug;
       this.ready = false;
       this.playing = false;
       this.playIndex = 0;
@@ -1337,7 +1338,8 @@
       this.decoding = false;
       this.byteSize = 0;
       this.loaded = 0;
-      this.freeNumber = player.frameRate * 60;
+      this.freeMemory = 128 * 1024 * 1024;
+      this.initLiveTimestamp = false;
       this.decoderWorker = createWorker(workerString);
       this.renderer = new Renderer(player.$canvas);
       flv.on('destroy', function () {
@@ -1353,6 +1355,7 @@
 
         switch (message.command) {
           case 'video':
+            if (_this.flv.options.live && !_this.playing && _this.ready) return;
             _this.byteSize += message.YData.byteLength + message.UData.byteLength + message.VData.byteLength;
 
             _this.videoframes.push(message);
@@ -1379,7 +1382,10 @@
 
         _this.timestamps.push(timestamp);
 
-        _this.videoInputLength += 1;
+        if (_this.flv.options.live && !_this.initLiveTimestamp) {
+          _this.flv.decoder.currentTime = timestamp / 1000;
+          _this.initLiveTimestamp = true;
+        }
       });
       flv.on('timeupdate', function (currentTime) {
         var index = _this.playIndex;
@@ -1387,17 +1393,20 @@
 
         if (timestamp !== undefined && currentTime * 1000 >= timestamp) {
           if (_this.draw(index)) {
-            if (_this.flv.options.live && index !== 0 && index % _this.freeNumber === 0) {
-              _this.playIndex = -1;
+            var framesSize = _this.getFramesSize(index);
+
+            if (_this.flv.options.live && framesSize >= _this.freeMemory && _this.videoframes.length - 1 > index && _this.timestamps.length - 1 > index) {
+              _this.playIndex = 0;
 
               _this.videoframes.splice(0, index + 1);
 
               _this.timestamps.splice(0, index + 1);
 
-              _this.flv.decoder.currentTime = _this.timestamps[0] / 1000 || 0;
+              _this.flv.decoder.currentTime = _this.timestamps[0] / 1000;
+              debug.log('Free Memory', "Size: ".concat(framesSize / 1024 / 1024, " M"), "Index: ".concat(index));
+            } else {
+              _this.playIndex += 1;
             }
-
-            _this.playIndex += 1;
           } else {
             if (!options.live) {
               _this.stop();
@@ -1408,6 +1417,19 @@
     }
 
     createClass(VideoDecoder, [{
+      key: "getFramesSize",
+      value: function getFramesSize(framesIndex) {
+        var framesSize = 0;
+
+        for (var index = 0; index < framesIndex; index++) {
+          framesSize += this.videoframes[index].YData.byteLength;
+          framesSize += this.videoframes[index].UData.byteLength;
+          framesSize += this.videoframes[index].VData.byteLength;
+        }
+
+        return framesSize;
+      }
+    }, {
       key: "draw",
       value: function draw(index) {
         var videoframe = this.videoframes[index];
@@ -1422,11 +1444,10 @@
         this.playing = true;
 
         if (this.flv.options.live) {
-          var startIndex = Math.max(0, this.videoframes.length);
           this.playIndex = 0;
-          this.videoframes.splice(0, startIndex);
-          this.timestamps.splice(0, startIndex);
-          this.flv.decoder.currentTime = this.timestamps[0] / 1000 || 0;
+          this.videoframes = [];
+          this.timestamps = [];
+          this.initLiveTimestamp = false;
         } else {
           this.playIndex = Math.round(startTime * this.flv.player.frameRate);
         }
@@ -1435,6 +1456,13 @@
       key: "stop",
       value: function stop() {
         this.playing = false;
+
+        if (this.flv.options.live) {
+          this.playIndex = 0;
+          this.videoframes = [];
+          this.timestamps = [];
+          this.initLiveTimestamp = false;
+        }
       }
     }]);
 

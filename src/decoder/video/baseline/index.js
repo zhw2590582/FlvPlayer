@@ -17,6 +17,7 @@ export default class VideoDecoder {
         this.byteSize = 0;
         this.loaded = 0;
         this.freeMemory = 128 * 1024 * 1024;
+        this.initLiveTimestamp = false;
         this.decoderWorker = createWorker(workerString);
         this.renderer = new Renderer(player.$canvas);
 
@@ -31,6 +32,7 @@ export default class VideoDecoder {
             const message = event.data;
             switch (message.type) {
                 case 'pictureReady':
+                    if (this.flv.options.live && !this.playing && this.ready) return;
                     this.byteSize += message.data.byteLength;
                     this.videoframes.push(message);
                     this.decoding = this.videoframes.length !== this.videoInputLength;
@@ -50,6 +52,10 @@ export default class VideoDecoder {
             this.decoding = true;
             this.decoderWorker.postMessage({ type: 'decode', data: frame.buffer }, [frame.buffer]);
             this.timestamps.push(timestamp);
+            if (this.flv.options.live && !this.initLiveTimestamp) {
+                this.flv.decoder.currentTime = timestamp / 1000;
+                this.initLiveTimestamp = true;
+            }
             this.videoInputLength += 1;
         });
 
@@ -59,11 +65,16 @@ export default class VideoDecoder {
             if (timestamp !== undefined && currentTime * 1000 >= timestamp) {
                 if (this.draw(index)) {
                     const framesSize = this.getFramesSize(index);
-                    if (this.flv.options.live && framesSize >= this.freeMemory) {
+                    if (
+                        this.flv.options.live &&
+                        framesSize >= this.freeMemory &&
+                        this.videoframes.length - 1 > index &&
+                        this.timestamps.length - 1 > index
+                    ) {
                         this.playIndex = 0;
                         this.videoframes.splice(0, index + 1);
                         this.timestamps.splice(0, index + 1);
-                        this.flv.decoder.currentTime = this.timestamps[0] / 1000 || 0;
+                        this.flv.decoder.currentTime = this.timestamps[0] / 1000;
                         debug.log('Free Memory', `Size: ${framesSize / 1024 / 1024} M`, `Index: ${index}`);
                     } else {
                         this.playIndex += 1;
@@ -95,11 +106,10 @@ export default class VideoDecoder {
     play(startTime = 0) {
         this.playing = true;
         if (this.flv.options.live) {
-            const startIndex = Math.max(0, this.videoframes.length);
             this.playIndex = 0;
-            this.videoframes.splice(0, startIndex);
-            this.timestamps.splice(0, startIndex);
-            this.flv.decoder.currentTime = this.timestamps[0] / 1000 || 0;
+            this.videoframes = [];
+            this.timestamps = [];
+            this.initLiveTimestamp = false;
         } else {
             this.playIndex = Math.round(startTime * this.flv.player.frameRate);
         }
@@ -107,5 +117,11 @@ export default class VideoDecoder {
 
     stop() {
         this.playing = false;
+        if (this.flv.options.live) {
+            this.playIndex = 0;
+            this.videoframes = [];
+            this.timestamps = [];
+            this.initLiveTimestamp = false;
+        }
     }
 }

@@ -48,10 +48,9 @@ export default class Demuxer {
             this.demuxWorker.terminate();
         });
 
-        flv.on('streamStart', requestType => {
+        flv.on('streamStart', () => {
             this.streamStartTime = getNowTime();
             debug.log('stream-url', options.url);
-            debug.log('stream-request', requestType);
         });
 
         flv.on('streaming', uint8 => {

@@ -1050,10 +1050,9 @@
     flv.on('destroy', function () {
       _this.demuxWorker.terminate();
     });
-    flv.on('streamStart', function (requestType) {
+    flv.on('streamStart', function () {
       _this.streamStartTime = getNowTime();
       debug.log('stream-url', options.url);
-      debug.log('stream-request', requestType);
     });
     flv.on('streaming', function (uint8) {
       _this.streaming = true;
@@ -1160,15 +1159,12 @@
     };
   };
 
-  function fetchRequest(flv, url) {
-    flv.emit('streamStart', 'fetch-request');
-    return fetch(url, {
+  function fetchRequest(flv, stream) {
+    flv.emit('streamStart');
+    return fetch(flv.options.url, {
       headers: flv.options.headers
     }).then(function (response) {
       var reader = response.body.getReader();
-      flv.on('destroy', function () {
-        reader.cancel();
-      });
 
       (function read() {
         reader.read().then(function (_ref) {
@@ -1187,18 +1183,22 @@
         });
       })();
 
-      return reader;
-    }).catch(function () {
-      flv.retry();
+      return {
+        reader: reader,
+        cancel: reader.cancel
+      };
+    }).catch(function (error) {
+      stream.reconnect(error);
+      throw error;
     });
   }
 
-  function mozXhrRequest(flv, url) {
-    flv.emit('streamStart', 'moz-xhr-request');
+  function mozXhrRequest(flv, stream) {
+    flv.emit('streamStart');
     var proxy = flv.events.proxy,
         headers = flv.options.headers;
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
+    xhr.open('GET', flv.options.url, true);
     xhr.responseType = 'moz-chunked-arraybuffer';
     Object.keys(headers).forEach(function (key) {
       xhr.setRequestHeader(key, headers[key]);
@@ -1213,23 +1213,23 @@
       flv.emit('streamEnd');
     });
     proxy(xhr, 'error', function (error) {
-      flv.retry();
+      stream.reconnect(error);
       throw error;
     });
-    flv.on('destroy', function () {
-      xhr.abort();
-    });
     xhr.send();
-    return xhr;
+    return {
+      reader: xhr,
+      cancel: xhr.abort
+    };
   }
 
-  function xhrRequest(flv, url) {
-    flv.emit('streamStart', 'xhr-request');
+  function xhrRequest(flv, stream) {
+    flv.emit('streamStart');
     var proxy = flv.events.proxy,
         headers = flv.options.headers;
     var textEncoder = new TextEncoder();
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
+    xhr.open('GET', flv.options.url, true);
     xhr.responseType = 'text';
     Object.keys(headers).forEach(function (key) {
       xhr.setRequestHeader(key, headers[key]);
@@ -1252,21 +1252,21 @@
       flv.emit('streamEnd');
     });
     proxy(xhr, 'error', function (error) {
-      flv.retry();
+      stream.reconnect(error);
       throw error;
     });
-    flv.on('destroy', function () {
-      xhr.abort();
-    });
     xhr.send();
-    return xhr;
+    return {
+      reader: xhr,
+      cancel: xhr.abort
+    };
   }
 
-  function websocketRequest(flv, url) {
-    flv.emit('streamStart', 'websocket-request');
+  function websocketRequest(flv, stream) {
+    flv.emit('streamStart');
     var options = flv.options,
         proxy = flv.events.proxy;
-    var socket = new WebSocket(url);
+    var socket = new WebSocket(flv.options.url);
     socket.binaryType = 'arraybuffer';
     proxy(socket, 'open', function () {
       socket.send(options.socketSend);
@@ -1278,17 +1278,17 @@
       flv.emit('streamEnd');
     });
     proxy(socket, 'error', function (error) {
-      flv.retry();
+      stream.reconnect(error);
       throw error;
     });
-    flv.on('destroy', function () {
-      socket.close();
-    });
-    return socket;
+    return {
+      reader: socket,
+      cancel: socket.close
+    };
   }
 
   function readFile(flv, file) {
-    flv.emit('streamStart', 'FileReader');
+    flv.emit('streamStart');
     var proxy = flv.events.proxy;
     var reader = new FileReader();
     proxy(reader, 'load', function (e) {
@@ -1296,21 +1296,45 @@
       flv.emit('streamEnd', new Uint8Array(buffer));
     });
     reader.readAsArrayBuffer(file);
-    return reader;
+    return {
+      reader: reader,
+      cancel: function cancel() {
+        return null;
+      }
+    };
   }
 
   var Stream =
   /*#__PURE__*/
   function () {
     function Stream(flv) {
+      var _this = this;
+
       classCallCheck(this, Stream);
 
-      var url = flv.options.url;
-      this.transportFactory = Stream.getStreamFactory(url);
-      this.transport = this.transportFactory(flv, url);
+      this.flv = flv;
+      this.reconnectTime = 0;
+      this.maxReconnectTime = 5;
+      this.transportFactory = Stream.getStreamFactory(flv.options.url);
+      this.flv.debug.log('stream-type', this.transportFactory.name);
+      this.transport = this.transportFactory(flv, this);
+      flv.on('destroy', function () {
+        _this.transport.cancel();
+      });
     }
 
-    createClass(Stream, null, [{
+    createClass(Stream, [{
+      key: "reconnect",
+      value: function reconnect() {
+        if (this.reconnectTime < this.maxReconnectTime && !this.flv.isDestroy) {
+          this.reconnectTime += 1;
+          this.transport.cancel();
+          this.transport = this.transportFactory(this.flv, this);
+          this.flv.debug.log('stream-reconnect', this.reconnectTime);
+          this.flv.emit('streamReconnect');
+        }
+      }
+    }], [{
       key: "supportsXhrResponseType",
       value: function supportsXhrResponseType(type) {
         try {
@@ -1385,7 +1409,6 @@
     createClass(FlvPlayer, [{
       key: "init",
       value: function init() {
-        this.retryTime = 0;
         this.isDestroy = false;
         this.userAgent = window.navigator.userAgent;
         this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(this.userAgent);
@@ -1403,12 +1426,6 @@
         id += 1;
         this.id = id;
         FlvPlayer.instances.push(this);
-      }
-    }, {
-      key: "retry",
-      // TODO...
-      value: function retry() {
-        this.retryTime += 1;
       }
     }, {
       key: "destroy",

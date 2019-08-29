@@ -1,11 +1,11 @@
-export default function mozXhrRequest(flv, url) {
-    flv.emit('streamStart', 'moz-xhr-request');
+export default function mozXhrRequest(flv, stream) {
+    flv.emit('streamStart');
     const {
         events: { proxy },
         options: { headers },
     } = flv;
     const xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
+    xhr.open('GET', flv.options.url, true);
     xhr.responseType = 'moz-chunked-arraybuffer';
     Object.keys(headers).forEach(key => {
         xhr.setRequestHeader(key, headers[key]);
@@ -24,15 +24,14 @@ export default function mozXhrRequest(flv, url) {
     });
 
     proxy(xhr, 'error', error => {
-        flv.retry();
+        stream.reconnect(error);
         throw error;
-    });
-
-    flv.on('destroy', () => {
-        xhr.abort();
     });
 
     xhr.send();
 
-    return xhr;
+    return {
+        reader: xhr,
+        cancel: xhr.abort,
+    };
 }

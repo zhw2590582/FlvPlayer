@@ -6,9 +6,16 @@ import readFile from './readFile';
 
 export default class Stream {
     constructor(flv) {
-        const { url } = flv.options;
-        this.transportFactory = Stream.getStreamFactory(url);
-        this.transport = this.transportFactory(flv, url);
+        this.flv = flv;
+        this.reconnectTime = 0;
+        this.maxReconnectTime = 5;
+        this.transportFactory = Stream.getStreamFactory(flv.options.url);
+        this.flv.debug.log('stream-type', this.transportFactory.name);
+        this.transport = this.transportFactory(flv, this);
+
+        flv.on('destroy', () => {
+            this.transport.cancel();
+        });
     }
 
     static supportsXhrResponseType(type) {
@@ -18,7 +25,7 @@ export default class Stream {
             return tmpXhr.responseType === type;
         } catch (e) {
             return false;
-        } 
+        }
     }
 
     static getStreamFactory(url) {
@@ -44,5 +51,15 @@ export default class Stream {
         }
 
         return xhrRequest;
+    }
+
+    reconnect() {
+        if (this.reconnectTime < this.maxReconnectTime && !this.flv.isDestroy) {
+            this.reconnectTime += 1;
+            this.transport.cancel();
+            this.transport = this.transportFactory(this.flv, this);
+            this.flv.debug.log('stream-reconnect', this.reconnectTime);
+            this.flv.emit('streamReconnect');
+        }
     }
 }

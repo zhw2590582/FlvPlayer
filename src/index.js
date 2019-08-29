@@ -30,7 +30,6 @@ class FlvPlayer extends Emitter {
     }
 
     init() {
-        this.retryTime = 0;
         this.isDestroy = false;
         this.userAgent = window.navigator.userAgent;
         this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(this.userAgent);
@@ -77,11 +76,6 @@ class FlvPlayer extends Emitter {
 
     static get env() {
         return '__ENV__';
-    }
-
-    // TODO...
-    retry() {
-        this.retryTime += 1;
     }
 
     destroy() {

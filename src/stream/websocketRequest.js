@@ -1,11 +1,11 @@
-export default function websocketRequest(flv, url) {
-    flv.emit('streamStart', 'websocket-request');
+export default function websocketRequest(flv, stream) {
+    flv.emit('streamStart');
     const {
         options,
         events: { proxy },
     } = flv;
 
-    const socket = new WebSocket(url);
+    const socket = new WebSocket(flv.options.url);
     socket.binaryType = 'arraybuffer';
 
     proxy(socket, 'open', () => {
@@ -21,13 +21,12 @@ export default function websocketRequest(flv, url) {
     });
 
     proxy(socket, 'error', error => {
-        flv.retry();
+        stream.reconnect(error);
         throw error;
     });
 
-    flv.on('destroy', () => {
-        socket.close();
-    });
-
-    return socket;
+    return {
+        reader: socket,
+        cancel: socket.close,
+    };
 }

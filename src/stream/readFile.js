@@ -1,5 +1,5 @@
 export default function readFile(flv, file) {
-    flv.emit('streamStart', 'FileReader');
+    flv.emit('streamStart');
     const { proxy } = flv.events;
     const reader = new FileReader();
     proxy(reader, 'load', e => {
@@ -7,5 +7,8 @@ export default function readFile(flv, file) {
         flv.emit('streamEnd', new Uint8Array(buffer));
     });
     reader.readAsArrayBuffer(file);
-    return reader;
+    return {
+        reader,
+        cancel: () => null,
+    };
 }

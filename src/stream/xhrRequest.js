@@ -1,12 +1,12 @@
-export default function xhrRequest(flv, url) {
-    flv.emit('streamStart', 'xhr-request');
+export default function xhrRequest(flv, stream) {
+    flv.emit('streamStart');
     const {
         events: { proxy },
         options: { headers },
     } = flv;
     const textEncoder = new TextEncoder();
     const xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
+    xhr.open('GET', flv.options.url, true);
     xhr.responseType = 'text';
     Object.keys(headers).forEach(key => {
         xhr.setRequestHeader(key, headers[key]);
@@ -29,15 +29,14 @@ export default function xhrRequest(flv, url) {
     });
 
     proxy(xhr, 'error', error => {
-        flv.retry();
+        stream.reconnect(error);
         throw error;
     });
-
-    flv.on('destroy', () => {
-        xhr.abort();
-    });
-
+    
     xhr.send();
 
-    return xhr;
+    return {
+        reader: xhr,
+        cancel: xhr.abort,
+    };
 }

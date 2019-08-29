@@ -54,7 +54,7 @@ export default class Stream {
     }
 
     reconnect() {
-        if (this.reconnectTime < this.maxReconnectTime && !this.flv.isDestroy) {
+        if (this.reconnectTime < this.maxReconnectTime && !this.flv.isDestroy && this.flv.options.live) {
             this.reconnectTime += 1;
             this.transport.cancel();
             this.transport = this.transportFactory(this.flv, this);

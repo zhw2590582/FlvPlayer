@@ -31,7 +31,7 @@ export default class AudioDecoder {
             if (this.decodeWaitingBuffer.byteLength >= 1024 * 128) {
                 this.timestamps.push(timestampTmp[0]);
                 timestampTmp = [];
-                const buffer = mergeBuffer(this.decodeErrorBuffer, this.decodeWaitingBuffer).buffer;
+                const { buffer } = mergeBuffer(this.decodeErrorBuffer, this.decodeWaitingBuffer);
                 this.decodeWaitingBuffer = new Uint8Array();
                 this.context
                     .decodeAudioData(buffer, audiobuffer => {

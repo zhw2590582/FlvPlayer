@@ -423,12 +423,76 @@
       type: 'application/javascript'
     })));
   }
+  function secondToTime(second) {
+    var add0 = function add0(num) {
+      return num < 10 ? "0".concat(num) : String(num);
+    };
+
+    var hour = Math.floor(second / 3600);
+    var min = Math.floor((second - hour * 3600) / 60);
+    var sec = Math.floor(second - hour * 3600 - min * 60);
+    return (hour > 0 ? [hour, min, sec] : [min, sec]).map(add0).join(':');
+  }
   function getNowTime() {
     if (performance && typeof performance.now === 'function') {
       return performance.now();
     }
 
     return Date.now();
+  }
+  function debounce(func, wait, context) {
+    var timeout;
+
+    function fn() {
+      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        args[_key2] = arguments[_key2];
+      }
+
+      var later = function later() {
+        timeout = null;
+        func.apply(context, args);
+      };
+
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    }
+
+    fn.clearTimeout = function ct() {
+      clearTimeout(timeout);
+    };
+
+    return fn;
+  }
+  function throttle(callback, delay) {
+    var isThrottled = false;
+    var args;
+    var context;
+
+    function fn() {
+      for (var _len3 = arguments.length, args2 = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+        args2[_key3] = arguments[_key3];
+      }
+
+      if (isThrottled) {
+        args = args2;
+        context = this;
+        return;
+      }
+
+      isThrottled = true;
+      callback.apply(this, args2);
+      setTimeout(function () {
+        isThrottled = false;
+
+        if (args) {
+          fn.apply(context, args);
+          args = null;
+          context = null;
+        }
+      }, delay);
+    }
+
+    return fn;
   }
   function clamp(num, a, b) {
     return Math.max(Math.min(num, Math.max(a, b)), Math.min(a, b));
@@ -442,6 +506,11 @@
 
     element.style[key] = value;
     return element;
+  }
+  function getStyle(element, key) {
+    var numberType = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+    var value = window.getComputedStyle(element, null).getPropertyValue(key);
+    return numberType ? parseFloat(value) : value;
   }
   function loadScript(url, name) {
     return new Promise(function (resolve, reject) {
@@ -473,10 +542,28 @@
       Object.getOwnPropertyNames(source).forEach(function (key) {
         if (!hasOwnProperty(target, key)) {
           Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+        } else {
+          throw new Error("Instance attribute name is duplicated: ".concat(key));
         }
       });
     });
   }
+
+  var utils = /*#__PURE__*/Object.freeze({
+    hasOwnProperty: hasOwnProperty,
+    readBuffer: readBuffer,
+    mergeBuffer: mergeBuffer,
+    createWorker: createWorker,
+    secondToTime: secondToTime,
+    getNowTime: getNowTime,
+    debounce: debounce,
+    throttle: throttle,
+    clamp: clamp,
+    setStyle: setStyle,
+    getStyle: getStyle,
+    loadScript: loadScript,
+    proxyPropertys: proxyPropertys
+  });
 
   function template(flv, player) {
     var options = flv.options;
@@ -689,7 +776,10 @@
           _this.timestamps.push(timestampTmp[0]);
 
           timestampTmp = [];
-          var buffer = mergeBuffer(_this.decodeErrorBuffer, _this.decodeWaitingBuffer).buffer;
+
+          var _mergeBuffer = mergeBuffer(_this.decodeErrorBuffer, _this.decodeWaitingBuffer),
+              buffer = _mergeBuffer.buffer;
+
           _this.decodeWaitingBuffer = new Uint8Array();
 
           _this.context.decodeAudioData(buffer, function (audiobuffer) {
@@ -1326,7 +1416,7 @@
     createClass(Stream, [{
       key: "reconnect",
       value: function reconnect() {
-        if (this.reconnectTime < this.maxReconnectTime && !this.flv.isDestroy) {
+        if (this.reconnectTime < this.maxReconnectTime && !this.flv.isDestroy && this.flv.options.live) {
           this.reconnectTime += 1;
           this.transport.cancel();
           this.transport = this.transportFactory(this.flv, this);
@@ -1410,8 +1500,7 @@
       key: "init",
       value: function init() {
         this.isDestroy = false;
-        this.userAgent = window.navigator.userAgent;
-        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(this.userAgent);
+        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(window.navigator.userAgent);
         this.debug = new Debug(this);
         this.events = new Events(this);
         this.player = new Player(this);
@@ -1466,6 +1555,11 @@
       key: "env",
       get: function get() {
         return '"development"';
+      }
+    }, {
+      key: "utils",
+      get: function get() {
+        return utils;
       }
     }]);
 

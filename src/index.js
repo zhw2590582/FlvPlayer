@@ -5,7 +5,7 @@ import Player from './player';
 import Decoder from './decoder';
 import Demuxer from './demuxer';
 import Stream from './stream';
-import { loadScript } from './utils';
+import * as utils from './utils';
 
 let id = 0;
 class FlvPlayer extends Emitter {
@@ -23,7 +23,7 @@ class FlvPlayer extends Emitter {
         if (window.FlvplayerDecoder) {
             this.init();
         } else {
-            loadScript(this.options.decoder, 'FlvplayerDecoder').then(() => {
+            utils.loadScript(this.options.decoder, 'FlvplayerDecoder').then(() => {
                 this.init();
             });
         }
@@ -31,8 +31,9 @@ class FlvPlayer extends Emitter {
 
     init() {
         this.isDestroy = false;
-        this.userAgent = window.navigator.userAgent;
-        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(this.userAgent);
+        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+            window.navigator.userAgent,
+        );
 
         this.debug = new Debug(this);
         this.events = new Events(this);
@@ -76,6 +77,10 @@ class FlvPlayer extends Emitter {
 
     static get env() {
         return '__ENV__';
+    }
+
+    static get utils() {
+        return utils;
     }
 
     destroy() {

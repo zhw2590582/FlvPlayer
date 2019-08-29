@@ -217,6 +217,8 @@
       Object.getOwnPropertyNames(source).forEach(function (key) {
         if (!hasOwnProperty(target, key)) {
           Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+        } else {
+          throw new Error("Instance attribute name is duplicated: ".concat(key));
         }
       });
     });

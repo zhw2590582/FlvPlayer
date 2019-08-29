@@ -3,7 +3,7 @@ import Renderer from './renderer';
 import workerString from './decoder.worker';
 
 export default class VideoDecoder {
-    constructor(flv) {
+    constructor(flv, decoder) {
         this.flv = flv;
         const { player, events, options, debug } = flv;
 
@@ -16,10 +16,17 @@ export default class VideoDecoder {
         this.decoding = false;
         this.byteSize = 0;
         this.loaded = 0;
-        this.freeMemory = 128 * 1024 * 1024;
         this.initLiveTimestamp = false;
         this.decoderWorker = createWorker(workerString);
         this.renderer = new Renderer(player.$canvas);
+
+        this.decoderRate = calculationRate(rate => {
+            flv.emit('decoderRate', rate);
+        });
+
+        this.drawRate = calculationRate(rate => {
+            flv.emit('drawRate', rate);
+        });
 
         flv.on('destroy', () => {
             this.videoframes = [];
@@ -32,12 +39,13 @@ export default class VideoDecoder {
             const message = event.data;
             switch (message.command) {
                 case 'video':
-                    if (this.flv.options.live && !this.playing && this.ready) return;
+                    if (options.live && !this.playing && this.ready) return;
                     this.byteSize += message.YData.byteLength + message.UData.byteLength + message.VData.byteLength;
                     this.videoframes.push(message);
                     this.decoding = this.videoframes.length !== this.videoInputLength;
                     this.loaded = this.videoframes.length / player.frameRate;
                     flv.emit('videoLoaded', this.loaded);
+                    this.decoderRate(1);
                     if (!this.ready && this.videoframes.length === 1) {
                         this.ready = true;
                         flv.emit('ready');
@@ -52,8 +60,9 @@ export default class VideoDecoder {
             this.decoding = true;
             this.decoderWorker.postMessage(frame.buffer, [frame.buffer]);
             this.timestamps.push(timestamp);
-            if (this.flv.options.live && !this.initLiveTimestamp) {
-                this.flv.decoder.currentTime = timestamp / 1000;
+            this.videoInputLength += 1;
+            if (options.live && !this.initLiveTimestamp) {
+                decoder.currentTime = timestamp / 1000;
                 this.initLiveTimestamp = true;
             }
         });
@@ -65,15 +74,15 @@ export default class VideoDecoder {
                 if (this.draw(index)) {
                     const framesSize = this.getFramesSize(index);
                     if (
-                        this.flv.options.live &&
-                        framesSize >= this.freeMemory &&
+                        options.live &&
+                        framesSize >= options.freeMemory &&
                         this.videoframes.length - 1 > index &&
                         this.timestamps.length - 1 > index
                     ) {
                         this.playIndex = 0;
                         this.videoframes.splice(0, index + 1);
                         this.timestamps.splice(0, index + 1);
-                        this.flv.decoder.currentTime = this.timestamps[0] / 1000;
+                        decoder.currentTime = this.timestamps[0] / 1000;
                         debug.log('Free Memory', `Size: ${framesSize / 1024 / 1024} M`, `Index: ${index}`);
                     } else {
                         this.playIndex += 1;
@@ -101,6 +110,7 @@ export default class VideoDecoder {
         const videoframe = this.videoframes[index];
         if (!videoframe) return false;
         this.renderer.drawFrame(videoframe);
+        this.drawRate(1);
         return true;
     }
 

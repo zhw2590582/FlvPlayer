@@ -63,6 +63,7 @@ class FlvPlayer extends Emitter {
             control: true,
             volume: 7,
             frameRate: 30,
+            freeMemory: 64 * 1024 * 1024,
             width: 400,
             height: 300,
             socketSend: '',

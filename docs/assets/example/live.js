@@ -1,3 +1,6 @@
+// Create a local http-flv live stream
+// https://github.com/zhw2590582/http-flv-streaming-demo
+
 var flv = new FlvPlayer({
     container: '.flvplayer-app',
     url: 'http://localhost:7001/demo/demo.flv',

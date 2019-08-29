@@ -1319,7 +1319,7 @@
   var VideoDecoder =
   /*#__PURE__*/
   function () {
-    function VideoDecoder(flv) {
+    function VideoDecoder(flv, decoder) {
       var _this = this;
 
       classCallCheck(this, VideoDecoder);
@@ -1338,10 +1338,15 @@
       this.decoding = false;
       this.byteSize = 0;
       this.loaded = 0;
-      this.freeMemory = 128 * 1024 * 1024;
       this.initLiveTimestamp = false;
       this.decoderWorker = createWorker(workerString);
       this.renderer = new Renderer(player.$canvas);
+      this.decoderRate = calculationRate(function (rate) {
+        flv.emit('decoderRate', rate);
+      });
+      this.drawRate = calculationRate(function (rate) {
+        flv.emit('drawRate', rate);
+      });
       flv.on('destroy', function () {
         _this.videoframes = [];
         _this.timestamps = [];
@@ -1355,7 +1360,7 @@
 
         switch (message.command) {
           case 'video':
-            if (_this.flv.options.live && !_this.playing && _this.ready) return;
+            if (options.live && !_this.playing && _this.ready) return;
             _this.byteSize += message.YData.byteLength + message.UData.byteLength + message.VData.byteLength;
 
             _this.videoframes.push(message);
@@ -1363,6 +1368,8 @@
             _this.decoding = _this.videoframes.length !== _this.videoInputLength;
             _this.loaded = _this.videoframes.length / player.frameRate;
             flv.emit('videoLoaded', _this.loaded);
+
+            _this.decoderRate(1);
 
             if (!_this.ready && _this.videoframes.length === 1) {
               _this.ready = true;
@@ -1382,8 +1389,10 @@
 
         _this.timestamps.push(timestamp);
 
-        if (_this.flv.options.live && !_this.initLiveTimestamp) {
-          _this.flv.decoder.currentTime = timestamp / 1000;
+        _this.videoInputLength += 1;
+
+        if (options.live && !_this.initLiveTimestamp) {
+          decoder.currentTime = timestamp / 1000;
           _this.initLiveTimestamp = true;
         }
       });
@@ -1395,14 +1404,14 @@
           if (_this.draw(index)) {
             var framesSize = _this.getFramesSize(index);
 
-            if (_this.flv.options.live && framesSize >= _this.freeMemory && _this.videoframes.length - 1 > index && _this.timestamps.length - 1 > index) {
+            if (options.live && framesSize >= options.freeMemory && _this.videoframes.length - 1 > index && _this.timestamps.length - 1 > index) {
               _this.playIndex = 0;
 
               _this.videoframes.splice(0, index + 1);
 
               _this.timestamps.splice(0, index + 1);
 
-              _this.flv.decoder.currentTime = _this.timestamps[0] / 1000;
+              decoder.currentTime = _this.timestamps[0] / 1000;
               debug.log('Free Memory', "Size: ".concat(framesSize / 1024 / 1024, " M"), "Index: ".concat(index));
             } else {
               _this.playIndex += 1;
@@ -1435,6 +1444,7 @@
         var videoframe = this.videoframes[index];
         if (!videoframe) return false;
         this.renderer.drawFrame(videoframe);
+        this.drawRate(1);
         return true;
       }
     }, {

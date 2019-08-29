@@ -44,11 +44,11 @@ export default class Demuxer {
         this.AVCDecoderConfigurationRecord = null;
         this.demuxWorker = createWorker(workerString);
 
-        const streamRate = calculationRate(rate => {
+        this.streamRate = calculationRate(rate => {
             flv.emit('streamRate', rate);
         });
 
-        const demuxRate = calculationRate(rate => {
+        this.demuxRate = calculationRate(rate => {
             flv.emit('demuxRate', rate);
         });
 
@@ -65,7 +65,7 @@ export default class Demuxer {
         flv.on('streaming', uint8 => {
             this.streaming = true;
             this.size += uint8.byteLength;
-            streamRate(uint8.byteLength);
+            this.streamRate(uint8.byteLength);
             this.demuxWorker.postMessage(uint8);
         });
 
@@ -118,7 +118,7 @@ export default class Demuxer {
                     debug.log('AudioSpecificConfig', this.AudioSpecificConfig);
                     break;
                 case 'videoData': {
-                    demuxRate(1);
+                    this.demuxRate(1);
                     this.videoDataLength += 1;
                     this.videoDataSize += message.data.byteLength;
                     const readNalu = readBuffer(message.data);
@@ -142,7 +142,7 @@ export default class Demuxer {
                     break;
                 }
                 case 'audioData':
-                    demuxRate(1);
+                    this.demuxRate(1);
                     this.audioDataLength += 1;
                     this.audioDataSize += message.data.byteLength;
                     flv.emit('audioData', message.data, message.timestamp);

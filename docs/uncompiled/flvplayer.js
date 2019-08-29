@@ -1147,10 +1147,10 @@
     this.AudioSpecificConfig = null;
     this.AVCDecoderConfigurationRecord = null;
     this.demuxWorker = createWorker(workerString);
-    var streamRate = calculationRate(function (rate) {
+    this.streamRate = calculationRate(function (rate) {
       flv.emit('streamRate', rate);
     });
-    var demuxRate = calculationRate(function (rate) {
+    this.demuxRate = calculationRate(function (rate) {
       flv.emit('demuxRate', rate);
     });
     flv.on('destroy', function () {
@@ -1166,7 +1166,8 @@
     flv.on('streaming', function (uint8) {
       _this.streaming = true;
       _this.size += uint8.byteLength;
-      streamRate(uint8.byteLength);
+
+      _this.streamRate(uint8.byteLength);
 
       _this.demuxWorker.postMessage(uint8);
     });
@@ -1226,7 +1227,8 @@
 
         case 'videoData':
           {
-            demuxRate(1);
+            _this.demuxRate(1);
+
             _this.videoDataLength += 1;
             _this.videoDataSize += message.data.byteLength;
             var readNalu = readBuffer(message.data);
@@ -1257,7 +1259,8 @@
           }
 
         case 'audioData':
-          demuxRate(1);
+          _this.demuxRate(1);
+
           _this.audioDataLength += 1;
           _this.audioDataSize += message.data.byteLength;
           flv.emit('audioData', message.data, message.timestamp);
@@ -1579,6 +1582,7 @@
           control: true,
           volume: 7,
           frameRate: 30,
+          freeMemory: 64 * 1024 * 1024,
           width: 400,
           height: 300,
           socketSend: '',

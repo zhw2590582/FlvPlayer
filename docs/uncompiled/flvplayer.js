@@ -548,6 +548,21 @@
       });
     });
   }
+  function calculationRate(callback) {
+    var totalSize = 0;
+    var lastTime = getNowTime();
+    return function (size) {
+      totalSize += size;
+      var thisTime = getNowTime();
+      var diffTime = thisTime - lastTime;
+
+      if (diffTime >= 1000) {
+        callback(totalSize / diffTime * 1000);
+        lastTime = thisTime;
+        totalSize = 0;
+      }
+    };
+  }
 
   var utils = /*#__PURE__*/Object.freeze({
     hasOwnProperty: hasOwnProperty,
@@ -562,7 +577,8 @@
     setStyle: setStyle,
     getStyle: getStyle,
     loadScript: loadScript,
-    proxyPropertys: proxyPropertys
+    proxyPropertys: proxyPropertys,
+    calculationRate: calculationRate
   });
 
   function template(flv, player) {
@@ -1126,6 +1142,12 @@
     this.AudioSpecificConfig = null;
     this.AVCDecoderConfigurationRecord = null;
     this.demuxWorker = createWorker(workerString);
+    var streamRate = calculationRate(function (rate) {
+      debug.log('stream-rate', "".concat(rate, " bytes/s"));
+    });
+    var demuxRate = calculationRate(function (rate) {
+      debug.log('demux-rate', "".concat(rate, " p/s"));
+    });
     flv.on('destroy', function () {
       _this.demuxWorker.terminate();
     });
@@ -1136,6 +1158,7 @@
     flv.on('streaming', function (uint8) {
       _this.streaming = true;
       _this.size += uint8.byteLength;
+      streamRate(uint8.byteLength);
 
       _this.demuxWorker.postMessage(uint8);
     });
@@ -1196,12 +1219,12 @@
 
         case 'videoData':
           {
+            demuxRate(1);
             _this.videoDataLength += 1;
             _this.videoDataSize += message.data.byteLength;
             var readNalu = readBuffer(message.data);
             readNalu(4);
-            var nalHeader = readNalu(1)[0];
-            var naluType = nalHeader & 31;
+            var naluType = readNalu(1)[0] & 31;
 
             switch (naluType) {
               case 1:
@@ -1227,6 +1250,7 @@
           }
 
         case 'audioData':
+          demuxRate(1);
           _this.audioDataLength += 1;
           _this.audioDataSize += message.data.byteLength;
           flv.emit('audioData', message.data, message.timestamp);

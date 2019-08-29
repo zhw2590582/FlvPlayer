@@ -1,4 +1,4 @@
-import { getNowTime, createWorker, readBuffer, mergeBuffer } from '../utils';
+import { getNowTime, createWorker, readBuffer, mergeBuffer, calculationRate } from '../utils';
 import workerString from './demuxer.worker';
 
 function getProfileString(profileIdc) {
@@ -44,6 +44,14 @@ export default class Demuxer {
         this.AVCDecoderConfigurationRecord = null;
         this.demuxWorker = createWorker(workerString);
 
+        const streamRate = calculationRate(rate => {
+            debug.log('stream-rate', `${rate} bytes/s`);
+        });
+
+        const demuxRate = calculationRate(rate => {
+            debug.log('demux-rate', `${rate} p/s`);
+        });
+
         flv.on('destroy', () => {
             this.demuxWorker.terminate();
         });
@@ -56,6 +64,7 @@ export default class Demuxer {
         flv.on('streaming', uint8 => {
             this.streaming = true;
             this.size += uint8.byteLength;
+            streamRate(uint8.byteLength);
             this.demuxWorker.postMessage(uint8);
         });
 
@@ -109,12 +118,12 @@ export default class Demuxer {
                     debug.log('AudioSpecificConfig', this.AudioSpecificConfig);
                     break;
                 case 'videoData': {
+                    demuxRate(1);
                     this.videoDataLength += 1;
                     this.videoDataSize += message.data.byteLength;
                     const readNalu = readBuffer(message.data);
                     readNalu(4);
-                    const nalHeader = readNalu(1)[0];
-                    const naluType = nalHeader & 31;
+                    const naluType = readNalu(1)[0] & 31;
                     switch (naluType) {
                         case 1:
                         case 5: {
@@ -133,6 +142,7 @@ export default class Demuxer {
                     break;
                 }
                 case 'audioData':
+                    demuxRate(1);
                     this.audioDataLength += 1;
                     this.audioDataSize += message.data.byteLength;
                     flv.emit('audioData', message.data, message.timestamp);

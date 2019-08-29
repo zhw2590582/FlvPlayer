@@ -1,4 +1,4 @@
-class FlvPlayerError extends Error {
+export class FlvPlayerError extends Error {
     constructor(message) {
         super(message);
         this.name = 'FlvPlayerError';

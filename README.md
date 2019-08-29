@@ -171,6 +171,10 @@ flv.$canvas;
 | `pause`       | When video pause              |
 | `seeked`      | When video seeked             |
 | `ready`       | When video ready              |
+| `streamRate`  | Stream Rate                   |
+| `demuxRate`   | Demux Rate                    |
+| `decoderRate` | Decoder Rate                  |
+| `drawRate`    | Draw Rate                     |
 
 Example:
 
@@ -206,12 +210,6 @@ Open web server
 
 ```bash
 $ npm start
-```
-
-Open live server: [Node-Media-Server](https://github.com/illuspas/Node-Media-Server)
-
-```bash
-$ npm run server
 ```
 
 ## QQ Group

@@ -42,7 +42,6 @@
         "eslint-config-airbnb-base": "^13.1.0",
         "eslint-config-prettier": "^4.2.0",
         "eslint-plugin-import": "^2.17.2",
-        "node-media-server": "^2.1.2",
         "node-sass": "^4.12.0",
         "rollup": "^1.11.3",
         "rollup-plugin-babel": "^4.3.2",

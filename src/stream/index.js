@@ -8,7 +8,7 @@ export default class Stream {
     constructor(flv) {
         this.flv = flv;
         this.reconnectTime = 0;
-        this.maxReconnectTime = 5;
+        this.maxReconnectTime = 100;
         this.transportFactory = Stream.getStreamFactory(flv.options.url);
         this.flv.debug.log('stream-type', this.transportFactory.name);
         this.transport = this.transportFactory(flv, this);
@@ -58,7 +58,7 @@ export default class Stream {
             this.reconnectTime += 1;
             this.transport.cancel();
             this.transport = this.transportFactory(this.flv, this);
-            this.flv.debug.log('stream-reconnect', this.reconnectTime);
+            this.flv.debug.warn(false, `[stream]: reconnect ${this.reconnectTime}`);
             this.flv.emit('streamReconnect');
         }
     }

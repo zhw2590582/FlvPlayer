@@ -46,10 +46,12 @@ export default class Demuxer {
 
         const streamRate = calculationRate(rate => {
             debug.log('stream-rate', `${rate} bytes/s`);
+            flv.emit('streamRate', rate);
         });
 
         const demuxRate = calculationRate(rate => {
             debug.log('demux-rate', `${rate} p/s`);
+            flv.emit('demuxRate', rate);
         });
 
         flv.on('destroy', () => {
@@ -58,7 +60,8 @@ export default class Demuxer {
 
         flv.on('streamStart', () => {
             this.streamStartTime = getNowTime();
-            debug.log('stream-url', options.url);
+            const url = Object.assign(document.createElement('a'), { href: options.url }).href;
+            debug.log('stream-url', url);
         });
 
         flv.on('streaming', uint8 => {

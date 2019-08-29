@@ -595,6 +595,14 @@
     var poster = flv.options.poster,
         proxy = flv.events.proxy,
         player = flv.player;
+    proxy(window, ['click', 'contextmenu'], function (event) {
+      if (event.composedPath().indexOf(player.$container) > -1) {
+        control.isFocus = true;
+      } else {
+        control.isFocus = false;
+      }
+    });
+    control.autoSize();
     flv.on('resize', function () {
       control.autoSize();
     });
@@ -837,13 +845,10 @@
 
     template(flv, this);
     observer(flv);
-    controls(flv, this);
     property(flv, this);
+    controls(flv, this);
     proxyPropertys(flv, this);
-
-    if (!flv.isMobile) {
-      hotkey(flv, this);
-    }
+    hotkey(flv, this);
   };
 
   return Control;

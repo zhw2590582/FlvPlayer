@@ -10,11 +10,9 @@ export default class Control {
     constructor(flv) {
         template(flv, this);
         observer(flv, this);
-        events(flv, this);
         property(flv, this);
+        events(flv, this);
         proxyPropertys(flv, this);
-        if (!flv.isMobile) {
-            hotkey(flv, this);
-        }
+        hotkey(flv, this);
     }
 }

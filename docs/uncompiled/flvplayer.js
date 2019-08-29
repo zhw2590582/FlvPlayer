@@ -655,10 +655,6 @@
         return 1000 / player.frameRate | 0;
       }
     });
-    Object.defineProperty(player, 'isFocus', {
-      value: false,
-      writable: true
-    });
     Object.defineProperty(player, 'volume', {
       get: function get() {
         try {
@@ -718,13 +714,6 @@
           height = _scripMeta$amf2$metaD.height;
       player.$canvas.width = width;
       player.$canvas.height = height;
-    });
-    proxy(window, ['click', 'contextmenu'], function (event) {
-      if (event.composedPath().indexOf(player.$container) > -1) {
-        player.isFocus = true;
-      } else {
-        player.isFocus = false;
-      }
     });
     proxy(player.$canvas, 'click', function () {
       player.toggle();

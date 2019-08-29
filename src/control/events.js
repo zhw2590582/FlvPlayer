@@ -7,6 +7,15 @@ export default function controls(flv, control) {
         player,
     } = flv;
 
+    proxy(window, ['click', 'contextmenu'], event => {
+        if (event.composedPath().indexOf(player.$container) > -1) {
+            control.isFocus = true;
+        } else {
+            control.isFocus = false;
+        }
+    });
+
+    control.autoSize();
     flv.on('resize', () => {
         control.autoSize();
     });

@@ -77,11 +77,6 @@ export default function property(flv, player) {
         },
     });
 
-    Object.defineProperty(player, 'isFocus', {
-        value: false,
-        writable: true,
-    });
-
     Object.defineProperty(player, 'volume', {
         get: () => {
             try {

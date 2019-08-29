@@ -170,6 +170,7 @@ img {
 }
 
 .part-right .video-wrap .flvplayer-app {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;

@@ -58,8 +58,10 @@ export default class Demuxer {
 
         flv.on('streamStart', () => {
             this.streamStartTime = getNowTime();
-            const url = Object.assign(document.createElement('a'), { href: options.url }).href;
-            debug.log('stream-url', url);
+            if (typeof options.url === 'string') {
+                const url = Object.assign(document.createElement('a'), { href: options.url }).href;
+                debug.log('stream-url', url);
+            }
         });
 
         flv.on('streaming', uint8 => {

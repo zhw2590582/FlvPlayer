@@ -1158,10 +1158,13 @@
     });
     flv.on('streamStart', function () {
       _this.streamStartTime = getNowTime();
-      var url = Object.assign(document.createElement('a'), {
-        href: options.url
-      }).href;
-      debug.log('stream-url', url);
+
+      if (typeof options.url === 'string') {
+        var url = Object.assign(document.createElement('a'), {
+          href: options.url
+        }).href;
+        debug.log('stream-url', url);
+      }
     });
     flv.on('streaming', function (uint8) {
       _this.streaming = true;
@@ -1400,7 +1403,7 @@
     };
   }
 
-  function readFile(flv, file) {
+  function readFile(flv) {
     flv.emit('streamStart');
     var proxy = flv.events.proxy;
     var reader = new FileReader();
@@ -1408,7 +1411,7 @@
       var buffer = e.target.result;
       flv.emit('streamEnd', new Uint8Array(buffer));
     });
-    reader.readAsArrayBuffer(file);
+    reader.readAsArrayBuffer(flv.options.url);
     return {
       reader: reader,
       cancel: function cancel() {

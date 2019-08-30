@@ -35,8 +35,9 @@ export default function xhrRequest(flv, stream) {
     
     xhr.send();
 
-    return {
-        reader: xhr,
-        cancel: xhr.abort,
-    };
+    flv.on('streamCancel', () => {
+        xhr.abort();
+    });
+
+    return xhr;
 }

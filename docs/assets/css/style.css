@@ -163,7 +163,7 @@ img {
 
 .part-right .video-wrap {
     display: flex;
-    height: 70%;
+    height: 65%;
     align-items: center;
     justify-content: center;
     border-bottom: 1px solid rgb(17, 21, 24);
@@ -178,6 +178,26 @@ img {
     width: 90%;
     height: 65%;
     border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.part-right .rates {
+    display: flex;
+    position: relative;
+    height: 5%;
+    font-size: 13px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.part-right .rates .item {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.part-right .rates .item span {
+    padding: 0 5px;
 }
 
 .part-right .console {

@@ -25,8 +25,9 @@ export default function websocketRequest(flv, stream) {
         throw error;
     });
 
-    return {
-        reader: socket,
-        cancel: socket.close,
-    };
+    flv.on('streamCancel', () => {
+        socket.close();
+    });
+
+    return socket;
 }

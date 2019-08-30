@@ -14,7 +14,7 @@ export default class Stream {
         this.transport = this.transportFactory(flv, this);
 
         flv.on('destroy', () => {
-            this.cancel();
+            this.flv.emit('streamCancel');
         });
 
         flv.on('reconnect', () => {
@@ -57,19 +57,11 @@ export default class Stream {
         return xhrRequest;
     }
 
-    cancel() {
-        try {
-            this.transport.cancel();
-        } catch (error) {
-            this.transport.then(transport => transport.cancel());
-        }
-    }
-
     reconnect() {
         if (this.reconnectTime < this.maxReconnectTime && !this.flv.isDestroy && this.flv.options.live) {
             setTimeout(() => {
                 this.reconnectTime += 1;
-                this.cancel();
+                this.flv.emit('streamCancel');
                 this.transport = this.transportFactory(this.flv, this);
                 this.flv.debug.warn(false, `[stream]: reconnect ${this.reconnectTime}`);
                 this.flv.emit('streamReconnect');

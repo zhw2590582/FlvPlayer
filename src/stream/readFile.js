@@ -7,8 +7,5 @@ export default function readFile(flv) {
         flv.emit('streamEnd', new Uint8Array(buffer));
     });
     reader.readAsArrayBuffer(flv.options.url);
-    return {
-        reader,
-        cancel: () => null,
-    };
+    return reader;
 }

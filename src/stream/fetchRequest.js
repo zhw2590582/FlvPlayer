@@ -5,8 +5,13 @@ export default function fetchRequest(flv, stream) {
     })
         .then(response => {
             const reader = response.body.getReader();
-            (function read() {
-                reader
+
+            flv.on('streamCancel', () => {
+                reader.cancel();
+            });
+
+            function read() {
+                return reader
                     .read()
                     .then(({ done, value }) => {
                         if (done) {
@@ -14,17 +19,14 @@ export default function fetchRequest(flv, stream) {
                             return;
                         }
                         flv.emit('streaming', new Uint8Array(value));
-                        read();
+                        // eslint-disable-next-line consistent-return
+                        return read();
                     })
                     .catch(error => {
                         throw error;
                     });
-            })();
-
-            return {
-                reader,
-                cancel: reader.cancel,
-            };
+            }
+            return read();
         })
         .catch(error => {
             stream.reconnect(error);

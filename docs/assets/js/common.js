@@ -9,6 +9,10 @@
     var $lib = document.querySelector('.libsInput');
     var $run = document.querySelector('.run');
     var $popups = document.querySelector('.popups');
+    var $streamRate = document.querySelector('.streamRate');
+    var $demuxRate = document.querySelector('.demuxRate');
+    var $decoderRate = document.querySelector('.decoderRate');
+    var $drawRate = document.querySelector('.drawRate');
     var loaddLib = [];
 
     consola.creat({
@@ -129,6 +133,23 @@
         });
         var code = mirror.getValue();
         eval(code);
+        setTimeout(() => {
+            let flv = FlvPlayer.instances[0];
+            if (flv) {
+                flv.on('streamRate', function(rate) {
+                    $streamRate.textContent = (rate / 1024 / 1024).toFixed(2);
+                });
+                flv.on('demuxRate', function(rate) {
+                    $demuxRate.textContent = rate.toFixed(2);
+                });
+                flv.on('decoderRate', function(rate) {
+                    $decoderRate.textContent = rate.toFixed(2);
+                });
+                flv.on('drawRate', function(rate) {
+                    $drawRate.textContent = rate.toFixed(2);
+                });
+            }
+        }, 1000);
     }
 
     function initApp() {

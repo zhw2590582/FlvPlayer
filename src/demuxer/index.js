@@ -144,7 +144,6 @@ export default class Demuxer {
                     break;
                 }
                 case 'audioData':
-                    this.demuxRate(1);
                     this.audioDataLength += 1;
                     this.audioDataSize += message.data.byteLength;
                     flv.emit('audioData', message.data, message.timestamp);

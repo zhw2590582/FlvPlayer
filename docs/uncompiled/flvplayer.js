@@ -1262,8 +1262,6 @@
           }
 
         case 'audioData':
-          _this.demuxRate(1);
-
           _this.audioDataLength += 1;
           _this.audioDataSize += message.data.byteLength;
           flv.emit('audioData', message.data, message.timestamp);
@@ -1281,9 +1279,12 @@
       headers: flv.options.headers
     }).then(function (response) {
       var reader = response.body.getReader();
+      flv.on('streamCancel', function () {
+        reader.cancel();
+      });
 
-      (function read() {
-        reader.read().then(function (_ref) {
+      function read() {
+        return reader.read().then(function (_ref) {
           var done = _ref.done,
               value = _ref.value;
 
@@ -1292,17 +1293,15 @@
             return;
           }
 
-          flv.emit('streaming', new Uint8Array(value));
-          read();
+          flv.emit('streaming', new Uint8Array(value)); // eslint-disable-next-line consistent-return
+
+          return read();
         }).catch(function (error) {
           throw error;
         });
-      })();
+      }
 
-      return {
-        reader: reader,
-        cancel: reader.cancel
-      };
+      return read();
     }).catch(function (error) {
       stream.reconnect(error);
       throw error;
@@ -1333,10 +1332,10 @@
       throw error;
     });
     xhr.send();
-    return {
-      reader: xhr,
-      cancel: xhr.abort
-    };
+    flv.on('streamCancel', function () {
+      xhr.abort();
+    });
+    return xhr;
   }
 
   function xhrRequest(flv, stream) {
@@ -1372,10 +1371,10 @@
       throw error;
     });
     xhr.send();
-    return {
-      reader: xhr,
-      cancel: xhr.abort
-    };
+    flv.on('streamCancel', function () {
+      xhr.abort();
+    });
+    return xhr;
   }
 
   function websocketRequest(flv, stream) {
@@ -1397,10 +1396,10 @@
       stream.reconnect(error);
       throw error;
     });
-    return {
-      reader: socket,
-      cancel: socket.close
-    };
+    flv.on('streamCancel', function () {
+      socket.close();
+    });
+    return socket;
   }
 
   function readFile(flv) {
@@ -1412,12 +1411,7 @@
       flv.emit('streamEnd', new Uint8Array(buffer));
     });
     reader.readAsArrayBuffer(flv.options.url);
-    return {
-      reader: reader,
-      cancel: function cancel() {
-        return null;
-      }
-    };
+    return reader;
   }
 
   var Stream =
@@ -1435,7 +1429,7 @@
       this.flv.debug.log('stream-type', this.transportFactory.name);
       this.transport = this.transportFactory(flv, this);
       flv.on('destroy', function () {
-        _this.cancel();
+        _this.flv.emit('streamCancel');
       });
       flv.on('reconnect', function () {
         _this.reconnect();
@@ -1443,17 +1437,6 @@
     }
 
     createClass(Stream, [{
-      key: "cancel",
-      value: function cancel() {
-        try {
-          this.transport.cancel();
-        } catch (error) {
-          this.transport.then(function (transport) {
-            return transport.cancel();
-          });
-        }
-      }
-    }, {
       key: "reconnect",
       value: function reconnect() {
         var _this2 = this;
@@ -1462,7 +1445,7 @@
           setTimeout(function () {
             _this2.reconnectTime += 1;
 
-            _this2.cancel();
+            _this2.flv.emit('streamCancel');
 
             _this2.transport = _this2.transportFactory(_this2.flv, _this2);
 

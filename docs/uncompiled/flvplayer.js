@@ -892,6 +892,7 @@
 
         var startTime = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
         this.stop();
+        this.playing = true;
         var index = this.timestamps.findIndex(function (timestamp, i) {
           return timestamp + _this3.audiobuffers[i].duration * 1000 >= startTime;
         });
@@ -899,7 +900,6 @@
         var audiobuffer = this.audiobuffers[index];
         if (!timestamp || !audiobuffer) return this.stop();
         var offset = Math.max(0, (startTime - timestamp) / 1000);
-        this.playing = true;
         this.source = this.context.createBufferSource();
         this.source.connect(this.gainNode);
         this.gainNode.connect(this.context.destination);

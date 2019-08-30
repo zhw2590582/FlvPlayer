@@ -107,6 +107,7 @@ export default class Dida {
 
     play(startTime = 0) {
         this.stop();
+        this.playing = true;
         const index = this.timestamps.findIndex((timestamp, i) => {
             return timestamp + this.audiobuffers[i].duration * 1000 >= startTime;
         });
@@ -114,7 +115,6 @@ export default class Dida {
         const audiobuffer = this.audiobuffers[index];
         if (!timestamp || !audiobuffer) return this.stop();
         const offset = Math.max(0, (startTime - timestamp) / 1000);
-        this.playing = true;
         this.source = this.context.createBufferSource();
         this.source.connect(this.gainNode);
         this.gainNode.connect(this.context.destination);

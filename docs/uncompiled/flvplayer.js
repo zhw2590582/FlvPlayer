@@ -839,7 +839,6 @@
     createClass(Dida, [{
       key: "reset",
       value: function reset() {
-        this.index = -1;
         this.timestamps = [];
         this.audiobuffers = [];
         this.timestampTmp = [];
@@ -887,22 +886,6 @@
         return this.stop().reset();
       }
     }, {
-      key: "start",
-      value: function start(audiobuffer) {
-        var offset = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-        this.playing = true;
-        this.source = this.context.createBufferSource();
-        this.source.connect(this.gainNode);
-        this.gainNode.connect(this.context.destination);
-        this.source.buffer = audiobuffer;
-        this.source.start(0, offset);
-
-        this.source.onended = function () {// this.index += 1;
-        };
-
-        return this;
-      }
-    }, {
       key: "play",
       value: function play() {
         var _this3 = this;
@@ -916,8 +899,24 @@
         var audiobuffer = this.audiobuffers[index];
         if (!timestamp || !audiobuffer) return this.stop();
         var offset = Math.max(0, (startTime - timestamp) / 1000);
-        this.start(audiobuffer, offset);
-        this.index = index + 1;
+        this.playing = true;
+        this.source = this.context.createBufferSource();
+        this.source.connect(this.gainNode);
+        this.gainNode.connect(this.context.destination);
+        this.source.buffer = audiobuffer;
+        this.source.start(0, offset);
+
+        this.source.onended = function () {
+          var nextTimestamp = _this3.timestamps[index + 1];
+          var nextAudiobuffer = _this3.audiobuffers[index + 1];
+
+          if (nextTimestamp && nextAudiobuffer) {
+            _this3.play(nextTimestamp);
+          } else {
+            _this3.stop();
+          }
+        };
+
         return this;
       }
     }, {

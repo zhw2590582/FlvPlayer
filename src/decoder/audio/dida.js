@@ -67,7 +67,6 @@ export default class Dida {
     }
 
     reset() {
-        this.index = -1;
         this.timestamps = [];
         this.audiobuffers = [];
         this.timestampTmp = [];
@@ -106,19 +105,6 @@ export default class Dida {
         return this.stop().reset();
     }
 
-    start(audiobuffer, offset = 0) {
-        this.playing = true;
-        this.source = this.context.createBufferSource();
-        this.source.connect(this.gainNode);
-        this.gainNode.connect(this.context.destination);
-        this.source.buffer = audiobuffer;
-        this.source.start(0, offset);
-        this.source.onended = () => {
-            // this.index += 1;
-        };
-        return this;
-    }
-
     play(startTime = 0) {
         this.stop();
         const index = this.timestamps.findIndex((timestamp, i) => {
@@ -128,8 +114,21 @@ export default class Dida {
         const audiobuffer = this.audiobuffers[index];
         if (!timestamp || !audiobuffer) return this.stop();
         const offset = Math.max(0, (startTime - timestamp) / 1000);
-        this.start(audiobuffer, offset);
-        this.index = index + 1;
+        this.playing = true;
+        this.source = this.context.createBufferSource();
+        this.source.connect(this.gainNode);
+        this.gainNode.connect(this.context.destination);
+        this.source.buffer = audiobuffer;
+        this.source.start(0, offset);
+        this.source.onended = () => {
+            const nextTimestamp = this.timestamps[index + 1];
+            const nextAudiobuffer = this.audiobuffers[index + 1];
+            if (nextTimestamp && nextAudiobuffer) {
+                this.play(nextTimestamp);
+            } else {
+                this.stop();
+            }
+        };
         return this;
     }
 

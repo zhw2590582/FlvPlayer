@@ -71,7 +71,7 @@ export default class VideoSuperDecoder {
                         this.videoframes.splice(0, index + 1);
                         this.timestamps.splice(0, index + 1);
                         decoder.currentTime = this.timestamps[0] / 1000;
-                        debug.log('Free Memory', `Size: ${framesSize / 1024 / 1024} M`, `Index: ${index}`);
+                        flv.emit('freeMemory', framesSize, index);
                     } else {
                         this.playIndex += 1;
                     }

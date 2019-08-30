@@ -224,7 +224,7 @@
               _this.timestamps.splice(0, index + 1);
 
               decoder.currentTime = _this.timestamps[0] / 1000;
-              debug.log('Free Memory', "Size: ".concat(framesSize / 1024 / 1024, " M"), "Index: ".concat(index));
+              flv.emit('freeMemory', framesSize, index);
             } else {
               _this.playIndex += 1;
             }

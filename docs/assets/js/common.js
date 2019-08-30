@@ -130,6 +130,10 @@
     function runCode() {
         FlvPlayer.instances.forEach(function(flv) {
             flv.destroy(true);
+            $streamRate.textContent = 0;
+            $demuxRate.textContent = 0;
+            $decoderRate.textContent = 0;
+            $drawRate.textContent = 0;
         });
         var code = mirror.getValue();
         eval(code);

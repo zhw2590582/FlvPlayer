@@ -759,118 +759,148 @@
     proxyPropertys(flv, this);
   };
 
-  var AudioDecoder =
+  function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+  function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+  function mergeBuffer$1() {
+    for (var _len = arguments.length, buffers = new Array(_len), _key = 0; _key < _len; _key++) {
+      buffers[_key] = arguments[_key];
+    }
+
+    var Cons = buffers[0].constructor;
+    return buffers.reduce(function (pre, val) {
+      var merge = new Cons((pre.byteLength | 0) + (val.byteLength | 0));
+      merge.set(pre, 0);
+      merge.set(val, pre.byteLength | 0);
+      return merge;
+    }, new Cons());
+  }
+
+  function debounce$1(func, wait, context) {
+    var timeout;
+    return function fn() {
+      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        args[_key2] = arguments[_key2];
+      }
+
+      var later = function later() {
+        timeout = null;
+        func.apply(context, args);
+      };
+
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
+  var Dida =
   /*#__PURE__*/
   function () {
-    function AudioDecoder(flv) {
+    function Dida() {
       var _this = this;
 
-      classCallCheck(this, AudioDecoder);
+      var option = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
-      this.flv = flv;
+      classCallCheck(this, Dida);
+
+      this.option = _objectSpread({}, Dida.option, {}, option);
       this.context = new (window.AudioContext || window.webkitAudioContext)();
       this.gainNode = this.context.createGain();
-      this.gainNode.gain.value = flv.options.volume;
-      this.playing = false;
-      this.playIndex = 0;
-      this.audiobuffers = [];
-      this.timestamps = [];
-      this.audioInputLength = 0;
+      this.gainNode.gain.value = this.option.volume;
+      this.source = null;
       this.decoding = false;
-      this.byteSize = 0;
-      this.loaded = 0;
-      flv.on('destroy', function () {
-        _this.audiobuffers = [];
+      this.playing = false;
+      this.loadLength = 0;
+      this.loadByteSize = false;
+      this.audioDuration = 0;
+      this.audioLength = 0;
+      this.reset();
+      this.restDetect = debounce$1(function () {
+        if (_this.decodeWaitingBuffer.length) {
+          _this.timestamps.push(_this.timestampTmp[0]);
 
-        _this.stop();
-      });
-      var timestampTmp = [];
-      this.decodeErrorBuffer = new Uint8Array();
-      this.decodeWaitingBuffer = new Uint8Array();
-      flv.on('audioData', function (uint8, timestamp) {
-        _this.decoding = true;
-        _this.audioInputLength += 1;
-
-        if (_this.decodeWaitingBuffer.byteLength >= 1024 * 128) {
-          _this.timestamps.push(timestampTmp[0]);
-
-          timestampTmp = [];
-
-          var _mergeBuffer = mergeBuffer(_this.decodeErrorBuffer, _this.decodeWaitingBuffer),
-              buffer = _mergeBuffer.buffer;
-
-          _this.decodeWaitingBuffer = new Uint8Array();
-
-          _this.context.decodeAudioData(buffer, function (audiobuffer) {
-            _this.loaded += audiobuffer.duration;
-            _this.byteSize += audiobuffer.length;
-
-            _this.audiobuffers.push(audiobuffer);
-
-            flv.emit('audioLoaded', _this.loaded);
-            _this.decodeErrorBuffer = new Uint8Array();
-          }).catch(function () {
-            _this.decodeErrorBuffer = mergeBuffer(_this.decodeErrorBuffer, _this.decodeWaitingBuffer);
-          });
-        } else {
-          timestampTmp.push(timestamp);
-          _this.decodeWaitingBuffer = mergeBuffer(_this.decodeWaitingBuffer, uint8);
-        }
-      });
-      flv.on('timeupdate', function (currentTime) {
-        if (_this.flv.demuxer.demuxed && _this.decodeWaitingBuffer.length) {
-          _this.timestamps.push(timestampTmp[0]);
-
-          timestampTmp = [];
+          _this.timestampTmp = [];
 
           _this.context.decodeAudioData(_this.decodeWaitingBuffer.buffer, function (audiobuffer) {
-            _this.decodeWaitingBuffer = new Uint8Array();
-            _this.decodeErrorBuffer = new Uint8Array();
-            _this.loaded += audiobuffer.duration;
-            _this.byteSize += audiobuffer.length;
+            _this.audioDuration += audiobuffer.duration;
+            _this.audioLength += audiobuffer.length;
 
             _this.audiobuffers.push(audiobuffer);
 
-            flv.emit('audioLoaded', _this.loaded);
+            _this.decodeWaitingBuffer = new Uint8Array();
+            _this.decodeErrorBuffer = new Uint8Array();
             _this.decoding = false;
           });
         }
-
-        var timestamp = _this.timestamps[_this.playIndex];
-
-        if (timestamp && currentTime * 1000 >= timestamp) {
-          var state = _this.queue(_this.playIndex);
-
-          if (state) {
-            _this.playIndex += 1;
-          } else {
-            _this.stop();
-          }
-        }
-      });
+      }, this.option.restDetectTime);
     }
 
-    createClass(AudioDecoder, [{
-      key: "queue",
-      value: function queue(index) {
+    createClass(Dida, [{
+      key: "reset",
+      value: function reset() {
+        this.index = -1;
+        this.timestamps = [];
+        this.audiobuffers = [];
+        this.timestampTmp = [];
+        this.decodeErrorBuffer = new Uint8Array();
+        this.decodeWaitingBuffer = new Uint8Array();
+        return this;
+      }
+    }, {
+      key: "load",
+      value: function load(uint8, timestamp) {
         var _this2 = this;
 
-        var audiobuffer = this.audiobuffers[index];
-        if (!audiobuffer) return false;
+        this.decoding = true;
+        this.loadLength += 1;
+
+        if (this.decodeWaitingBuffer.byteLength >= this.option.chunk) {
+          this.timestamps.push(this.timestampTmp[0]);
+          this.timestampTmp = [];
+
+          var _mergeBuffer = mergeBuffer$1(this.decodeErrorBuffer, this.decodeWaitingBuffer),
+              buffer = _mergeBuffer.buffer;
+
+          this.decodeWaitingBuffer = new Uint8Array();
+          this.context.decodeAudioData(buffer, function (audiobuffer) {
+            _this2.audioDuration += audiobuffer.duration;
+            _this2.audioLength += audiobuffer.length;
+
+            _this2.audiobuffers.push(audiobuffer);
+
+            _this2.decodeErrorBuffer = new Uint8Array();
+          }).catch(function () {
+            _this2.decodeErrorBuffer = mergeBuffer$1(_this2.decodeErrorBuffer, _this2.decodeWaitingBuffer);
+          });
+        } else {
+          this.timestampTmp.push(timestamp);
+          this.decodeWaitingBuffer = mergeBuffer$1(this.decodeWaitingBuffer, uint8);
+        }
+
+        this.restDetect();
+        return this;
+      }
+    }, {
+      key: "destroy",
+      value: function destroy() {
+        return this.stop().reset();
+      }
+    }, {
+      key: "start",
+      value: function start(audiobuffer) {
+        var offset = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+        this.playing = true;
         this.source = this.context.createBufferSource();
-        this.source.buffer = audiobuffer;
         this.source.connect(this.gainNode);
         this.gainNode.connect(this.context.destination);
+        this.source.buffer = audiobuffer;
+        this.source.start(0, offset);
 
-        this.source.onended = function () {
-          if (_this2.flv.options.live) {
-            _this2.audiobuffers[index] = null;
-          }
+        this.source.onended = function () {// this.index += 1;
         };
 
-        this.playing = true;
-        this.source.start();
-        return true;
+        return this;
       }
     }, {
       key: "play",
@@ -879,33 +909,16 @@
 
         var startTime = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
         this.stop();
-        var time = 0;
-        var index = this.audiobuffers.findIndex(function (item) {
-          time += item.duration;
-          return startTime <= time;
+        var index = this.timestamps.findIndex(function (timestamp, i) {
+          return timestamp + _this3.audiobuffers[i].duration * 1000 >= startTime;
         });
+        var timestamp = this.timestamps[index];
         var audiobuffer = this.audiobuffers[index];
-
-        if (!audiobuffer) {
-          this.stop();
-          return;
-        }
-
-        var offset = startTime - (time - audiobuffer.duration);
-        this.source = this.context.createBufferSource();
-        this.source.connect(this.gainNode);
-        this.gainNode.connect(this.context.destination);
-        this.source.buffer = audiobuffer;
-
-        this.source.onended = function () {
-          if (_this3.flv.options.live) {
-            _this3.audiobuffers[index] = null;
-          }
-        };
-
-        this.playing = true;
-        this.source.start(0, offset);
-        this.playIndex = index + 1;
+        if (!timestamp || !audiobuffer) return this.stop();
+        var offset = Math.max(0, (startTime - timestamp) / 1000);
+        this.start(audiobuffer, offset);
+        this.index = index + 1;
+        return this;
       }
     }, {
       key: "stop",
@@ -915,7 +928,67 @@
         if (this.source) {
           this.source.onended = null;
           this.source.stop();
+          this.source = null;
         }
+
+        return this;
+      }
+    }], [{
+      key: "option",
+      get: function get() {
+        return {
+          volume: 0.7,
+          cache: false,
+          chunk: 128 * 1024,
+          freeMemory: 64 * 1024 * 1024,
+          restDetectTime: 1000
+        };
+      }
+    }]);
+
+    return Dida;
+  }();
+
+  var AudioDecoder =
+  /*#__PURE__*/
+  function () {
+    function AudioDecoder(flv) {
+      var _this = this;
+
+      classCallCheck(this, AudioDecoder);
+
+      this.flv = flv;
+      this.dida = new Dida();
+      flv.on('audioData', function (uint8, timestamp) {
+        _this.dida.load(uint8, timestamp);
+      });
+      flv.on('timeupdate', function (currentTime) {// this.dida.play(currentTime * 1000);
+      });
+      flv.on('destroy', function () {
+        _this.dida.destroy();
+      });
+    }
+
+    createClass(AudioDecoder, [{
+      key: "play",
+      value: function play() {
+        var startTime = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+        this.dida.play(startTime * 1000);
+      }
+    }, {
+      key: "stop",
+      value: function stop() {
+        this.dida.stop();
+      }
+    }, {
+      key: "decoding",
+      get: function get() {
+        return this.dida.decoding;
+      }
+    }, {
+      key: "playing",
+      get: function get() {
+        return this.dida.playing;
       }
     }]);
 
@@ -1494,9 +1567,9 @@
     return Stream;
   }();
 
-  function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+  function ownKeys$1(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
-  function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+  function _objectSpread$1(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys$1(source, true).forEach(function (key) { defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys$1(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
   var id = 0;
 
   var FlvPlayer =
@@ -1510,7 +1583,7 @@
       classCallCheck(this, FlvPlayer);
 
       _this = possibleConstructorReturn(this, getPrototypeOf(FlvPlayer).call(this));
-      _this.options = _objectSpread({}, FlvPlayer.options, {}, options);
+      _this.options = _objectSpread$1({}, FlvPlayer.options, {}, options);
 
       if (typeof _this.options.container === 'string') {
         _this.options.container = document.querySelector(_this.options.container);
@@ -1579,7 +1652,7 @@
     }, {
       key: "version",
       get: function get() {
-        return '1.0.7';
+        return '1.0.8';
       }
     }, {
       key: "env",

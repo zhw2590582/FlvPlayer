@@ -812,7 +812,7 @@
       this.decoding = false;
       this.playing = false;
       this.loadLength = 0;
-      this.loadByteSize = false;
+      this.loadByteSize = 0;
       this.audioDuration = 0;
       this.audioLength = 0;
       this.reset();
@@ -853,6 +853,7 @@
 
         this.decoding = true;
         this.loadLength += 1;
+        this.loadByteSize += uint8.byteLength;
 
         if (this.decodeWaitingBuffer.byteLength >= this.option.chunk) {
           this.timestamps.push(this.timestampTmp[0]);

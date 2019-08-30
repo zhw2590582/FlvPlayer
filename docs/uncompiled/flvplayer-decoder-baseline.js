@@ -54,6 +54,67 @@
   module.exports = _typeof;
   });
 
+  function _assertThisInitialized(self) {
+    if (self === void 0) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }
+
+    return self;
+  }
+
+  var assertThisInitialized = _assertThisInitialized;
+
+  function _possibleConstructorReturn(self, call) {
+    if (call && (_typeof_1(call) === "object" || typeof call === "function")) {
+      return call;
+    }
+
+    return assertThisInitialized(self);
+  }
+
+  var possibleConstructorReturn = _possibleConstructorReturn;
+
+  var getPrototypeOf = createCommonjsModule(function (module) {
+  function _getPrototypeOf(o) {
+    module.exports = _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) {
+      return o.__proto__ || Object.getPrototypeOf(o);
+    };
+    return _getPrototypeOf(o);
+  }
+
+  module.exports = _getPrototypeOf;
+  });
+
+  var setPrototypeOf = createCommonjsModule(function (module) {
+  function _setPrototypeOf(o, p) {
+    module.exports = _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
+      o.__proto__ = p;
+      return o;
+    };
+
+    return _setPrototypeOf(o, p);
+  }
+
+  module.exports = _setPrototypeOf;
+  });
+
+  function _inherits(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function");
+    }
+
+    subClass.prototype = Object.create(superClass && superClass.prototype, {
+      constructor: {
+        value: subClass,
+        writable: true,
+        configurable: true
+      }
+    });
+    if (superClass) setPrototypeOf(subClass, superClass);
+  }
+
+  var inherits = _inherits;
+
   function createWorker(workerString) {
     return new Worker(URL.createObjectURL(new Blob([workerString], {
       type: 'application/javascript'
@@ -81,6 +142,141 @@
       }
     };
   }
+
+  var VideoSuperDecoder =
+  /*#__PURE__*/
+  function () {
+    function VideoSuperDecoder(flv, decoder) {
+      var _this = this;
+
+      classCallCheck(this, VideoSuperDecoder);
+
+      this.flv = flv;
+      var options = flv.options,
+          debug = flv.debug,
+          player = flv.player;
+      this.ready = false;
+      this.playing = false;
+      this.playIndex = 0;
+      this.videoframes = [];
+      this.timestamps = [];
+      this.videoInputLength = 0;
+      this.decoding = false;
+      this.byteSize = 0;
+      this.loaded = 0;
+      this.initLiveTimestamp = false;
+      this.decoderRate = calculationRate(function (rate) {
+        flv.emit('decoderRate', rate);
+      });
+      this.drawRate = calculationRate(function (rate) {
+        flv.emit('drawRate', rate);
+      });
+      flv.on('destroy', function () {
+        _this.videoframes = [];
+        _this.timestamps = [];
+
+        _this.decoderWorker.terminate();
+
+        _this.stop();
+      });
+      flv.on('befoerdecoding', function (timestamp) {
+        _this.decoding = true;
+
+        _this.timestamps.push(timestamp);
+
+        _this.videoInputLength += 1;
+
+        if (options.live && !_this.initLiveTimestamp) {
+          decoder.currentTime = timestamp / 1000;
+          _this.initLiveTimestamp = true;
+        }
+      });
+      flv.on('decoding', function (message, byteSize) {
+        if (options.live && !_this.playing && _this.ready) return;
+        _this.byteSize += byteSize;
+
+        _this.videoframes.push(message);
+
+        _this.decoding = _this.videoframes.length !== _this.videoInputLength;
+        _this.loaded = _this.videoframes.length / player.frameRate;
+        flv.emit('videoLoaded', _this.loaded);
+
+        _this.decoderRate(1);
+
+        if (!_this.ready && _this.videoframes.length === 1) {
+          _this.ready = true;
+          flv.emit('ready');
+        }
+      });
+      flv.on('timeupdate', function (currentTime) {
+        var index = _this.playIndex;
+        var timestamp = _this.timestamps[index];
+
+        if (timestamp !== undefined && currentTime * 1000 >= timestamp) {
+          if (_this.draw(index)) {
+            var framesSize = _this.getFramesSize(index);
+
+            if (options.live && framesSize >= options.freeMemory && _this.videoframes.length - 1 > index && _this.timestamps.length - 1 > index) {
+              _this.playIndex = 0;
+
+              _this.videoframes.splice(0, index + 1);
+
+              _this.timestamps.splice(0, index + 1);
+
+              decoder.currentTime = _this.timestamps[0] / 1000;
+              debug.log('Free Memory', "Size: ".concat(framesSize / 1024 / 1024, " M"), "Index: ".concat(index));
+            } else {
+              _this.playIndex += 1;
+            }
+          } else {
+            if (!options.live) {
+              _this.stop();
+            }
+          }
+        }
+      });
+    }
+
+    createClass(VideoSuperDecoder, [{
+      key: "draw",
+      value: function draw(index) {
+        var videoframe = this.videoframes[index];
+        if (!videoframe) return false;
+        this.renderer.drawFrame(videoframe);
+        this.drawRate(1);
+        return true;
+      }
+    }, {
+      key: "play",
+      value: function play() {
+        var startTime = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+        this.playing = true;
+
+        if (this.flv.options.live) {
+          this.playIndex = 0;
+          this.videoframes = [];
+          this.timestamps = [];
+          this.initLiveTimestamp = false;
+        } else {
+          this.playIndex = Math.round(startTime * this.flv.player.frameRate);
+        }
+      }
+    }, {
+      key: "stop",
+      value: function stop() {
+        this.playing = false;
+
+        if (this.flv.options.live) {
+          this.playIndex = 0;
+          this.videoframes = [];
+          this.timestamps = [];
+          this.initLiveTimestamp = false;
+        }
+      }
+    }]);
+
+    return VideoSuperDecoder;
+  }();
 
   //
   //  Copyright (c) 2014 Sam Leitch. All rights reserved.
@@ -337,64 +533,25 @@
 
   var VideoDecoder =
   /*#__PURE__*/
-  function () {
+  function (_VideoSuperDecoder) {
+    inherits(VideoDecoder, _VideoSuperDecoder);
+
     function VideoDecoder(flv, decoder) {
-      var _this = this;
+      var _this;
 
       classCallCheck(this, VideoDecoder);
 
-      this.flv = flv;
+      _this = possibleConstructorReturn(this, getPrototypeOf(VideoDecoder).call(this, flv, decoder));
       var player = flv.player,
-          events = flv.events,
-          options = flv.options,
-          debug = flv.debug;
-      this.ready = false;
-      this.playing = false;
-      this.playIndex = 0;
-      this.videoframes = [];
-      this.timestamps = [];
-      this.videoInputLength = 0;
-      this.decoding = false;
-      this.byteSize = 0;
-      this.loaded = 0;
-      this.initLiveTimestamp = false;
-      this.decoderWorker = createWorker(workerString);
-      this.renderer = new H264bsdCanvas(player.$canvas);
-      this.decoderRate = calculationRate(function (rate) {
-        flv.emit('decoderRate', rate);
-      });
-      this.drawRate = calculationRate(function (rate) {
-        flv.emit('drawRate', rate);
-      });
-      flv.on('destroy', function () {
-        _this.videoframes = [];
-        _this.timestamps = [];
-
-        _this.decoderWorker.terminate();
-
-        _this.stop();
-      });
-      events.proxy(this.decoderWorker, 'message', function (event) {
+          events = flv.events;
+      _this.decoderWorker = createWorker(workerString);
+      _this.renderer = new H264bsdCanvas(player.$canvas);
+      events.proxy(_this.decoderWorker, 'message', function (event) {
         var message = event.data;
 
         switch (message.type) {
           case 'pictureReady':
-            if (options.live && !_this.playing && _this.ready) return;
-            _this.byteSize += message.data.byteLength;
-
-            _this.videoframes.push(message);
-
-            _this.decoding = _this.videoframes.length !== _this.videoInputLength;
-            _this.loaded = _this.videoframes.length / player.frameRate;
-            flv.emit('videoLoaded', _this.loaded);
-
-            _this.decoderRate(1);
-
-            if (!_this.ready && _this.videoframes.length === 1) {
-              _this.ready = true;
-              flv.emit('ready');
-            }
-
+            flv.emit('decoding', message, message.data.byteLength);
             break;
 
           default:
@@ -402,49 +559,14 @@
         }
       });
       flv.on('videoData', function (frame, timestamp) {
-        _this.decoding = true;
-
         _this.decoderWorker.postMessage({
           type: 'decode',
           data: frame.buffer
         }, [frame.buffer]);
 
-        _this.timestamps.push(timestamp);
-
-        _this.videoInputLength += 1;
-
-        if (options.live && !_this.initLiveTimestamp) {
-          decoder.currentTime = timestamp / 1000;
-          _this.initLiveTimestamp = true;
-        }
+        flv.emit('befoerdecoding', timestamp);
       });
-      flv.on('timeupdate', function (currentTime) {
-        var index = _this.playIndex;
-        var timestamp = _this.timestamps[index];
-
-        if (timestamp !== undefined && currentTime * 1000 >= timestamp) {
-          if (_this.draw(index)) {
-            var framesSize = _this.getFramesSize(index);
-
-            if (options.live && framesSize >= options.freeMemory && _this.videoframes.length - 1 > index && _this.timestamps.length - 1 > index) {
-              _this.playIndex = 0;
-
-              _this.videoframes.splice(0, index + 1);
-
-              _this.timestamps.splice(0, index + 1);
-
-              decoder.currentTime = _this.timestamps[0] / 1000;
-              debug.log('Free Memory', "Size: ".concat(framesSize / 1024 / 1024, " M"), "Index: ".concat(index));
-            } else {
-              _this.playIndex += 1;
-            }
-          } else {
-            if (!options.live) {
-              _this.stop();
-            }
-          }
-        }
-      });
+      return _this;
     }
 
     createClass(VideoDecoder, [{
@@ -458,46 +580,10 @@
 
         return framesSize;
       }
-    }, {
-      key: "draw",
-      value: function draw(index) {
-        var videoframe = this.videoframes[index];
-        if (!videoframe) return false;
-        this.renderer.drawFrame(videoframe);
-        this.drawRate(1);
-        return true;
-      }
-    }, {
-      key: "play",
-      value: function play() {
-        var startTime = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-        this.playing = true;
-
-        if (this.flv.options.live) {
-          this.playIndex = 0;
-          this.videoframes = [];
-          this.timestamps = [];
-          this.initLiveTimestamp = false;
-        } else {
-          this.playIndex = Math.round(startTime * this.flv.player.frameRate);
-        }
-      }
-    }, {
-      key: "stop",
-      value: function stop() {
-        this.playing = false;
-
-        if (this.flv.options.live) {
-          this.playIndex = 0;
-          this.videoframes = [];
-          this.timestamps = [];
-          this.initLiveTimestamp = false;
-        }
-      }
     }]);
 
     return VideoDecoder;
-  }();
+  }(VideoSuperDecoder);
 
   return VideoDecoder;
 

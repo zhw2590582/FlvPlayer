@@ -12,13 +12,7 @@
 
 ## Demo
 
-[Play online demo](https://flvplayer.js.org/)
-
-[Play local demo](https://flvplayer.js.org/fileReader.html)
-
-## Article
-
-[使用阿里云 ECS 搭建 NodeJs 直播服务器](./ecs-live-server.md)
+[Checkout the demo](https://flvplayer.js.org/) from Github Pages
 
 ## Install player
 
@@ -72,22 +66,60 @@ Will expose the global variable to `window.FlvplayerControl`.
 
 ```js
 var flv = new FlvPlayer({
-    container: '.flvplayer-app', // A div dom element
-    url: 'path/to/video.flv', // Url of flv video file or url of websocket
-    decoder: './flvplayer-decoder-baseline.js', // Path to video decoder, flvplayer-decoder-baseline.js or flvplayer-decoder-multiple.js
-    poster: 'path/to/poster.png', // Url of video poster, the first frame of the video is taken as the poster by default
-    autoPlay: false, // Whether auto play
-    debug: false, // Show debug information on developer tools
-    live: false, // Whether live video
-    loop: false, // Whether to automatically loop play
-    hotkey: true, // Whether to use hotkeys
-    hasAudio: true, // Whether to include audio
-    volume: 7, // Default volume, ranging from 0 to 10
-    frameRate: 30, // Video frame rate, which will be extracted from the flv file by default
-    width: 400, // Video default width, which will be extracted from the flv file by default
-    height: 300, // Video default height, which will be extracted from the flv file by default
+    // Accept http url, websocket url, and file type
+    url: '',
+
+    // Accept dom element, dom selector
+    container: '',
+
+    // Whether to print debug information
+    debug: false,
+
+    // Whether live mode
+    live: false,
+
+    // Whether the video loops, in non-live mode
+    loop: false,
+
+    // Whether to play automatically
+    autoPlay: false,
+
+    // Whether it contains an audio stream
+    hasAudio: true,
+
+    // Whether to display the controller, if the controller exists
+    control: true,
+
+    // Volume from 0 to 10
+    volume: 7,
+
+    // Initialize the frame rate, which will be covered by the actual frame rate of the file
+    frameRate: 30,
+
+    // Maximum limit for cached data in live mode
+    freeMemory: 64 * 1024 * 1024,
+
+    // Initialize the width, which will be covered by the actual width of the file
+    width: 400,
+
+    // Initialize the height, which will be covered by the actual height of the file
+    height: 300,
+
+    // Initialize http headers
+    headers: {},
+
+    // The path of the video decoder, currently optional flvplayer-decoder-baseline.js and flvplayer-decoder-multiple.js
+    decoder: 'flvplayer-decoder-baseline.js',
 });
 ```
+
+## Question
+
+Q: What is the difference between `flvplayer-decoder-baseline.js` and `flvplayer-decoder-multiple.js`.
+
+`flvplayer-decoder-baseline.js` only supports flv in this `Baseline` profile, but only 200k size.
+
+`flvplayer-decoder-multiple.js` supports flv in this `Baseline`、`Main`、`Extended` and `High` profile, but have 2M size.
 
 ## API
 

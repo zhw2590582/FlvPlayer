@@ -117,9 +117,8 @@ var flv = new FlvPlayer({
 
 Q: What is the difference between `flvplayer-decoder-baseline.js` and `flvplayer-decoder-multiple.js`.
 
-`flvplayer-decoder-baseline.js` only supports flv in this `Baseline` profile, but only 200k size.
-
-`flvplayer-decoder-multiple.js` supports flv in this `Baseline`、`Main`、`Extended` and `High` profile, but have 2M size.
+- `flvplayer-decoder-baseline.js` only supports flv in this `Baseline` profile, only 200k size.
+- `flvplayer-decoder-multiple.js` supports flv in this `Baseline`、`Main`、`Extended` and `High` profile, but have 2M size.
 
 ## API
 

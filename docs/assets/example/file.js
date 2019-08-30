@@ -1,6 +1,6 @@
 var $flvplayer = document.querySelector('.flvplayer-app');
 $flvplayer.innerHTML = `
-Drop video file here or click to upload.
+Click to upload a flv video.
 <input type="file" id="file" style="position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; right: 0px; bottom: 0px; opacity: 0;">
 `;
 

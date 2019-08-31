@@ -912,6 +912,8 @@
             _this3.option.onEnd();
           });
         }
+
+        return this;
       }
     }, {
       key: "play",
@@ -919,7 +921,13 @@
         var _this4 = this;
 
         var startTime = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-        this.stop();
+
+        if (this.source) {
+          this.source.onended = null;
+          this.source.stop();
+          this.source = null;
+        }
+
         this.playing = true;
         var index = this.timestamps.findIndex(function (timestamp, i) {
           var audiobuffer = _this4.audiobuffers[i];

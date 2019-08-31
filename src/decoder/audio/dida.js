@@ -137,10 +137,15 @@ export default class Dida {
                 this.option.onEnd();
             });
         }
+        return this;
     }
 
     play(startTime = 0) {
-        this.stop();
+        if (this.source) {
+            this.source.onended = null;
+            this.source.stop();
+            this.source = null;
+        }
         this.playing = true;
         const index = this.timestamps.findIndex((timestamp, i) => {
             const audiobuffer = this.audiobuffers[i];

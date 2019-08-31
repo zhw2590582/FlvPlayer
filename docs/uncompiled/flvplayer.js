@@ -847,7 +847,7 @@
             _this.option.onEnd();
           });
         }
-      }, this.option.restDetectTime);
+      }, this.option.endDetectTime);
     }
 
     createClass(Dida, [{
@@ -976,7 +976,7 @@
           volume: 0.7,
           cache: true,
           chunk: 64 * 1024,
-          restDetectTime: 1000,
+          endDetectTime: 1000,
           onLoad: function onLoad() {
             return null;
           },

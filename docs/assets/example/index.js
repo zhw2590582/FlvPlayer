@@ -9,6 +9,7 @@ var flv = new FlvPlayer({
     // decoder: './uncompiled/flvplayer-decoder-multiple.js',
     debug: true,
     live: false,
+    muted: false,
     loop: true,
     hotkey: true,
     autoPlay: false,

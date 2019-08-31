@@ -13,6 +13,8 @@ export default class Control {
         property(flv, this);
         events(flv, this);
         proxyPropertys(flv, this);
-        hotkey(flv, this);
+        if (flv.options.hotkey) {
+            hotkey(flv, this);
+        }
     }
 }

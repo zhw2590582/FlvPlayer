@@ -11,5 +11,4 @@ var flv = new FlvPlayer({
     hasAudio: false,
     width: 960,
     height: 540,
-    freeMemory: 64 * 1024 * 1024,
 });

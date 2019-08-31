@@ -914,11 +914,12 @@
         this.stop();
         this.playing = true;
         var index = this.timestamps.findIndex(function (timestamp, i) {
-          return timestamp + _this3.audiobuffers[i].duration * 1000 >= startTime;
+          var audiobuffer = _this3.audiobuffers[i];
+          return audiobuffer && timestamp + audiobuffer.duration * 1000 >= startTime;
         });
         var timestamp = this.timestamps[index];
         var audiobuffer = this.audiobuffers[index];
-        if (!timestamp || !audiobuffer) return this.stop();
+        if (timestamp === undefined || audiobuffer === undefined) return this.stop();
         var offset = Math.max(0, (startTime - timestamp) / 1000);
         this.source = this.context.createBufferSource();
         this.source.connect(this.gainNode);

@@ -93,6 +93,13 @@ var flv = new FlvPlayer({
     // Whether it contains an audio stream
     hasAudio: true,
 
+    // Whether to cache the video frame to play
+    cache: true,
+
+    // Maximum time difference between audio and video, unit is ms
+    // used to automatically adjust audio and video synchronization
+    maxTimeDiff: 200,
+
     // Whether to display the control, if the control exists
     control: true,
 
@@ -102,7 +109,7 @@ var flv = new FlvPlayer({
     // Initialize the frame rate, which will be covered by the actual frame rate of the file
     frameRate: 30,
 
-    // Maximum limit for cached data in live mode, Unit is byte, the default is 64M
+    // Maximum limit for cached data in live mode, unit is byte, the default is 64M
     freeMemory: 64 * 1024 * 1024,
 
     // Initialize the width, which will be covered by the actual width of the file

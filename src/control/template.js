@@ -30,9 +30,11 @@ export default function template(flv, control) {
                             <div class="flvplayer-controls-item flvplayer-volume">
                                 <div class="flvplayer-volume-on">${icons.volume}</div>
                                 <div class="flvplayer-volume-off">${icons.volumeClose}</div>
-                                <div class="flvplayer-volume-panel">
-                                    <div class="flvplayer-volume-panel-handle"></div>
-                                </div>
+                                ${flv.isMobile ? '' : `
+                                    <div class="flvplayer-volume-panel">
+                                        <div class="flvplayer-volume-panel-handle"></div>
+                                    </div>
+                                `}
                             </div>
                         ` : ''}
                         ${!options.live ? `

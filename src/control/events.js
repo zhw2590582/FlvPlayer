@@ -100,6 +100,7 @@ export default function controls(flv, control) {
     flv.on('pause', () => {
         control.$play.style.display = 'block';
         control.$pause.style.display = 'none';
+        control.loading = false;
     });
 
     flv.on('scripMeta', () => {
@@ -140,16 +141,20 @@ export default function controls(flv, control) {
 
     function setVolumeHandle(percentage) {
         if (percentage === 0) {
+            if (!flv.isMobile) {
+                setStyle(control.$volumeHandle, 'left', '0');
+            }
             setStyle(control.$volumeOn, 'display', 'none');
             setStyle(control.$volumeOff, 'display', 'flex');
-            setStyle(control.$volumeHandle, 'left', '0');
         } else {
-            const panelWidth = getStyle(control.$volumePanel, 'width') || 60;
-            const handleWidth = getStyle(control.$volumeHandle, 'width');
-            const width = ((panelWidth - handleWidth) * percentage) / 10;
+            if (!flv.isMobile) {
+                const panelWidth = getStyle(control.$volumePanel, 'width') || 60;
+                const handleWidth = getStyle(control.$volumeHandle, 'width');
+                const width = ((panelWidth - handleWidth) * percentage) / 10;
+                setStyle(control.$volumeHandle, 'left', `${width}px`);
+            }
             setStyle(control.$volumeOn, 'display', 'flex');
             setStyle(control.$volumeOff, 'display', 'none');
-            setStyle(control.$volumeHandle, 'left', `${width}px`);
         }
     }
 
@@ -180,19 +185,21 @@ export default function controls(flv, control) {
             player.volume = lastVolume || 7;
         });
 
-        proxy(control.$volumePanel, 'click', event => {
-            player.volume = volumeChangeFromEvent(event);
-        });
-
-        proxy(control.$volumeHandle, 'mousedown', () => {
-            isVolumeDroging = true;
-        });
-
-        proxy(control.$volumeHandle, 'mousemove', event => {
-            if (isVolumeDroging) {
+        if (!flv.isMobile) {
+            proxy(control.$volumePanel, 'click', event => {
                 player.volume = volumeChangeFromEvent(event);
-            }
-        });
+            });
+
+            proxy(control.$volumeHandle, 'mousedown', () => {
+                isVolumeDroging = true;
+            });
+
+            proxy(control.$volumeHandle, 'mousemove', event => {
+                if (isVolumeDroging) {
+                    player.volume = volumeChangeFromEvent(event);
+                }
+            });
+        }
 
         proxy(document, 'mouseup', () => {
             if (isVolumeDroging) {

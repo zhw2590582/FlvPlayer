@@ -45,7 +45,7 @@
       flv.player.$player.classList.add('flvplayer-live');
     }
 
-    flv.player.$player.insertAdjacentHTML('beforeend', "\n        ".concat(options.poster ? "<div class=\"flvplayer-poster\" style=\"background-image: url(".concat(options.poster, ")\"></div>") : '', "\n            <div class=\"flvplayer-loading\">").concat(icons.loading, "</div>\n            <div class=\"flvplayer-controls flv-player-controls-show ").concat(options.live ? 'flv-player-live' : '', "\">\n                ").concat(!options.live ? "\n                    <div class=\"flvplayer-controls-progress\">\n                        <div class=\"flvplayer-loaded\"></div>\n                        <div class=\"flvplayer-played\">\n                            <div class=\"flvplayer-indicator\"></div>\n                        </div>\n                    </div>\n                " : '', "\n                <div class=\"flvplayer-controls-bottom\">\n                    <div class=\"flvplayer-controls-left\">\n                        <div class=\"flvplayer-controls-item flvplayer-state\">\n                            <div class=\"flvplayer-play\">").concat(icons.play, "</div>\n                            <div class=\"flvplayer-pause\">").concat(icons.pause, "</div>\n                        </div>\n                        ").concat(options.hasAudio ? "\n                            <div class=\"flvplayer-controls-item flvplayer-volume\">\n                                <div class=\"flvplayer-volume-on\">".concat(icons.volume, "</div>\n                                <div class=\"flvplayer-volume-off\">").concat(icons.volumeClose, "</div>\n                                <div class=\"flvplayer-volume-panel\">\n                                    <div class=\"flvplayer-volume-panel-handle\"></div>\n                                </div>\n                            </div>\n                        ") : '', "\n                        ").concat(!options.live ? "\n                            <div class=\"flvplayer-controls-item flvplayer-time\">\n                                <span class=\"flvplayer-current\">00:00</span> / <span class=\"flvplayer-duration\">00:00</span>\n                            </div>\n                        " : '', "\n                    </div>\n                    <div class=\"flvplayer-controls-right\">\n                        <div class=\"flvplayer-controls-item flvplayer-fullscreen\">").concat(icons.fullscreen, "</div>\n                    </div>\n                </div>\n            </div>\n        "));
+    flv.player.$player.insertAdjacentHTML('beforeend', "\n        ".concat(options.poster ? "<div class=\"flvplayer-poster\" style=\"background-image: url(".concat(options.poster, ")\"></div>") : '', "\n            <div class=\"flvplayer-loading\">").concat(icons.loading, "</div>\n            <div class=\"flvplayer-controls flv-player-controls-show ").concat(options.live ? 'flv-player-live' : '', "\">\n                ").concat(!options.live ? "\n                    <div class=\"flvplayer-controls-progress\">\n                        <div class=\"flvplayer-loaded\"></div>\n                        <div class=\"flvplayer-played\">\n                            <div class=\"flvplayer-indicator\"></div>\n                        </div>\n                    </div>\n                " : '', "\n                <div class=\"flvplayer-controls-bottom\">\n                    <div class=\"flvplayer-controls-left\">\n                        <div class=\"flvplayer-controls-item flvplayer-state\">\n                            <div class=\"flvplayer-play\">").concat(icons.play, "</div>\n                            <div class=\"flvplayer-pause\">").concat(icons.pause, "</div>\n                        </div>\n                        ").concat(options.hasAudio ? "\n                            <div class=\"flvplayer-controls-item flvplayer-volume\">\n                                <div class=\"flvplayer-volume-on\">".concat(icons.volume, "</div>\n                                <div class=\"flvplayer-volume-off\">").concat(icons.volumeClose, "</div>\n                                ").concat(flv.isMobile ? '' : "\n                                    <div class=\"flvplayer-volume-panel\">\n                                        <div class=\"flvplayer-volume-panel-handle\"></div>\n                                    </div>\n                                ", "\n                            </div>\n                        ") : '', "\n                        ").concat(!options.live ? "\n                            <div class=\"flvplayer-controls-item flvplayer-time\">\n                                <span class=\"flvplayer-current\">00:00</span> / <span class=\"flvplayer-duration\">00:00</span>\n                            </div>\n                        " : '', "\n                    </div>\n                    <div class=\"flvplayer-controls-right\">\n                        <div class=\"flvplayer-controls-item flvplayer-fullscreen\">").concat(icons.fullscreen, "</div>\n                    </div>\n                </div>\n            </div>\n        "));
     Object.defineProperty(control, '$poster', {
       value: options.container.querySelector('.flvplayer-poster')
     });
@@ -672,6 +672,7 @@
     flv.on('pause', function () {
       control.$play.style.display = 'block';
       control.$pause.style.display = 'none';
+      control.loading = false;
     });
     flv.on('scripMeta', function () {
       if (!flv.options.live) {
@@ -713,16 +714,22 @@
 
     function setVolumeHandle(percentage) {
       if (percentage === 0) {
+        if (!flv.isMobile) {
+          setStyle(control.$volumeHandle, 'left', '0');
+        }
+
         setStyle(control.$volumeOn, 'display', 'none');
         setStyle(control.$volumeOff, 'display', 'flex');
-        setStyle(control.$volumeHandle, 'left', '0');
       } else {
-        var panelWidth = getStyle(control.$volumePanel, 'width') || 60;
-        var handleWidth = getStyle(control.$volumeHandle, 'width');
-        var width = (panelWidth - handleWidth) * percentage / 10;
+        if (!flv.isMobile) {
+          var panelWidth = getStyle(control.$volumePanel, 'width') || 60;
+          var handleWidth = getStyle(control.$volumeHandle, 'width');
+          var width = (panelWidth - handleWidth) * percentage / 10;
+          setStyle(control.$volumeHandle, 'left', "".concat(width, "px"));
+        }
+
         setStyle(control.$volumeOn, 'display', 'flex');
         setStyle(control.$volumeOff, 'display', 'none');
-        setStyle(control.$volumeHandle, 'left', "".concat(width, "px"));
       }
     }
 
@@ -750,17 +757,21 @@
         control.$volumeOff.style.display = 'none';
         player.volume = lastVolume || 7;
       });
-      proxy(control.$volumePanel, 'click', function (event) {
-        player.volume = volumeChangeFromEvent(event);
-      });
-      proxy(control.$volumeHandle, 'mousedown', function () {
-        isVolumeDroging = true;
-      });
-      proxy(control.$volumeHandle, 'mousemove', function (event) {
-        if (isVolumeDroging) {
+
+      if (!flv.isMobile) {
+        proxy(control.$volumePanel, 'click', function (event) {
           player.volume = volumeChangeFromEvent(event);
-        }
-      });
+        });
+        proxy(control.$volumeHandle, 'mousedown', function () {
+          isVolumeDroging = true;
+        });
+        proxy(control.$volumeHandle, 'mousemove', function (event) {
+          if (isVolumeDroging) {
+            player.volume = volumeChangeFromEvent(event);
+          }
+        });
+      }
+
       proxy(document, 'mouseup', function () {
         if (isVolumeDroging) {
           isVolumeDroging = false;

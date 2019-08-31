@@ -38,7 +38,12 @@ export default class Dida {
         this.loadByteSize = 0;
         this.audioDuration = 0;
         this.audioLength = 0;
-        this.reset();
+
+        this.timestamps = [];
+        this.audiobuffers = [];
+        this.timestampTmp = [];
+        this.decodeErrorBuffer = new Uint8Array();
+        this.decodeWaitingBuffer = new Uint8Array();
 
         this.restDetectFn = debounce(() => {
             if (this.decodeWaitingBuffer.length) {
@@ -75,7 +80,11 @@ export default class Dida {
         this.gainNode.gain.value = value;
     }
 
-    reset() {
+    destroy() {
+        this.stop();
+        this.context = null;
+        this.gainNode = null;
+        this.source = null;
         this.timestamps = [];
         this.audiobuffers = [];
         this.timestampTmp = [];
@@ -109,10 +118,6 @@ export default class Dida {
         }
         this.restDetectFn();
         return this;
-    }
-
-    destroy() {
-        return this.stop().reset();
     }
 
     play(startTime = 0) {

@@ -822,7 +822,11 @@
       this.loadByteSize = 0;
       this.audioDuration = 0;
       this.audioLength = 0;
-      this.reset();
+      this.timestamps = [];
+      this.audiobuffers = [];
+      this.timestampTmp = [];
+      this.decodeErrorBuffer = new Uint8Array();
+      this.decodeWaitingBuffer = new Uint8Array();
       this.restDetectFn = debounce$1(function () {
         if (_this.decodeWaitingBuffer.length) {
           _this.timestamps.push(_this.timestampTmp[0]);
@@ -845,8 +849,12 @@
     }
 
     createClass(Dida, [{
-      key: "reset",
-      value: function reset() {
+      key: "destroy",
+      value: function destroy() {
+        this.stop();
+        this.context = null;
+        this.gainNode = null;
+        this.source = null;
         this.timestamps = [];
         this.audiobuffers = [];
         this.timestampTmp = [];
@@ -888,11 +896,6 @@
 
         this.restDetectFn();
         return this;
-      }
-    }, {
-      key: "destroy",
-      value: function destroy() {
-        return this.stop().reset();
       }
     }, {
       key: "play",
@@ -985,8 +988,6 @@
       this.dida = new Dida({
         volume: flv.options.muted ? 0 : flv.options.volume,
         cache: !flv.options.live,
-        chunk: 64 * 1024,
-        restDetectTime: 1000,
         onNextChunk: function onNextChunk(timestamp) {
           var currentTime = decoder.currentTime * 1000;
           var timeDiff = Math.abs(timestamp - currentTime);

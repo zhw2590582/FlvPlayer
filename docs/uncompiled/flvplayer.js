@@ -827,27 +827,9 @@
       this.timestampTmp = [];
       this.decodeErrorBuffer = new Uint8Array();
       this.decodeWaitingBuffer = new Uint8Array();
-      this.restDetectFn = debounce$1(function () {
-        if (_this.decodeWaitingBuffer.length) {
-          _this.timestamps.push(_this.timestampTmp[0]);
-
-          _this.timestampTmp = [];
-          var buffer = _this.decodeWaitingBuffer.buffer;
-          _this.decodeWaitingBuffer = new Uint8Array();
-          _this.decodeErrorBuffer = new Uint8Array();
-
-          _this.context.decodeAudioData(buffer, function (audiobuffer) {
-            _this.audioDuration += audiobuffer.duration;
-            _this.audioLength += audiobuffer.length;
-
-            _this.audiobuffers.push(audiobuffer);
-
-            _this.decoding = false;
-
-            _this.option.onEnd();
-          });
-        }
-      }, this.option.endDetectTime);
+      this.autoEndDebounce = debounce$1(function () {
+        _this.end();
+      }, this.option.autoEndTime);
     }
 
     createClass(Dida, [{
@@ -902,19 +884,45 @@
           this.decodeWaitingBuffer = mergeBuffer$1(this.decodeWaitingBuffer, uint8);
         }
 
-        this.restDetectFn();
+        if (this.option.autoEnd) {
+          this.autoEndDebounce();
+        }
+
         return this;
+      }
+    }, {
+      key: "end",
+      value: function end() {
+        var _this3 = this;
+
+        if (this.decodeWaitingBuffer.length) {
+          this.timestamps.push(this.timestampTmp[0]);
+          this.timestampTmp = [];
+          var buffer = this.decodeWaitingBuffer.buffer;
+          this.decodeWaitingBuffer = new Uint8Array();
+          this.decodeErrorBuffer = new Uint8Array();
+          this.context.decodeAudioData(buffer, function (audiobuffer) {
+            _this3.audioDuration += audiobuffer.duration;
+            _this3.audioLength += audiobuffer.length;
+
+            _this3.audiobuffers.push(audiobuffer);
+
+            _this3.decoding = false;
+
+            _this3.option.onEnd();
+          });
+        }
       }
     }, {
       key: "play",
       value: function play() {
-        var _this3 = this;
+        var _this4 = this;
 
         var startTime = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
         this.stop();
         this.playing = true;
         var index = this.timestamps.findIndex(function (timestamp, i) {
-          var audiobuffer = _this3.audiobuffers[i];
+          var audiobuffer = _this4.audiobuffers[i];
           return audiobuffer && timestamp + audiobuffer.duration * 1000 >= startTime;
         });
         var timestamp = this.timestamps[index];
@@ -929,19 +937,19 @@
         this.source.start(0, offset);
 
         this.source.onended = function () {
-          var nextTimestamp = _this3.timestamps[index + 1];
-          var nextAudiobuffer = _this3.audiobuffers[index + 1];
+          var nextTimestamp = _this4.timestamps[index + 1];
+          var nextAudiobuffer = _this4.audiobuffers[index + 1];
 
           if (nextTimestamp && nextAudiobuffer) {
-            if (!_this3.option.cache) {
-              _this3.audiobuffers.splice(0, index + 1);
+            if (!_this4.option.cache) {
+              _this4.audiobuffers.splice(0, index + 1);
 
-              _this3.timestamps.splice(0, index + 1);
+              _this4.timestamps.splice(0, index + 1);
             }
 
-            _this3.play(_this3.option.onNext(nextTimestamp));
+            _this4.play(_this4.option.onNext(nextTimestamp));
           } else {
-            _this3.stop();
+            _this4.stop();
           }
         };
 
@@ -976,7 +984,8 @@
           volume: 0.7,
           cache: true,
           chunk: 64 * 1024,
-          endDetectTime: 5000,
+          autoEnd: true,
+          autoEndTime: 5000,
           onLoad: function onLoad() {
             return null;
           },

@@ -45,22 +45,9 @@ export default class Dida {
         this.decodeErrorBuffer = new Uint8Array();
         this.decodeWaitingBuffer = new Uint8Array();
 
-        this.restDetectFn = debounce(() => {
-            if (this.decodeWaitingBuffer.length) {
-                this.timestamps.push(this.timestampTmp[0]);
-                this.timestampTmp = [];
-                const { buffer } = this.decodeWaitingBuffer;
-                this.decodeWaitingBuffer = new Uint8Array();
-                this.decodeErrorBuffer = new Uint8Array();
-                this.context.decodeAudioData(buffer, audiobuffer => {
-                    this.audioDuration += audiobuffer.duration;
-                    this.audioLength += audiobuffer.length;
-                    this.audiobuffers.push(audiobuffer);
-                    this.decoding = false;
-                    this.option.onEnd();
-                });
-            }
-        }, this.option.endDetectTime);
+        this.autoEndDebounce = debounce(() => {
+            this.end();
+        }, this.option.autoEndTime);
     }
 
     static get option() {
@@ -68,7 +55,8 @@ export default class Dida {
             volume: 0.7,
             cache: true,
             chunk: 64 * 1024,
-            endDetectTime: 5000,
+            autoEnd: true,
+            autoEndTime: 5000,
             onLoad: () => null,
             onStop: () => null,
             onPlay: () => null,
@@ -128,8 +116,27 @@ export default class Dida {
             this.timestampTmp.push(timestamp);
             this.decodeWaitingBuffer = mergeBuffer(this.decodeWaitingBuffer, uint8);
         }
-        this.restDetectFn();
+        if (this.option.autoEnd) {
+            this.autoEndDebounce();
+        }
         return this;
+    }
+
+    end() {
+        if (this.decodeWaitingBuffer.length) {
+            this.timestamps.push(this.timestampTmp[0]);
+            this.timestampTmp = [];
+            const { buffer } = this.decodeWaitingBuffer;
+            this.decodeWaitingBuffer = new Uint8Array();
+            this.decodeErrorBuffer = new Uint8Array();
+            this.context.decodeAudioData(buffer, audiobuffer => {
+                this.audioDuration += audiobuffer.duration;
+                this.audioLength += audiobuffer.length;
+                this.audiobuffers.push(audiobuffer);
+                this.decoding = false;
+                this.option.onEnd();
+            });
+        }
     }
 
     play(startTime = 0) {

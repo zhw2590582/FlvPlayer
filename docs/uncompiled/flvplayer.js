@@ -389,6 +389,27 @@
     return Events;
   }();
 
+  function template(flv, player) {
+    var options = flv.options;
+    var cacheCss = options.container.style.cssText;
+    options.container.classList.add('flvplayer-container');
+    options.container.innerHTML = "\n        <div class=\"flvplayer-player\">\n            <canvas class=\"flvplayer-canvas\" width=\"".concat(options.width, "\" height=\"").concat(options.height, "\"></canvas>\n        </div>\n    ");
+    flv.on('destroy', function () {
+      options.container.innerHTML = '';
+      options.container.style.cssText = cacheCss;
+      options.container.classList.remove('flvplayer-container');
+    });
+    Object.defineProperty(player, '$container', {
+      value: options.container
+    });
+    Object.defineProperty(player, '$player', {
+      value: options.container.querySelector('.flvplayer-player')
+    });
+    Object.defineProperty(player, '$canvas', {
+      value: options.container.querySelector('.flvplayer-canvas')
+    });
+  }
+
   function hasOwnProperty(obj, name) {
     return Object.prototype.hasOwnProperty.call(obj, name);
   }
@@ -585,34 +606,6 @@
     proxyPropertys: proxyPropertys,
     calculationRate: calculationRate
   });
-
-  function template(flv, player) {
-    var options = flv.options;
-    var cacheCss = options.container.style.cssText;
-    options.container.classList.add('flvplayer-container');
-    setStyle(options.container, {
-      position: 'relative',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      boxSizing: 'border-box'
-    });
-    options.container.innerHTML = "\n        <div class=\"flvplayer-inner\" style=\"position: relative;display: flex;justify-content: center;align-items: center;width: 100%;height: 100%;\">\n            <canvas class=\"flvplayer-canvas\" width=\"".concat(options.width, "\" height=\"").concat(options.height, "\" style=\"cursor: pointer;width: 100%;height: 100%;background-color: #000;\"></canvas>\n        </div>\n    ");
-    flv.on('destroy', function () {
-      options.container.innerHTML = '';
-      options.container.style.cssText = cacheCss;
-      options.container.classList.remove('flvplayer-container');
-    });
-    Object.defineProperty(player, '$container', {
-      value: options.container
-    });
-    Object.defineProperty(player, '$player', {
-      value: options.container.querySelector('.flvplayer-inner')
-    });
-    Object.defineProperty(player, '$canvas', {
-      value: options.container.querySelector('.flvplayer-canvas')
-    });
-  }
 
   function property(flv, player) {
     Object.defineProperty(player, 'rect', {

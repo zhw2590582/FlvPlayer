@@ -100,19 +100,20 @@ export default class Dida {
             this.timestampTmp = [];
             const { buffer } = mergeBuffer(this.decodeErrorBuffer, this.decodeWaitingBuffer);
             this.decodeWaitingBuffer = new Uint8Array();
-            this.context
-                .decodeAudioData(buffer)
-                .then(audiobuffer => {
+            this.context.decodeAudioData(
+                buffer,
+                audiobuffer => {
                     this.audioDuration += audiobuffer.duration;
                     this.audioLength += audiobuffer.length;
                     this.audiobuffers.push(audiobuffer);
                     this.decodeErrorBuffer = new Uint8Array();
                     this.option.onDecodeDone(audiobuffer);
-                })
-                .catch(error => {
+                },
+                error => {
                     this.decodeErrorBuffer = mergeBuffer(this.decodeErrorBuffer, this.decodeWaitingBuffer);
                     this.option.onDecodeError(error);
-                });
+                },
+            );
         } else {
             this.timestampTmp.push(timestamp);
             this.decodeWaitingBuffer = mergeBuffer(this.decodeWaitingBuffer, uint8);
@@ -130,7 +131,7 @@ export default class Dida {
             const { buffer } = this.decodeWaitingBuffer;
             this.decodeWaitingBuffer = new Uint8Array();
             this.decodeErrorBuffer = new Uint8Array();
-            this.context.decodeAudioData(buffer).then(audiobuffer => {
+            this.context.decodeAudioData(buffer, audiobuffer => {
                 this.audioDuration += audiobuffer.duration;
                 this.audioLength += audiobuffer.length;
                 this.audiobuffers.push(audiobuffer);

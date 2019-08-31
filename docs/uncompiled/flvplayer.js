@@ -865,7 +865,7 @@
               buffer = _mergeBuffer.buffer;
 
           this.decodeWaitingBuffer = new Uint8Array();
-          this.context.decodeAudioData(buffer).then(function (audiobuffer) {
+          this.context.decodeAudioData(buffer, function (audiobuffer) {
             _this2.audioDuration += audiobuffer.duration;
             _this2.audioLength += audiobuffer.length;
 
@@ -874,7 +874,7 @@
             _this2.decodeErrorBuffer = new Uint8Array();
 
             _this2.option.onDecodeDone(audiobuffer);
-          }).catch(function (error) {
+          }, function (error) {
             _this2.decodeErrorBuffer = mergeBuffer$1(_this2.decodeErrorBuffer, _this2.decodeWaitingBuffer);
 
             _this2.option.onDecodeError(error);
@@ -901,7 +901,7 @@
           var buffer = this.decodeWaitingBuffer.buffer;
           this.decodeWaitingBuffer = new Uint8Array();
           this.decodeErrorBuffer = new Uint8Array();
-          this.context.decodeAudioData(buffer).then(function (audiobuffer) {
+          this.context.decodeAudioData(buffer, function (audiobuffer) {
             _this3.audioDuration += audiobuffer.duration;
             _this3.audioLength += audiobuffer.length;
 

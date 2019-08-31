@@ -37,6 +37,68 @@
     return icons;
   }, {});
 
+  function template(flv, control) {
+    var options = flv.options;
+    flv.player.$player.classList.add('flvplayer-controls-show');
+
+    if (options.live) {
+      flv.player.$player.classList.add('flvplayer-live');
+    }
+
+    flv.player.$player.insertAdjacentHTML('beforeend', "\n        ".concat(options.poster ? "<div class=\"flvplayer-poster\" style=\"background-image: url(".concat(options.poster, ")\"></div>") : '', "\n            <div class=\"flvplayer-loading\">").concat(icons.loading, "</div>\n            <div class=\"flvplayer-controls\">\n                ").concat(!options.live ? "\n                    <div class=\"flvplayer-controls-progress\">\n                        <div class=\"flvplayer-loaded\"></div>\n                        <div class=\"flvplayer-played\">\n                            <div class=\"flvplayer-indicator\"></div>\n                        </div>\n                    </div>\n                " : '', "\n                <div class=\"flvplayer-controls-bottom\">\n                    <div class=\"flvplayer-controls-left\">\n                        <div class=\"flvplayer-controls-item flvplayer-state\">\n                            <div class=\"flvplayer-play\">").concat(icons.play, "</div>\n                            <div class=\"flvplayer-pause\">").concat(icons.pause, "</div>\n                        </div>\n                        ").concat(options.hasAudio ? "\n                            <div class=\"flvplayer-controls-item flvplayer-volume\">\n                                <div class=\"flvplayer-volume-on\">".concat(icons.volume, "</div>\n                                <div class=\"flvplayer-volume-off\">").concat(icons.volumeClose, "</div>\n                                ").concat(flv.isMobile ? '' : "\n                                    <div class=\"flvplayer-volume-panel\">\n                                        <div class=\"flvplayer-volume-panel-handle\"></div>\n                                    </div>\n                                ", "\n                            </div>\n                        ") : '', "\n                        ").concat(!options.live ? "\n                            <div class=\"flvplayer-controls-item flvplayer-time\">\n                                <span class=\"flvplayer-current\">00:00</span> / <span class=\"flvplayer-duration\">00:00</span>\n                            </div>\n                        " : '', "\n                    </div>\n                    <div class=\"flvplayer-controls-right\">\n                        <div class=\"flvplayer-controls-item flvplayer-fullscreen\">").concat(icons.fullscreen, "</div>\n                    </div>\n                </div>\n            </div>\n        "));
+    Object.defineProperty(control, '$poster', {
+      value: options.container.querySelector('.flvplayer-poster')
+    });
+    Object.defineProperty(control, '$loading', {
+      value: options.container.querySelector('.flvplayer-loading')
+    });
+    Object.defineProperty(control, '$controls', {
+      value: options.container.querySelector('.flvplayer-controls')
+    });
+    Object.defineProperty(control, '$state', {
+      value: options.container.querySelector('.flvplayer-state')
+    });
+    Object.defineProperty(control, '$play', {
+      value: options.container.querySelector('.flvplayer-play')
+    });
+    Object.defineProperty(control, '$pause', {
+      value: options.container.querySelector('.flvplayer-pause')
+    });
+    Object.defineProperty(control, '$current', {
+      value: options.container.querySelector('.flvplayer-current')
+    });
+    Object.defineProperty(control, '$duration', {
+      value: options.container.querySelector('.flvplayer-duration')
+    });
+    Object.defineProperty(control, '$volumeOn', {
+      value: options.container.querySelector('.flvplayer-volume-on')
+    });
+    Object.defineProperty(control, '$volumeOff', {
+      value: options.container.querySelector('.flvplayer-volume-off')
+    });
+    Object.defineProperty(control, '$volumePanel', {
+      value: options.container.querySelector('.flvplayer-volume-panel')
+    });
+    Object.defineProperty(control, '$volumeHandle', {
+      value: options.container.querySelector('.flvplayer-volume-panel-handle')
+    });
+    Object.defineProperty(control, '$fullscreen', {
+      value: options.container.querySelector('.flvplayer-fullscreen')
+    });
+    Object.defineProperty(control, '$progress', {
+      value: options.container.querySelector('.flvplayer-controls-progress')
+    });
+    Object.defineProperty(control, '$loaded', {
+      value: options.container.querySelector('.flvplayer-loaded')
+    });
+    Object.defineProperty(control, '$played', {
+      value: options.container.querySelector('.flvplayer-played')
+    });
+    Object.defineProperty(control, '$indicator', {
+      value: options.container.querySelector('.flvplayer-indicator')
+    });
+  }
+
   function createCommonjsModule(fn, module) {
   	return module = { exports: {} }, fn(module, module.exports), module.exports;
   }
@@ -159,89 +221,6 @@
           throw new Error("Target attribute name is duplicated: ".concat(key));
         }
       });
-    });
-  }
-
-  function template(flv, control) {
-    var options = flv.options;
-    setStyle(flv.player.$container, {
-      position: 'relative',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      boxSizing: 'border-box'
-    });
-    setStyle(flv.player.$player, {
-      position: 'relative',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      width: '100%',
-      height: '100%'
-    });
-    setStyle(flv.player.$canvas, {
-      cursor: 'pointer',
-      width: '100%',
-      height: '100%',
-      backgroundColor: '#000'
-    });
-    flv.player.$player.classList.add('flvplayer-controls-show');
-
-    if (options.live) {
-      flv.player.$player.classList.add('flvplayer-live');
-    }
-
-    flv.player.$player.insertAdjacentHTML('beforeend', "\n        ".concat(options.poster ? "<div class=\"flvplayer-poster\" style=\"background-image: url(".concat(options.poster, ")\"></div>") : '', "\n            <div class=\"flvplayer-loading\">").concat(icons.loading, "</div>\n            <div class=\"flvplayer-controls\">\n                ").concat(!options.live ? "\n                    <div class=\"flvplayer-controls-progress\">\n                        <div class=\"flvplayer-loaded\"></div>\n                        <div class=\"flvplayer-played\">\n                            <div class=\"flvplayer-indicator\"></div>\n                        </div>\n                    </div>\n                " : '', "\n                <div class=\"flvplayer-controls-bottom\">\n                    <div class=\"flvplayer-controls-left\">\n                        <div class=\"flvplayer-controls-item flvplayer-state\">\n                            <div class=\"flvplayer-play\">").concat(icons.play, "</div>\n                            <div class=\"flvplayer-pause\">").concat(icons.pause, "</div>\n                        </div>\n                        ").concat(options.hasAudio ? "\n                            <div class=\"flvplayer-controls-item flvplayer-volume\">\n                                <div class=\"flvplayer-volume-on\">".concat(icons.volume, "</div>\n                                <div class=\"flvplayer-volume-off\">").concat(icons.volumeClose, "</div>\n                                ").concat(flv.isMobile ? '' : "\n                                    <div class=\"flvplayer-volume-panel\">\n                                        <div class=\"flvplayer-volume-panel-handle\"></div>\n                                    </div>\n                                ", "\n                            </div>\n                        ") : '', "\n                        ").concat(!options.live ? "\n                            <div class=\"flvplayer-controls-item flvplayer-time\">\n                                <span class=\"flvplayer-current\">00:00</span> / <span class=\"flvplayer-duration\">00:00</span>\n                            </div>\n                        " : '', "\n                    </div>\n                    <div class=\"flvplayer-controls-right\">\n                        <div class=\"flvplayer-controls-item flvplayer-fullscreen\">").concat(icons.fullscreen, "</div>\n                    </div>\n                </div>\n            </div>\n        "));
-    Object.defineProperty(control, '$poster', {
-      value: options.container.querySelector('.flvplayer-poster')
-    });
-    Object.defineProperty(control, '$loading', {
-      value: options.container.querySelector('.flvplayer-loading')
-    });
-    Object.defineProperty(control, '$controls', {
-      value: options.container.querySelector('.flvplayer-controls')
-    });
-    Object.defineProperty(control, '$state', {
-      value: options.container.querySelector('.flvplayer-state')
-    });
-    Object.defineProperty(control, '$play', {
-      value: options.container.querySelector('.flvplayer-play')
-    });
-    Object.defineProperty(control, '$pause', {
-      value: options.container.querySelector('.flvplayer-pause')
-    });
-    Object.defineProperty(control, '$current', {
-      value: options.container.querySelector('.flvplayer-current')
-    });
-    Object.defineProperty(control, '$duration', {
-      value: options.container.querySelector('.flvplayer-duration')
-    });
-    Object.defineProperty(control, '$volumeOn', {
-      value: options.container.querySelector('.flvplayer-volume-on')
-    });
-    Object.defineProperty(control, '$volumeOff', {
-      value: options.container.querySelector('.flvplayer-volume-off')
-    });
-    Object.defineProperty(control, '$volumePanel', {
-      value: options.container.querySelector('.flvplayer-volume-panel')
-    });
-    Object.defineProperty(control, '$volumeHandle', {
-      value: options.container.querySelector('.flvplayer-volume-panel-handle')
-    });
-    Object.defineProperty(control, '$fullscreen', {
-      value: options.container.querySelector('.flvplayer-fullscreen')
-    });
-    Object.defineProperty(control, '$progress', {
-      value: options.container.querySelector('.flvplayer-controls-progress')
-    });
-    Object.defineProperty(control, '$loaded', {
-      value: options.container.querySelector('.flvplayer-loaded')
-    });
-    Object.defineProperty(control, '$played', {
-      value: options.container.querySelector('.flvplayer-played')
-    });
-    Object.defineProperty(control, '$indicator', {
-      value: options.container.querySelector('.flvplayer-indicator')
     });
   }
 
@@ -818,7 +797,7 @@
       };
     }
 
-    if (!flv.options.live) {
+    if (!flv.options.live && flv.options.cache) {
       proxy(control.$progress, 'click', function (event) {
         if (event.target !== control.$indicator) {
           var _getPosFromEvent = getPosFromEvent(event),

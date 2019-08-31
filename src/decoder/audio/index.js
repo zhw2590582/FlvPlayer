@@ -6,7 +6,7 @@ export default class AudioDecoder {
 
         this.dida = new Dida({
             volume: flv.options.muted ? 0 : flv.options.volume,
-            cache: !flv.options.live,
+            cache: flv.options.cache,
             onNext: timestamp => {
                 const currentTime = decoder.currentTime * 1000;
                 const timeDiff = Math.abs(timestamp - currentTime);

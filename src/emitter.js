@@ -16,6 +16,16 @@ export default class Emitter {
     }
 
     emit(name, ...data) {
+        if (this.options.debug) {
+            if (!Emitter[this.id]) {
+                Emitter[this.id] = {};
+            }
+            if (!Emitter[this.id][name]) {
+                Emitter[this.id][name] = 1;
+            } else {
+                Emitter[this.id][name] += 1;
+            }
+        }
         const evtArr = ((this.e || (this.e = {}))[name] || []).slice();
         for (let i = 0; i < evtArr.length; i += 1) {
             evtArr[i].fn.apply(evtArr[i].ctx, data);

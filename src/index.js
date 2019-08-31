@@ -16,6 +16,10 @@ class FlvPlayer extends Emitter {
             ...options,
         };
 
+        if (this.options.live) {
+            this.options.cache = false;
+        }
+
         if (typeof this.options.container === 'string') {
             this.options.container = document.querySelector(this.options.container);
         }
@@ -31,9 +35,7 @@ class FlvPlayer extends Emitter {
 
     init() {
         this.isDestroy = false;
-        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-            navigator.userAgent,
-        );
+        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
         this.debug = new Debug(this);
         this.events = new Events(this);
@@ -61,6 +63,7 @@ class FlvPlayer extends Emitter {
             autoPlay: false,
             hasAudio: true,
             control: true,
+            cache: true,
             muted: false,
             volume: 7,
             frameRate: 30,
@@ -84,6 +87,10 @@ class FlvPlayer extends Emitter {
 
     static get utils() {
         return utils;
+    }
+
+    static get Emitter() {
+        return Emitter;
     }
 
     destroy() {

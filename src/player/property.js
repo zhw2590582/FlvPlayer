@@ -20,7 +20,7 @@ export default function property(flv, player) {
             return flv.decoder.currentTime;
         },
         set: time => {
-            if (!flv.options.live) {
+            if (flv.options.cache) {
                 flv.decoder.seeked(clamp(time, 0, player.loaded));
             }
         },

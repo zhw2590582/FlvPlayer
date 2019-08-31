@@ -1,32 +1,7 @@
 import icons from './icons';
-import { setStyle } from '../utils';
 
 export default function template(flv, control) {
     const { options } = flv;
-
-    setStyle(flv.player.$container, {
-        position: 'relative',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        boxSizing: 'border-box',
-    });
-
-    setStyle(flv.player.$player, {
-        position: 'relative',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        width: '100%',
-        height: '100%',
-    });
-
-    setStyle(flv.player.$canvas, {
-        cursor: 'pointer',
-        width: '100%',
-        height: '100%',
-        backgroundColor: '#000',
-    });
 
     flv.player.$player.classList.add('flvplayer-controls-show');
     if (options.live) {

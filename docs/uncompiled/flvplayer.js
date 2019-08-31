@@ -170,6 +170,18 @@
     }, {
       key: "emit",
       value: function emit(name) {
+        if (this.options.debug) {
+          if (!Emitter[this.id]) {
+            Emitter[this.id] = {};
+          }
+
+          if (!Emitter[this.id][name]) {
+            Emitter[this.id][name] = 1;
+          } else {
+            Emitter[this.id][name] += 1;
+          }
+        }
+
         var evtArr = ((this.e || (this.e = {}))[name] || []).slice();
 
         for (var _len2 = arguments.length, data = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
@@ -625,7 +637,7 @@
         return flv.decoder.currentTime;
       },
       set: function set(time) {
-        if (!flv.options.live) {
+        if (flv.options.cache) {
           flv.decoder.seeked(clamp(time, 0, player.loaded));
         }
       }
@@ -1029,7 +1041,7 @@
       this.flv = flv;
       this.dida = new Dida({
         volume: flv.options.muted ? 0 : flv.options.volume,
-        cache: !flv.options.live,
+        cache: flv.options.cache,
         onNext: function onNext(timestamp) {
           var currentTime = decoder.currentTime * 1000;
           var timeDiff = Math.abs(timestamp - currentTime);
@@ -1209,17 +1221,17 @@
 
             _this2.flv.emit('ended', _this2.currentTime);
 
-            if (options.loop && !options.live) {
+            if (options.loop && options.cache) {
               _this2.currentTime = 0;
 
               _this2.play();
 
               _this2.flv.emit('loop');
-
-              return;
+            } else {
+              _this2.pause();
             }
 
-            _this2.pause();
+            return;
           }
 
           _this2.animationFrame();
@@ -1681,6 +1693,10 @@
       _this = possibleConstructorReturn(this, getPrototypeOf(FlvPlayer).call(this));
       _this.options = _objectSpread$1({}, FlvPlayer.options, {}, options);
 
+      if (_this.options.live) {
+        _this.options.cache = false;
+      }
+
       if (typeof _this.options.container === 'string') {
         _this.options.container = document.querySelector(_this.options.container);
       }
@@ -1735,6 +1751,7 @@
           autoPlay: false,
           hasAudio: true,
           control: true,
+          cache: true,
           muted: false,
           volume: 7,
           frameRate: 30,
@@ -1761,6 +1778,11 @@
       key: "utils",
       get: function get() {
         return utils;
+      }
+    }, {
+      key: "Emitter",
+      get: function get() {
+        return Emitter;
       }
     }]);
 

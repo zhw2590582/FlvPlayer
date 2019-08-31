@@ -1,4 +1,10 @@
 .flvplayer-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+
     * {
         box-sizing: border-box;
     }
@@ -15,6 +21,20 @@
     }
 
     .flvplayer-player {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+
+        .flvplayer-canvas {
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+        }
+
         .flvplayer-poster {
             position: absolute;
             z-index: 10;

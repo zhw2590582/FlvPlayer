@@ -3,7 +3,7 @@ import { calculationRate } from '../../utils';
 export default class VideoSuperDecoder {
     constructor(flv, decoder) {
         this.flv = flv;
-        const { options, debug, player } = flv;
+        const { options, player, debug } = flv;
 
         this.ready = false;
         this.playing = false;
@@ -11,6 +11,7 @@ export default class VideoSuperDecoder {
         this.videoframes = [];
         this.timestamps = [];
         this.videoInputLength = 0;
+        this.videoOutputLength = 0;
         this.decoding = false;
         this.byteSize = 0;
         this.loaded = 0;
@@ -44,12 +45,13 @@ export default class VideoSuperDecoder {
         flv.on('decoding', (message, byteSize) => {
             if (options.live && !this.playing && this.ready) return;
             this.byteSize += byteSize;
+            this.videoOutputLength += 1;
             this.videoframes.push(message);
-            this.decoding = this.videoframes.length !== this.videoInputLength;
-            this.loaded = this.videoframes.length / player.frameRate;
+            this.decoding = this.videoInputLength !== this.videoOutputLength;
+            this.loaded = this.videoOutputLength / player.frameRate;
             flv.emit('videoLoaded', this.loaded);
             this.decoderRate(1);
-            if (!this.ready && this.videoframes.length === 1) {
+            if (!this.ready && this.videoOutputLength === 1) {
                 this.ready = true;
                 flv.emit('ready');
             }
@@ -62,7 +64,7 @@ export default class VideoSuperDecoder {
                 if (this.draw(index)) {
                     const framesSize = this.getFramesSize(index);
                     if (
-                        options.live &&
+                        !options.cache &&
                         framesSize >= options.freeMemory &&
                         this.videoframes.length - 1 > index &&
                         this.timestamps.length - 1 > index
@@ -71,6 +73,7 @@ export default class VideoSuperDecoder {
                         this.videoframes.splice(0, index + 1);
                         this.timestamps.splice(0, index + 1);
                         decoder.currentTime = this.timestamps[0] / 1000;
+                        debug.log('free-memory', `${framesSize / 1024 / 1024}M`, index);
                         flv.emit('freeMemory', framesSize, index);
                     } else {
                         this.playIndex += 1;
@@ -100,7 +103,9 @@ export default class VideoSuperDecoder {
             this.timestamps = [];
             this.initLiveTimestamp = false;
         } else {
-            this.playIndex = Math.round(startTime * this.flv.player.frameRate);
+            this.playIndex = this.timestamps.findIndex(timestamp => {
+                return timestamp >= startTime * 1000;
+            });
         }
     }
 

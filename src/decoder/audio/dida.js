@@ -75,7 +75,7 @@ export default class Dida {
             onNext: t => t,
             onDestroy: () => null,
             onRestDetect: () => null,
-            onDecodeIng: () => null,
+            onDecodeDone: () => null,
             onDecodeError: () => null,
         };
     }
@@ -118,7 +118,7 @@ export default class Dida {
                     this.audioLength += audiobuffer.length;
                     this.audiobuffers.push(audiobuffer);
                     this.decodeErrorBuffer = new Uint8Array();
-                    this.option.onDecodeIng(audiobuffer);
+                    this.option.onDecodeDone(audiobuffer);
                 })
                 .catch(error => {
                     this.decodeErrorBuffer = mergeBuffer(this.decodeErrorBuffer, this.decodeWaitingBuffer);

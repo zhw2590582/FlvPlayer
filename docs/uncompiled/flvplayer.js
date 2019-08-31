@@ -891,7 +891,7 @@
 
             _this2.decodeErrorBuffer = new Uint8Array();
 
-            _this2.option.onDecodeIng(audiobuffer);
+            _this2.option.onDecodeDone(audiobuffer);
           }).catch(function (error) {
             _this2.decodeErrorBuffer = mergeBuffer$1(_this2.decodeErrorBuffer, _this2.decodeWaitingBuffer);
 
@@ -994,7 +994,7 @@
           onRestDetect: function onRestDetect() {
             return null;
           },
-          onDecodeIng: function onDecodeIng() {
+          onDecodeDone: function onDecodeDone() {
             return null;
           },
           onDecodeError: function onDecodeError() {

@@ -38,7 +38,7 @@ export default function template(flv, control) {
         `
         ${options.poster ? `<div class="flvplayer-poster" style="background-image: url(${options.poster})"></div>` : ''}
             <div class="flvplayer-loading">${icons.loading}</div>
-            <div class="flvplayer-controls flv-player-controls-show ${options.live ? 'flv-player-live' : ''}">
+            <div class="flvplayer-controls">
                 ${
                     !options.live
                         ? `

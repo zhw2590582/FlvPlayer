@@ -920,6 +920,12 @@
           var nextAudiobuffer = _this3.audiobuffers[index + 1];
 
           if (nextTimestamp && nextAudiobuffer) {
+            if (!_this3.option.cache) {
+              _this3.audiobuffers.splice(0, index + 1);
+
+              _this3.timestamps.splice(0, index + 1);
+            }
+
             _this3.play(_this3.option.onNextChunk(nextTimestamp));
           } else {
             _this3.stop();
@@ -954,9 +960,8 @@
       get: function get() {
         return {
           volume: 0.7,
-          cache: false,
+          cache: true,
           chunk: 64 * 1024,
-          freeMemory: 1 * 1024 * 1024,
           restDetectTime: 1000,
           onNextChunk: function onNextChunk(timestamp) {
             return timestamp;
@@ -979,9 +984,8 @@
       this.flv = flv;
       this.dida = new Dida({
         volume: flv.options.muted ? 0 : flv.options.volume,
-        cache: false,
+        cache: !flv.options.live,
         chunk: 64 * 1024,
-        freeMemory: 1 * 1024 * 1024,
         restDetectTime: 1000,
         onNextChunk: function onNextChunk(timestamp) {
           var currentTime = decoder.currentTime * 1000;

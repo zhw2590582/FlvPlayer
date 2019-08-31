@@ -60,9 +60,8 @@ export default class Dida {
     static get option() {
         return {
             volume: 0.7,
-            cache: false,
+            cache: true,
             chunk: 64 * 1024,
-            freeMemory: 1 * 1024 * 1024,
             restDetectTime: 1000,
             onNextChunk: timestamp => timestamp,
         };
@@ -135,6 +134,10 @@ export default class Dida {
             const nextTimestamp = this.timestamps[index + 1];
             const nextAudiobuffer = this.audiobuffers[index + 1];
             if (nextTimestamp && nextAudiobuffer) {
+                if (!this.option.cache) {
+                    this.audiobuffers.splice(0, index + 1);
+                    this.timestamps.splice(0, index + 1);
+                }
                 this.play(this.option.onNextChunk(nextTimestamp));
             } else {
                 this.stop();

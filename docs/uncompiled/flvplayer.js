@@ -844,7 +844,7 @@
 
             _this.decoding = false;
 
-            _this.option.onRestDetect();
+            _this.option.onEnd();
           });
         }
       }, this.option.restDetectTime);
@@ -988,10 +988,10 @@
           onNext: function onNext(t) {
             return t;
           },
-          onDestroy: function onDestroy() {
+          onEnd: function onEnd() {
             return null;
           },
-          onRestDetect: function onRestDetect() {
+          onDestroy: function onDestroy() {
             return null;
           },
           onDecodeDone: function onDecodeDone() {

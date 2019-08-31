@@ -57,7 +57,7 @@ export default class Dida {
                     this.audioLength += audiobuffer.length;
                     this.audiobuffers.push(audiobuffer);
                     this.decoding = false;
-                    this.option.onRestDetect();
+                    this.option.onEnd();
                 });
             }
         }, this.option.restDetectTime);
@@ -73,8 +73,8 @@ export default class Dida {
             onStop: () => null,
             onPlay: () => null,
             onNext: t => t,
+            onEnd: () => null,
             onDestroy: () => null,
-            onRestDetect: () => null,
             onDecodeDone: () => null,
             onDecodeError: () => null,
         };

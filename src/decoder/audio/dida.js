@@ -57,6 +57,7 @@ export default class Dida {
                     this.audioLength += audiobuffer.length;
                     this.audiobuffers.push(audiobuffer);
                     this.decoding = false;
+                    this.option.onRestDetect();
                 });
             }
         }, this.option.restDetectTime);
@@ -68,7 +69,14 @@ export default class Dida {
             cache: true,
             chunk: 64 * 1024,
             restDetectTime: 1000,
-            onNextChunk: timestamp => timestamp,
+            onLoad: () => null,
+            onStop: () => null,
+            onPlay: () => null,
+            onNext: t => t,
+            onDestroy: () => null,
+            onRestDetect: () => null,
+            onDecodeIng: () => null,
+            onDecodeError: () => null,
         };
     }
 
@@ -90,6 +98,7 @@ export default class Dida {
         this.timestampTmp = [];
         this.decodeErrorBuffer = new Uint8Array();
         this.decodeWaitingBuffer = new Uint8Array();
+        this.option.onDestroy();
         return this;
     }
 
@@ -97,6 +106,7 @@ export default class Dida {
         this.decoding = true;
         this.loadLength += 1;
         this.loadByteSize += uint8.byteLength;
+        this.option.onLoad(uint8, timestamp);
         if (this.decodeWaitingBuffer.byteLength >= this.option.chunk) {
             this.timestamps.push(this.timestampTmp[0]);
             this.timestampTmp = [];
@@ -108,9 +118,11 @@ export default class Dida {
                     this.audioLength += audiobuffer.length;
                     this.audiobuffers.push(audiobuffer);
                     this.decodeErrorBuffer = new Uint8Array();
+                    this.option.onDecodeIng(audiobuffer);
                 })
-                .catch(() => {
+                .catch(error => {
                     this.decodeErrorBuffer = mergeBuffer(this.decodeErrorBuffer, this.decodeWaitingBuffer);
+                    this.option.onDecodeError(error);
                 });
         } else {
             this.timestampTmp.push(timestamp);
@@ -134,6 +146,7 @@ export default class Dida {
         this.source.connect(this.gainNode);
         this.gainNode.connect(this.context.destination);
         this.source.buffer = audiobuffer;
+        this.option.onPlay(audiobuffer, startTime, offset);
         this.source.start(0, offset);
         this.source.onended = () => {
             const nextTimestamp = this.timestamps[index + 1];
@@ -143,7 +156,7 @@ export default class Dida {
                     this.audiobuffers.splice(0, index + 1);
                     this.timestamps.splice(0, index + 1);
                 }
-                this.play(this.option.onNextChunk(nextTimestamp));
+                this.play(this.option.onNext(nextTimestamp));
             } else {
                 this.stop();
             }
@@ -158,6 +171,7 @@ export default class Dida {
             this.source.stop();
             this.source = null;
         }
+        this.option.onStop();
         return this;
     }
 }

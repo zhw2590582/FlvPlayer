@@ -843,6 +843,8 @@
             _this.audiobuffers.push(audiobuffer);
 
             _this.decoding = false;
+
+            _this.option.onRestDetect();
           });
         }
       }, this.option.restDetectTime);
@@ -860,6 +862,7 @@
         this.timestampTmp = [];
         this.decodeErrorBuffer = new Uint8Array();
         this.decodeWaitingBuffer = new Uint8Array();
+        this.option.onDestroy();
         return this;
       }
     }, {
@@ -870,6 +873,7 @@
         this.decoding = true;
         this.loadLength += 1;
         this.loadByteSize += uint8.byteLength;
+        this.option.onLoad(uint8, timestamp);
 
         if (this.decodeWaitingBuffer.byteLength >= this.option.chunk) {
           this.timestamps.push(this.timestampTmp[0]);
@@ -886,8 +890,12 @@
             _this2.audiobuffers.push(audiobuffer);
 
             _this2.decodeErrorBuffer = new Uint8Array();
-          }).catch(function () {
+
+            _this2.option.onDecodeIng(audiobuffer);
+          }).catch(function (error) {
             _this2.decodeErrorBuffer = mergeBuffer$1(_this2.decodeErrorBuffer, _this2.decodeWaitingBuffer);
+
+            _this2.option.onDecodeError(error);
           });
         } else {
           this.timestampTmp.push(timestamp);
@@ -916,6 +924,7 @@
         this.source.connect(this.gainNode);
         this.gainNode.connect(this.context.destination);
         this.source.buffer = audiobuffer;
+        this.option.onPlay(audiobuffer, startTime, offset);
         this.source.start(0, offset);
 
         this.source.onended = function () {
@@ -929,7 +938,7 @@
               _this3.timestamps.splice(0, index + 1);
             }
 
-            _this3.play(_this3.option.onNextChunk(nextTimestamp));
+            _this3.play(_this3.option.onNext(nextTimestamp));
           } else {
             _this3.stop();
           }
@@ -948,6 +957,7 @@
           this.source = null;
         }
 
+        this.option.onStop();
         return this;
       }
     }, {
@@ -966,8 +976,29 @@
           cache: true,
           chunk: 64 * 1024,
           restDetectTime: 1000,
-          onNextChunk: function onNextChunk(timestamp) {
-            return timestamp;
+          onLoad: function onLoad() {
+            return null;
+          },
+          onStop: function onStop() {
+            return null;
+          },
+          onPlay: function onPlay() {
+            return null;
+          },
+          onNext: function onNext(t) {
+            return t;
+          },
+          onDestroy: function onDestroy() {
+            return null;
+          },
+          onRestDetect: function onRestDetect() {
+            return null;
+          },
+          onDecodeIng: function onDecodeIng() {
+            return null;
+          },
+          onDecodeError: function onDecodeError() {
+            return null;
           }
         };
       }
@@ -988,7 +1019,7 @@
       this.dida = new Dida({
         volume: flv.options.muted ? 0 : flv.options.volume,
         cache: !flv.options.live,
-        onNextChunk: function onNextChunk(timestamp) {
+        onNext: function onNext(timestamp) {
           var currentTime = decoder.currentTime * 1000;
           var timeDiff = Math.abs(timestamp - currentTime);
           return timeDiff >= flv.options.maxTimeDiff ? currentTime : timestamp;

@@ -81,13 +81,19 @@ var flv = new FlvPlayer({
     // Whether the video loops, in non-live mode
     loop: false,
 
+    // Whether to use hotkeys, if the control exists
+    hotkey: true,
+
+    // Whether to turn off the volume
+    muted: false,
+
     // Whether to play automatically
     autoPlay: false,
 
     // Whether it contains an audio stream
     hasAudio: true,
 
-    // Whether to display the controller, if the controller exists
+    // Whether to display the control, if the control exists
     control: true,
 
     // Volume from 0 to 10
@@ -117,8 +123,8 @@ var flv = new FlvPlayer({
 
 Q: What is the difference between `flvplayer-decoder-baseline.js` and `flvplayer-decoder-multiple.js`.
 
-- `flvplayer-decoder-baseline.js` only supports flv in this `Baseline` profile, only 200k size.
-- `flvplayer-decoder-multiple.js` supports flv in this `Baseline`、`Main`、`Extended` and `High` profile, but have 2M size.
+-   `flvplayer-decoder-baseline.js` only supports flv in this `Baseline` profile, only 200k size.
+-   `flvplayer-decoder-multiple.js` supports flv in this `Baseline`、`Main`、`Extended` and `High` profile, but have 2M size.
 
 ## API
 
@@ -134,6 +140,12 @@ Pause video:
 
 ```js
 flv.pause();
+```
+
+Switch whether to play:
+
+```js
+flv.toggle();
 ```
 
 Destroy instance:
@@ -176,6 +188,18 @@ Whether it is focus:
 
 ```js
 flv.isFocus;
+```
+
+Set whether to turn off the volume:
+
+```js
+flv.muted;
+```
+
+Set the volume:
+
+```js
+flv.volume;
 ```
 
 Get canvas elements:

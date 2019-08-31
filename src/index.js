@@ -18,6 +18,8 @@ class FlvPlayer extends Emitter {
 
         if (this.options.live) {
             this.options.cache = false;
+            // TODO...
+            this.options.hasAudio = false;
         }
 
         if (typeof this.options.container === 'string') {

@@ -360,11 +360,6 @@ onmessage = event => {
         const hasVideo = (header.flags & 1) !== 0;
         debug.warn(hasVideo, '[FLV header] flags not found video');
         debug.warn(hasAudio, '[FLV header] flags not found audio');
-        if (!hasAudio) {
-            postMessage({
-                type: 'noAudio',
-            });
-        }
         header.headersize = readBufferSum(read(4));
         const prevTagSize = readBufferSum(read(4));
         debug.error(prevTagSize === 0, `PrevTagSize0 should be equal to 0, but got ${prevTagSize}`);

@@ -52,7 +52,7 @@ export default class Dida {
 
     static get option() {
         return {
-            volume: 0.7,
+            volume: 7,
             cache: true,
             chunk: 64 * 1024,
             autoEnd: true,

@@ -989,7 +989,7 @@
       key: "option",
       get: function get() {
         return {
-          volume: 0.7,
+          volume: 7,
           cache: true,
           chunk: 64 * 1024,
           autoEnd: true,

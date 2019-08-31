@@ -68,7 +68,7 @@ export default class Dida {
             volume: 0.7,
             cache: true,
             chunk: 64 * 1024,
-            endDetectTime: 1000,
+            endDetectTime: 5000,
             onLoad: () => null,
             onStop: () => null,
             onPlay: () => null,

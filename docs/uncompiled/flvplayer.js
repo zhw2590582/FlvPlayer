@@ -976,7 +976,7 @@
           volume: 0.7,
           cache: true,
           chunk: 64 * 1024,
-          endDetectTime: 1000,
+          endDetectTime: 5000,
           onLoad: function onLoad() {
             return null;
           },

@@ -77,18 +77,26 @@ export default function property(flv, player) {
         },
     });
 
+    Object.defineProperty(player, 'muted', {
+        get: () => {
+            return flv.decoder.audio.muted;
+        },
+        set: value => {
+            flv.decoder.audio.muted = value;
+        },
+    });
+
     Object.defineProperty(player, 'volume', {
         get: () => {
             try {
-                return flv.decoder.audio.gainNode.gain.value;
+                return flv.decoder.audio.volume;
             } catch (error) {
                 return 0;
             }
         },
         set: value => {
             try {
-                flv.decoder.audio.gainNode.gain.value = clamp(value, 0, 10);
-                flv.emit('volumechange', player.volume);
+                flv.decoder.audio.volume = clamp(value, 0, 10);
                 return player.volume;
             } catch (error) {
                 return value;

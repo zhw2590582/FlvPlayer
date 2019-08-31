@@ -291,7 +291,7 @@
       player.volume -= 1;
     });
     proxy(window, 'keydown', function (event) {
-      if (player.isFocus) {
+      if (control.isFocus) {
         var tag = document.activeElement.tagName.toUpperCase();
         var editable = document.activeElement.getAttribute('contenteditable');
 
@@ -729,7 +729,13 @@
     if (flv.options.hasAudio) {
       var lastVolume = 0;
       var isVolumeDroging = false;
-      setVolumeHandle(flv.options.volume);
+
+      if (flv.options.muted) {
+        setVolumeHandle(0);
+      } else {
+        setVolumeHandle(flv.options.volume);
+      }
+
       flv.on('volumechange', function () {
         setVolumeHandle(player.volume);
       });
@@ -851,7 +857,10 @@
     property(flv, this);
     controls(flv, this);
     proxyPropertys(flv, this);
-    hotkey(flv, this);
+
+    if (flv.options.hotkey) {
+      hotkey(flv, this);
+    }
   };
 
   return Control;

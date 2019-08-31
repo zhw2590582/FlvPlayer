@@ -157,7 +157,12 @@ export default function controls(flv, control) {
         let lastVolume = 0;
         let isVolumeDroging = false;
 
-        setVolumeHandle(flv.options.volume);
+        if (flv.options.muted) {
+            setVolumeHandle(0);
+        } else {
+            setVolumeHandle(flv.options.volume);
+        }
+
         flv.on('volumechange', () => {
             setVolumeHandle(player.volume);
         });

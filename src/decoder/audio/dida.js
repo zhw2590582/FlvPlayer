@@ -40,16 +40,17 @@ export default class Dida {
         this.audioLength = 0;
         this.reset();
 
-        this.restDetect = debounce(() => {
+        this.restDetectFn = debounce(() => {
             if (this.decodeWaitingBuffer.length) {
                 this.timestamps.push(this.timestampTmp[0]);
                 this.timestampTmp = [];
-                this.context.decodeAudioData(this.decodeWaitingBuffer.buffer, audiobuffer => {
+                const { buffer } = this.decodeWaitingBuffer;
+                this.decodeWaitingBuffer = new Uint8Array();
+                this.decodeErrorBuffer = new Uint8Array();
+                this.context.decodeAudioData(buffer, audiobuffer => {
                     this.audioDuration += audiobuffer.duration;
                     this.audioLength += audiobuffer.length;
                     this.audiobuffers.push(audiobuffer);
-                    this.decodeWaitingBuffer = new Uint8Array();
-                    this.decodeErrorBuffer = new Uint8Array();
                     this.decoding = false;
                 });
             }
@@ -60,10 +61,19 @@ export default class Dida {
         return {
             volume: 0.7,
             cache: false,
-            chunk: 128 * 1024,
-            freeMemory: 64 * 1024 * 1024,
+            chunk: 64 * 1024,
+            freeMemory: 1 * 1024 * 1024,
             restDetectTime: 1000,
+            onNextChunk: timestamp => timestamp,
         };
+    }
+
+    get volume() {
+        return this.gainNode.gain.value;
+    }
+
+    set volume(value) {
+        this.gainNode.gain.value = value;
     }
 
     reset() {
@@ -98,7 +108,7 @@ export default class Dida {
             this.timestampTmp.push(timestamp);
             this.decodeWaitingBuffer = mergeBuffer(this.decodeWaitingBuffer, uint8);
         }
-        this.restDetect();
+        this.restDetectFn();
         return this;
     }
 
@@ -125,7 +135,7 @@ export default class Dida {
             const nextTimestamp = this.timestamps[index + 1];
             const nextAudiobuffer = this.audiobuffers[index + 1];
             if (nextTimestamp && nextAudiobuffer) {
-                this.play(nextTimestamp);
+                this.play(this.option.onNextChunk(nextTimestamp));
             } else {
                 this.stop();
             }

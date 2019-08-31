@@ -1,21 +1,50 @@
 import Dida from './dida';
 
 export default class AudioDecoder {
-    constructor(flv) {
+    constructor(flv, decoder) {
         this.flv = flv;
-        this.dida = new Dida();
+
+        this.dida = new Dida({
+            volume: flv.options.muted ? 0 : flv.options.volume,
+            cache: false,
+            chunk: 64 * 1024,
+            freeMemory: 1 * 1024 * 1024,
+            restDetectTime: 1000,
+            onNextChunk: timestamp => {
+                const currentTime = decoder.currentTime * 1000;
+                const timeDiff = Math.abs(timestamp - currentTime);
+                return timeDiff >= flv.options.maxTimeDiff ? currentTime : timestamp;
+            },
+        });
 
         flv.on('audioData', (uint8, timestamp) => {
             this.dida.load(uint8, timestamp);
         });
 
-        flv.on('timeupdate', currentTime => {
-            // this.dida.play(currentTime * 1000);
-        });
-
         flv.on('destroy', () => {
             this.dida.destroy();
         });
+    }
+
+    get muted() {
+        return this.volume === 0;
+    }
+
+    set muted(value) {
+        if (value) {
+            this.volume = 0;
+        } else {
+            this.volume = 7;
+        }
+    }
+
+    get volume() {
+        return this.dida.volume;
+    }
+
+    set volume(volume) {
+        this.dida.volume = volume;
+        this.flv.emit('volumechange', volume);
     }
 
     get decoding() {

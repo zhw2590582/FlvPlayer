@@ -84,7 +84,7 @@ export default class Decoder {
                 this.flv.emit('timeupdate', this.currentTime);
             } else if (player.streaming || this.video.decoding || this.audio.decoding) {
                 this.ended = false;
-                this.playing = false;
+                this.playing = true;
                 this.waiting = true;
                 this.flv.emit('waiting', this.currentTime);
                 this.waitingTimer = setTimeout(() => {

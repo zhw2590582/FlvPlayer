@@ -41,7 +41,7 @@ export default function hotkey(flv, control) {
     });
 
     proxy(window, 'keydown', event => {
-        if (player.isFocus) {
+        if (control.isFocus) {
             const tag = document.activeElement.tagName.toUpperCase();
             const editable = document.activeElement.getAttribute('contenteditable');
             if (tag !== 'INPUT' && tag !== 'TEXTAREA' && editable !== '' && editable !== 'true') {

@@ -682,18 +682,25 @@
         return 1000 / player.frameRate | 0;
       }
     });
+    Object.defineProperty(player, 'muted', {
+      get: function get() {
+        return flv.decoder.audio.muted;
+      },
+      set: function set(value) {
+        flv.decoder.audio.muted = value;
+      }
+    });
     Object.defineProperty(player, 'volume', {
       get: function get() {
         try {
-          return flv.decoder.audio.gainNode.gain.value;
+          return flv.decoder.audio.volume;
         } catch (error) {
           return 0;
         }
       },
       set: function set(value) {
         try {
-          flv.decoder.audio.gainNode.gain.value = clamp(value, 0, 10);
-          flv.emit('volumechange', player.volume);
+          flv.decoder.audio.volume = clamp(value, 0, 10);
           return player.volume;
         } catch (error) {
           return value;
@@ -816,20 +823,21 @@
       this.audioDuration = 0;
       this.audioLength = 0;
       this.reset();
-      this.restDetect = debounce$1(function () {
+      this.restDetectFn = debounce$1(function () {
         if (_this.decodeWaitingBuffer.length) {
           _this.timestamps.push(_this.timestampTmp[0]);
 
           _this.timestampTmp = [];
+          var buffer = _this.decodeWaitingBuffer.buffer;
+          _this.decodeWaitingBuffer = new Uint8Array();
+          _this.decodeErrorBuffer = new Uint8Array();
 
-          _this.context.decodeAudioData(_this.decodeWaitingBuffer.buffer, function (audiobuffer) {
+          _this.context.decodeAudioData(buffer, function (audiobuffer) {
             _this.audioDuration += audiobuffer.duration;
             _this.audioLength += audiobuffer.length;
 
             _this.audiobuffers.push(audiobuffer);
 
-            _this.decodeWaitingBuffer = new Uint8Array();
-            _this.decodeErrorBuffer = new Uint8Array();
             _this.decoding = false;
           });
         }
@@ -878,7 +886,7 @@
           this.decodeWaitingBuffer = mergeBuffer$1(this.decodeWaitingBuffer, uint8);
         }
 
-        this.restDetect();
+        this.restDetectFn();
         return this;
       }
     }, {
@@ -912,7 +920,7 @@
           var nextAudiobuffer = _this3.audiobuffers[index + 1];
 
           if (nextTimestamp && nextAudiobuffer) {
-            _this3.play(nextTimestamp);
+            _this3.play(_this3.option.onNextChunk(nextTimestamp));
           } else {
             _this3.stop();
           }
@@ -933,15 +941,26 @@
 
         return this;
       }
+    }, {
+      key: "volume",
+      get: function get() {
+        return this.gainNode.gain.value;
+      },
+      set: function set(value) {
+        this.gainNode.gain.value = value;
+      }
     }], [{
       key: "option",
       get: function get() {
         return {
           volume: 0.7,
           cache: false,
-          chunk: 128 * 1024,
-          freeMemory: 64 * 1024 * 1024,
-          restDetectTime: 1000
+          chunk: 64 * 1024,
+          freeMemory: 1 * 1024 * 1024,
+          restDetectTime: 1000,
+          onNextChunk: function onNextChunk(timestamp) {
+            return timestamp;
+          }
         };
       }
     }]);
@@ -952,17 +971,26 @@
   var AudioDecoder =
   /*#__PURE__*/
   function () {
-    function AudioDecoder(flv) {
+    function AudioDecoder(flv, decoder) {
       var _this = this;
 
       classCallCheck(this, AudioDecoder);
 
       this.flv = flv;
-      this.dida = new Dida();
+      this.dida = new Dida({
+        volume: flv.options.muted ? 0 : flv.options.volume,
+        cache: false,
+        chunk: 64 * 1024,
+        freeMemory: 1 * 1024 * 1024,
+        restDetectTime: 1000,
+        onNextChunk: function onNextChunk(timestamp) {
+          var currentTime = decoder.currentTime * 1000;
+          var timeDiff = Math.abs(timestamp - currentTime);
+          return timeDiff >= flv.options.maxTimeDiff ? currentTime : timestamp;
+        }
+      });
       flv.on('audioData', function (uint8, timestamp) {
         _this.dida.load(uint8, timestamp);
-      });
-      flv.on('timeupdate', function (currentTime) {// this.dida.play(currentTime * 1000);
       });
       flv.on('destroy', function () {
         _this.dida.destroy();
@@ -979,6 +1007,27 @@
       key: "stop",
       value: function stop() {
         this.dida.stop();
+      }
+    }, {
+      key: "muted",
+      get: function get() {
+        return this.volume === 0;
+      },
+      set: function set(value) {
+        if (value) {
+          this.volume = 0;
+        } else {
+          this.volume = 7;
+        }
+      }
+    }, {
+      key: "volume",
+      get: function get() {
+        return this.dida.volume;
+      },
+      set: function set(volume) {
+        this.dida.volume = volume;
+        this.flv.emit('volumechange', volume);
       }
     }, {
       key: "decoding",
@@ -1097,7 +1146,7 @@
             _this2.flv.emit('timeupdate', _this2.currentTime);
           } else if (player.streaming || _this2.video.decoding || _this2.audio.decoding) {
             _this2.ended = false;
-            _this2.playing = false;
+            _this2.playing = true;
             _this2.waiting = true;
 
             _this2.flv.emit('waiting', _this2.currentTime);
@@ -1639,8 +1688,10 @@
           autoPlay: false,
           hasAudio: true,
           control: true,
+          muted: false,
           volume: 7,
           frameRate: 30,
+          maxTimeDiff: 200,
           freeMemory: 64 * 1024 * 1024,
           width: 400,
           height: 300,

@@ -953,14 +953,14 @@
           var nextTimestamp = _this4.timestamps[index + 1];
           var nextAudiobuffer = _this4.audiobuffers[index + 1];
 
-          if (nextTimestamp && nextAudiobuffer) {
+          if (nextTimestamp !== undefined && nextAudiobuffer !== undefined) {
+            _this4.play(_this4.option.onNext(nextTimestamp));
+
             if (!_this4.option.cache) {
               _this4.audiobuffers.splice(0, index + 1);
 
               _this4.timestamps.splice(0, index + 1);
             }
-
-            _this4.play(_this4.option.onNext(nextTimestamp));
           } else {
             _this4.stop();
           }
@@ -988,17 +988,23 @@
         return this.gainNode.gain.value;
       },
       set: function set(value) {
-        this.gainNode.gain.value = value;
+        if (this.volume !== value) {
+          this.gainNode.gain.value = value;
+          this.option.onDestroy(value);
+        }
       }
     }], [{
       key: "option",
       get: function get() {
         return {
-          volume: 7,
+          volume: 0.7,
           cache: true,
           chunk: 64 * 1024,
           autoEnd: true,
           autoEndTime: 5000,
+          onNext: function onNext(t) {
+            return t;
+          },
           onLoad: function onLoad() {
             return null;
           },
@@ -1007,9 +1013,6 @@
           },
           onPlay: function onPlay() {
             return null;
-          },
-          onNext: function onNext(t) {
-            return t;
           },
           onEnd: function onEnd() {
             return null;
@@ -1021,6 +1024,9 @@
             return null;
           },
           onDecodeError: function onDecodeError() {
+            return null;
+          },
+          onVolumeChange: function onVolumeChange() {
             return null;
           }
         };
@@ -1694,6 +1700,7 @@
         });
       }
 
+      console.log('%c FlvPlayer.js %c 1.0.8 %c https://flvplayer.js.org', 'color: #fff; background: #5f5f5f', 'color: #fff; background: #4bc729', '');
       return _this;
     }
 

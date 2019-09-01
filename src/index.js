@@ -33,6 +33,13 @@ class FlvPlayer extends Emitter {
                 this.init();
             });
         }
+
+        console.log(
+            '%c FlvPlayer.js %c __VERSION__ %c https://flvplayer.js.org',
+            'color: #fff; background: #5f5f5f',
+            'color: #fff; background: #4bc729',
+            '',
+        );
     }
 
     init() {

@@ -52,19 +52,20 @@ export default class Dida {
 
     static get option() {
         return {
-            volume: 7,
+            volume: 0.7,
             cache: true,
             chunk: 64 * 1024,
             autoEnd: true,
             autoEndTime: 5000,
+            onNext: t => t,
             onLoad: () => null,
             onStop: () => null,
             onPlay: () => null,
-            onNext: t => t,
             onEnd: () => null,
             onDestroy: () => null,
             onDecodeDone: () => null,
             onDecodeError: () => null,
+            onVolumeChange: () => null,
         };
     }
 
@@ -73,7 +74,10 @@ export default class Dida {
     }
 
     set volume(value) {
-        this.gainNode.gain.value = value;
+        if (this.volume !== value) {
+            this.gainNode.gain.value = value;
+            this.option.onDestroy(value);
+        }
     }
 
     destroy() {
@@ -166,12 +170,12 @@ export default class Dida {
         this.source.onended = () => {
             const nextTimestamp = this.timestamps[index + 1];
             const nextAudiobuffer = this.audiobuffers[index + 1];
-            if (nextTimestamp && nextAudiobuffer) {
+            if (nextTimestamp !== undefined && nextAudiobuffer !== undefined) {
+                this.play(this.option.onNext(nextTimestamp));
                 if (!this.option.cache) {
                     this.audiobuffers.splice(0, index + 1);
                     this.timestamps.splice(0, index + 1);
                 }
-                this.play(this.option.onNext(nextTimestamp));
             } else {
                 this.stop();
             }

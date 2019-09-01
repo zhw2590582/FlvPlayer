@@ -940,7 +940,7 @@
         });
         var timestamp = this.timestamps[index];
         var audiobuffer = this.audiobuffers[index];
-        if (timestamp === undefined || audiobuffer === undefined) return this.stop();
+        if (timestamp === undefined || audiobuffer === undefined) return this.stop(index, timestamp);
         var offset = Math.max(0, (startTime - timestamp) / 1000);
         this.source = this.context.createBufferSource();
         this.source.connect(this.gainNode);
@@ -962,7 +962,7 @@
               _this4.timestamps.splice(0, index + 1);
             }
           } else {
-            _this4.stop();
+            _this4.stop(index, timestamp);
           }
         };
 
@@ -970,7 +970,7 @@
       }
     }, {
       key: "stop",
-      value: function stop() {
+      value: function stop(index, timestamp) {
         this.playing = false;
 
         if (this.source) {
@@ -979,7 +979,7 @@
           this.source = null;
         }
 
-        this.option.onStop();
+        this.option.onStop(index, timestamp);
         return this;
       }
     }, {
@@ -990,7 +990,7 @@
       set: function set(value) {
         if (this.volume !== value) {
           this.gainNode.gain.value = value;
-          this.option.onDestroy(value);
+          this.option.onVolumeChange(value);
         }
       }
     }], [{

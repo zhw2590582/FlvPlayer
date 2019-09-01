@@ -76,7 +76,7 @@ export default class Dida {
     set volume(value) {
         if (this.volume !== value) {
             this.gainNode.gain.value = value;
-            this.option.onDestroy(value);
+            this.option.onVolumeChange(value);
         }
     }
 
@@ -159,7 +159,7 @@ export default class Dida {
         });
         const timestamp = this.timestamps[index];
         const audiobuffer = this.audiobuffers[index];
-        if (timestamp === undefined || audiobuffer === undefined) return this.stop();
+        if (timestamp === undefined || audiobuffer === undefined) return this.stop(index, timestamp);
         const offset = Math.max(0, (startTime - timestamp) / 1000);
         this.source = this.context.createBufferSource();
         this.source.connect(this.gainNode);
@@ -177,20 +177,20 @@ export default class Dida {
                     this.timestamps.splice(0, index + 1);
                 }
             } else {
-                this.stop();
+                this.stop(index, timestamp);
             }
         };
         return this;
     }
 
-    stop() {
+    stop(index, timestamp) {
         this.playing = false;
         if (this.source) {
             this.source.onended = null;
             this.source.stop();
             this.source = null;
         }
-        this.option.onStop();
+        this.option.onStop(index, timestamp);
         return this;
     }
 }

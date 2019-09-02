@@ -47,6 +47,8 @@
 
   var createClass = _createClass;
 
+  var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+
   function createCommonjsModule(fn, module) {
   	return module = { exports: {} }, fn(module, module.exports), module.exports;
   }
@@ -132,6 +134,10 @@
 
   var inherits = _inherits;
 
+  var optionValidator = createCommonjsModule(function (module, exports) {
+  !function(r,t){module.exports=t();}(commonjsGlobal,function(){function e(r){return (e="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(r){return typeof r}:function(r){return r&&"function"==typeof Symbol&&r.constructor===Symbol&&r!==Symbol.prototype?"symbol":typeof r})(r)}var n=Object.prototype.toString,i=function(r){if(void 0===r)return "undefined";if(null===r)return "null";var t=e(r);if("boolean"===t)return "boolean";if("string"===t)return "string";if("number"===t)return "number";if("symbol"===t)return "symbol";if("function"===t)return function(r){return "GeneratorFunction"===o(r)}(r)?"generatorfunction":"function";if(function(r){return Array.isArray?Array.isArray(r):r instanceof Array}(r))return "array";if(function(r){if(r.constructor&&"function"==typeof r.constructor.isBuffer)return r.constructor.isBuffer(r);return !1}(r))return "buffer";if(function(r){try{if("number"==typeof r.length&&"function"==typeof r.callee)return !0}catch(r){if(-1!==r.message.indexOf("callee"))return !0}return !1}(r))return "arguments";if(function(r){return r instanceof Date||"function"==typeof r.toDateString&&"function"==typeof r.getDate&&"function"==typeof r.setDate}(r))return "date";if(function(r){return r instanceof Error||"string"==typeof r.message&&r.constructor&&"number"==typeof r.constructor.stackTraceLimit}(r))return "error";if(function(r){return r instanceof RegExp||"string"==typeof r.flags&&"boolean"==typeof r.ignoreCase&&"boolean"==typeof r.multiline&&"boolean"==typeof r.global}(r))return "regexp";switch(o(r)){case"Symbol":return "symbol";case"Promise":return "promise";case"WeakMap":return "weakmap";case"WeakSet":return "weakset";case"Map":return "map";case"Set":return "set";case"Int8Array":return "int8array";case"Uint8Array":return "uint8array";case"Uint8ClampedArray":return "uint8clampedarray";case"Int16Array":return "int16array";case"Uint16Array":return "uint16array";case"Int32Array":return "int32array";case"Uint32Array":return "uint32array";case"Float32Array":return "float32array";case"Float64Array":return "float64array"}if(function(r){return "function"==typeof r.throw&&"function"==typeof r.return&&"function"==typeof r.next}(r))return "generator";switch(t=n.call(r)){case"[object Object]":return "object";case"[object Map Iterator]":return "mapiterator";case"[object Set Iterator]":return "setiterator";case"[object String Iterator]":return "stringiterator";case"[object Array Iterator]":return "arrayiterator"}return t.slice(8,-1).toLowerCase().replace(/\s/g,"")};function o(r){return r.constructor?r.constructor.name:null}function a(r,t){var e=2<arguments.length&&void 0!==arguments[2]?arguments[2]:["option"];for(var n in c(r,t,e),f(r,t,e),s(r,t,e),t)if(Object.prototype.hasOwnProperty.call(t,n)){var o=r[n],a=t[n],i=e.concat(n);if(u(r,n,a,i))continue;c(o,a,i),f(o,a,i),s(o,a,i);}return r}function u(r,t,e,n){if(!Object.prototype.hasOwnProperty.call(r,t)){if(!0===e.__required__||!0===e.required)throw new TypeError("'".concat(n.join("."),"' is required"));return !0}}function c(r,t,e){var n;if("string"===i(t)?n=t:"function"===i(t)?t.___validator__=t:t.__type__?n=t.__type__:t.type&&(n=t.type),n&&"string"===i(n)){n=n.trim().toLowerCase();var o=i(r),a=o===n;if(-1<n.indexOf("|"))a=n.split("|").filter(Boolean).some(function(r){return o===r.trim()});if(!a)throw new TypeError("'".concat(e.join("."),"' require '").concat(n,"' type, but got '").concat(o,"'"))}}function f(r,t,e){var n;if(t.___validator__?n=t.___validator__:t.validator&&(n=t.validator),"function"===i(n)){var o=n(r,i(r),e);if(!0!==o)throw new TypeError("The scheme for '".concat(e.join("."),"' validator function require return true, but got '").concat(o,"'"))}}function s(r,t,e){var n;if(t.___child__?n=t.___child__:t.child&&(n=t.child),"object"===i(n)){var o=i(r);"object"===o?a(r,n,e):"array"===o&&r.forEach(function(r,t){a(r,n,e.concat(t));});}}return a.kindOf=i,a});
+  });
+
   var Emitter =
   /*#__PURE__*/
   function () {
@@ -171,14 +177,16 @@
       key: "emit",
       value: function emit(name) {
         if (this.options.debug) {
-          if (!Emitter[this.id]) {
-            Emitter[this.id] = {};
+          var id = this.id;
+
+          if (!Emitter[id]) {
+            Emitter[id] = {};
           }
 
-          if (!Emitter[this.id][name]) {
-            Emitter[this.id][name] = 1;
+          if (!Emitter[id][name]) {
+            Emitter[id][name] = 1;
           } else {
-            Emitter[this.id][name] += 1;
+            Emitter[id][name] += 1;
           }
         }
 
@@ -576,15 +584,16 @@
       sources[_key4 - 1] = arguments[_key4];
     }
 
-    sources.forEach(function (source) {
+    return sources.reduce(function (result, source) {
       Object.getOwnPropertyNames(source).forEach(function (key) {
-        if (!hasOwnProperty(target, key)) {
-          Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+        if (!hasOwnProperty(result, key)) {
+          Object.defineProperty(result, key, Object.getOwnPropertyDescriptor(source, key));
         } else {
           throw new Error("Target attribute name is duplicated: ".concat(key));
         }
       });
-    });
+      return result;
+    }, target);
   }
   function calculationRate(callback) {
     var totalSize = 0;
@@ -768,7 +777,6 @@
     template(flv, this);
     property(flv, this);
     events(flv, this);
-    proxyPropertys(flv, this);
   };
 
   function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
@@ -1680,11 +1688,10 @@
       classCallCheck(this, FlvPlayer);
 
       _this = possibleConstructorReturn(this, getPrototypeOf(FlvPlayer).call(this));
-      _this.options = _objectSpread$1({}, FlvPlayer.options, {}, options);
+      _this.options = optionValidator(_objectSpread$1({}, FlvPlayer.options, {}, options), FlvPlayer.scheme);
 
       if (_this.options.live) {
-        _this.options.cache = false; // TODO...
-
+        _this.options.cache = false;
         _this.options.hasAudio = false;
       }
 
@@ -1700,7 +1707,7 @@
         });
       }
 
-      console.log('%c FlvPlayer.js %c 1.0.8 %c https://flvplayer.js.org', 'color: #fff; background: #5f5f5f', 'color: #fff; background: #4bc729', '');
+      console.log('%c FlvPlayer.js %c 1.0.7 %c https://flvplayer.js.org', 'color: #fff; background: #5f5f5f', 'color: #fff; background: #4bc729', '');
       return _this;
     }
 
@@ -1715,9 +1722,11 @@
         this.decoder = new Decoder(this);
         this.demuxer = new Demuxer(this);
         this.stream = new Stream(this);
+        proxyPropertys(this, this.player);
 
         if (window.FlvplayerControl && this.options.control) {
           this.control = new window.FlvplayerControl(this);
+          proxyPropertys(this, this.control);
         }
 
         id += 1;
@@ -1757,9 +1766,34 @@
         };
       }
     }, {
+      key: "scheme",
+      get: function get() {
+        return {
+          url: 'string',
+          container: 'string',
+          debug: 'boolean',
+          live: 'boolean',
+          loop: 'boolean',
+          autoPlay: 'boolean',
+          hasAudio: 'boolean',
+          control: 'boolean',
+          cache: 'boolean',
+          muted: 'boolean',
+          volume: 'number',
+          frameRate: 'number',
+          maxTimeDiff: 'number',
+          freeMemory: 'number',
+          width: 'number',
+          height: 'number',
+          socketSend: 'string',
+          headers: 'object',
+          decoder: 'string'
+        };
+      }
+    }, {
       key: "version",
       get: function get() {
-        return '1.0.8';
+        return '1.0.7';
       }
     }, {
       key: "env",

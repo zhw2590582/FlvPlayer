@@ -17,13 +17,14 @@ export default class Emitter {
 
     emit(name, ...data) {
         if (this.options.debug) {
-            if (!Emitter[this.id]) {
-                Emitter[this.id] = {};
+            const { id } = this;
+            if (!Emitter[id]) {
+                Emitter[id] = {};
             }
-            if (!Emitter[this.id][name]) {
-                Emitter[this.id][name] = 1;
+            if (!Emitter[id][name]) {
+                Emitter[id][name] = 1;
             } else {
-                Emitter[this.id][name] += 1;
+                Emitter[id][name] += 1;
             }
         }
         const evtArr = ((this.e || (this.e = {}))[name] || []).slice();

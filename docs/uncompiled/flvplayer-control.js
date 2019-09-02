@@ -123,9 +123,6 @@
   module.exports = _typeof;
   });
 
-  function hasOwnProperty(obj, name) {
-    return Object.prototype.hasOwnProperty.call(obj, name);
-  }
   function secondToTime(second) {
     var add0 = function add0(num) {
       return num < 10 ? "0".concat(num) : String(num);
@@ -207,21 +204,6 @@
     var numberType = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
     var value = getComputedStyle(element, null).getPropertyValue(key);
     return numberType ? parseFloat(value) : value;
-  }
-  function proxyPropertys(target) {
-    for (var _len4 = arguments.length, sources = new Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
-      sources[_key4 - 1] = arguments[_key4];
-    }
-
-    sources.forEach(function (source) {
-      Object.getOwnPropertyNames(source).forEach(function (key) {
-        if (!hasOwnProperty(target, key)) {
-          Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
-        } else {
-          throw new Error("Target attribute name is duplicated: ".concat(key));
-        }
-      });
-    });
   }
 
   function observer(flv) {
@@ -867,7 +849,6 @@
     observer(flv);
     property(flv, this);
     controls(flv, this);
-    proxyPropertys(flv, this);
 
     if (flv.options.hotkey) {
       hotkey(flv, this);

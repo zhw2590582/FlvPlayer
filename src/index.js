@@ -1,3 +1,4 @@
+import validator from 'option-validator';
 import Emitter from './emitter';
 import Debug from './debug';
 import Events from './events';
@@ -11,14 +12,16 @@ let id = 0;
 class FlvPlayer extends Emitter {
     constructor(options) {
         super();
-        this.options = {
-            ...FlvPlayer.options,
-            ...options,
-        };
+        this.options = validator(
+            {
+                ...FlvPlayer.options,
+                ...options,
+            },
+            FlvPlayer.scheme,
+        );
 
         if (this.options.live) {
             this.options.cache = false;
-            // TODO...
             this.options.hasAudio = false;
         }
 
@@ -45,7 +48,6 @@ class FlvPlayer extends Emitter {
     init() {
         this.isDestroy = false;
         this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
         this.debug = new Debug(this);
         this.events = new Events(this);
         this.player = new Player(this);
@@ -53,8 +55,10 @@ class FlvPlayer extends Emitter {
         this.demuxer = new Demuxer(this);
         this.stream = new Stream(this);
 
+        utils.proxyPropertys(this, this.player);
         if (window.FlvplayerControl && this.options.control) {
             this.control = new window.FlvplayerControl(this);
+            utils.proxyPropertys(this, this.control);
         }
 
         id += 1;
@@ -83,6 +87,30 @@ class FlvPlayer extends Emitter {
             socketSend: '',
             headers: {},
             decoder: './flvplayer-decoder-baseline.js',
+        };
+    }
+
+    static get scheme() {
+        return {
+            url: 'string',
+            container: 'string',
+            debug: 'boolean',
+            live: 'boolean',
+            loop: 'boolean',
+            autoPlay: 'boolean',
+            hasAudio: 'boolean',
+            control: 'boolean',
+            cache: 'boolean',
+            muted: 'boolean',
+            volume: 'number',
+            frameRate: 'number',
+            maxTimeDiff: 'number',
+            freeMemory: 'number',
+            width: 'number',
+            height: 'number',
+            socketSend: 'string',
+            headers: 'object',
+            decoder: 'string',
         };
     }
 

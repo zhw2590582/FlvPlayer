@@ -130,15 +130,16 @@ export function loadScript(url, name) {
 }
 
 export function proxyPropertys(target, ...sources) {
-    sources.forEach(source => {
+    return sources.reduce((result, source) => {
         Object.getOwnPropertyNames(source).forEach(key => {
-            if (!hasOwnProperty(target, key)) {
-                Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+            if (!hasOwnProperty(result, key)) {
+                Object.defineProperty(result, key, Object.getOwnPropertyDescriptor(source, key));
             } else {
                 throw new Error(`Target attribute name is duplicated: ${key}`);
             }
         });
-    });
+        return result;
+    }, target);
 }
 
 export function calculationRate(callback) {
@@ -149,7 +150,7 @@ export function calculationRate(callback) {
         const thisTime = getNowTime();
         const diffTime = thisTime - lastTime;
         if (diffTime >= 1000) {
-            callback(totalSize / diffTime * 1000);
+            callback((totalSize / diffTime) * 1000);
             lastTime = thisTime;
             totalSize = 0;
         }

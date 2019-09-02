@@ -47,7 +47,7 @@ class FlvPlayer extends Emitter {
 
     init() {
         this.isDestroy = false;
-        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        this.isMobile = utils.isMobile();
         this.debug = new Debug(this);
         this.events = new Events(this);
         this.player = new Player(this);

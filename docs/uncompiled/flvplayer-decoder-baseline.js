@@ -178,6 +178,8 @@
 
         _this.decoderWorker.terminate();
 
+        _this.decoderWorker = null;
+
         _this.stop();
       });
       flv.on('befoerdecoding', function (timestamp) {

@@ -29,6 +29,7 @@ export default class VideoSuperDecoder {
             this.videoframes = [];
             this.timestamps = [];
             this.decoderWorker.terminate();
+            this.decoderWorker = null;
             this.stop();
         });
 

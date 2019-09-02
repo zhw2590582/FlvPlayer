@@ -54,6 +54,7 @@ export default class Demuxer {
 
         flv.on('destroy', () => {
             this.demuxWorker.terminate();
+            this.demuxWorker = null;
         });
 
         flv.on('streamStart', () => {

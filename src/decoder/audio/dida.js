@@ -1,24 +1,4 @@
-function mergeBuffer(...buffers) {
-    const Cons = buffers[0].constructor;
-    return buffers.reduce((pre, val) => {
-        const merge = new Cons((pre.byteLength | 0) + (val.byteLength | 0));
-        merge.set(pre, 0);
-        merge.set(val, pre.byteLength | 0);
-        return merge;
-    }, new Cons());
-}
-
-function debounce(func, wait, context) {
-    let timeout;
-    return function fn(...args) {
-        const later = function later() {
-            timeout = null;
-            func.apply(context, args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
+import { mergeBuffer, debounce } from '../../utils';
 
 export default class Dida {
     constructor(option = {}) {

@@ -1744,7 +1744,7 @@
       key: "scheme",
       get: function get() {
         return {
-          url: 'string',
+          url: 'string|file',
           container: 'string',
           debug: 'boolean',
           live: 'boolean',

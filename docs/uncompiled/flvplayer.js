@@ -430,6 +430,9 @@
     });
   }
 
+  function isMobile() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  }
   function hasOwnProperty(obj, name) {
     return Object.prototype.hasOwnProperty.call(obj, name);
   }
@@ -612,6 +615,7 @@
   }
 
   var utils = /*#__PURE__*/Object.freeze({
+    isMobile: isMobile,
     hasOwnProperty: hasOwnProperty,
     readBuffer: readBuffer,
     mergeBuffer: mergeBuffer,
@@ -1686,7 +1690,7 @@
       key: "init",
       value: function init() {
         this.isDestroy = false;
-        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        this.isMobile = isMobile();
         this.debug = new Debug(this);
         this.events = new Events(this);
         this.player = new Player(this);

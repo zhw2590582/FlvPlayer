@@ -92,7 +92,7 @@ class FlvPlayer extends Emitter {
 
     static get scheme() {
         return {
-            url: 'string',
+            url: 'string|file',
             container: 'string',
             debug: 'boolean',
             live: 'boolean',

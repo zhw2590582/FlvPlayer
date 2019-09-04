@@ -94,8 +94,8 @@ var flv = new FlvPlayer({
     // On the mobile side, try to activate the audio after the user touches the screen.
     touchResume: true,
 
-    // Segment decoding size, with reduced memory usage
-    chunkSize: true,
+    // Segment decoding size, with reduced memory usage, the default is 1M
+    chunkSize: 1024 * 1024,
 
     // Whether to play automatically
     autoPlay: false,
@@ -113,8 +113,8 @@ var flv = new FlvPlayer({
     // Whether to display the control, if the control exists
     control: true,
 
-    // Volume from 0 to 10
-    volume: 7,
+    // Volume from 0 to 1, the default is 0.7
+    volume: 0.7,
 
     // Initialize the frame rate, which will be covered by the actual frame rate of the file
     frameRate: 30,

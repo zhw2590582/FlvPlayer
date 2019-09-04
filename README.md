@@ -16,7 +16,7 @@
 
 ## Mobile Demo
 
-![QQ Group](./images/mobile-demo.png)
+![Mobile Demo](./images/mobile-demo.png)
 
 ## Install player
 

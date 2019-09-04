@@ -28,6 +28,18 @@ export default class Dida {
         this.autoEndDebounce = debounce(() => {
             this.end();
         }, this.option.autoEndTime);
+
+        if (this.option.touchResume) {
+            if (this.context.state === 'suspended' && 'ontouchstart' in window) {
+                const unlock = () => {
+                    this.context.resume();
+                    this.volume = 1;
+                    console.log('resume');
+                    document.body.removeEventListener('touchstart', unlock, false);
+                };
+                document.body.addEventListener('touchstart', unlock, false);
+            }
+        }
     }
 
     static get option() {
@@ -37,6 +49,7 @@ export default class Dida {
             chunk: 64 * 1024,
             autoEnd: true,
             autoEndTime: 5000,
+            touchResume: true,
             onNext: t => t,
             onLoad: () => null,
             onStop: () => null,
@@ -54,10 +67,8 @@ export default class Dida {
     }
 
     set volume(value) {
-        if (this.volume !== value) {
-            this.gainNode.gain.value = value;
-            this.option.onVolumeChange(value);
-        }
+        this.gainNode.gain.value = value;
+        this.option.onVolumeChange(value);
     }
 
     destroy() {

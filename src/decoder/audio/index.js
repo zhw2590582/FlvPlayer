@@ -16,6 +16,9 @@ export default class AudioDecoder {
                 }
                 return timestamp;
             },
+            onVolumeChange: value => {
+                this.flv.emit('volumechange', value);
+            },
         });
 
         flv.on('audioData', (uint8, timestamp) => {
@@ -35,7 +38,7 @@ export default class AudioDecoder {
         if (value) {
             this.volume = 0;
         } else {
-            this.volume = 7;
+            this.volume = 0.7;
         }
     }
 
@@ -45,7 +48,6 @@ export default class AudioDecoder {
 
     set volume(volume) {
         this.dida.volume = volume;
-        this.flv.emit('volumechange', volume);
     }
 
     get decoding() {

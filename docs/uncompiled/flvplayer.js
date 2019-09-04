@@ -827,6 +827,20 @@
       this.autoEndDebounce = debounce(function () {
         _this.end();
       }, this.option.autoEndTime);
+
+      if (this.option.touchResume) {
+        if (this.context.state === 'suspended' && 'ontouchstart' in window) {
+          var unlock = function unlock() {
+            _this.context.resume();
+
+            _this.volume = 1;
+            console.log('resume');
+            document.body.removeEventListener('touchstart', unlock, false);
+          };
+
+          document.body.addEventListener('touchstart', unlock, false);
+        }
+      }
     }
 
     createClass(Dida, [{
@@ -980,10 +994,8 @@
         return this.gainNode.gain.value;
       },
       set: function set(value) {
-        if (this.volume !== value) {
-          this.gainNode.gain.value = value;
-          this.option.onVolumeChange(value);
-        }
+        this.gainNode.gain.value = value;
+        this.option.onVolumeChange(value);
       }
     }], [{
       key: "option",
@@ -994,6 +1006,7 @@
           chunk: 64 * 1024,
           autoEnd: true,
           autoEndTime: 5000,
+          touchResume: true,
           onNext: function onNext(t) {
             return t;
           },
@@ -1050,6 +1063,9 @@
           }
 
           return timestamp;
+        },
+        onVolumeChange: function onVolumeChange(value) {
+          _this.flv.emit('volumechange', value);
         }
       });
       flv.on('audioData', function (uint8, timestamp) {
@@ -1080,7 +1096,7 @@
         if (value) {
           this.volume = 0;
         } else {
-          this.volume = 7;
+          this.volume = 0.7;
         }
       }
     }, {
@@ -1090,7 +1106,6 @@
       },
       set: function set(volume) {
         this.dida.volume = volume;
-        this.flv.emit('volumechange', volume);
       }
     }, {
       key: "decoding",
@@ -1715,6 +1730,7 @@
           control: true,
           cache: true,
           muted: false,
+          touchResume: true,
           volume: 0.7,
           frameRate: 30,
           maxTimeDiff: 200,
@@ -1741,6 +1757,7 @@
           control: 'boolean',
           cache: 'boolean',
           muted: 'boolean',
+          touchResume: 'boolean',
           volume: 'number',
           frameRate: 'number',
           maxTimeDiff: 'number',

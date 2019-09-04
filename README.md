@@ -14,6 +14,10 @@
 
 [Checkout the demo](https://flvplayer.js.org/) from Github Pages
 
+## Mobile Demo
+
+![QQ Group](./images/mobile-demo.png)
+
 ## Install player
 
 Install with `npm`
@@ -282,7 +286,7 @@ $ npm start
 
 ## QQ Group
 
-![QQ Group](./QQgroup.png)
+![QQ Group](./images/qqgroup.png)
 
 ## License
 

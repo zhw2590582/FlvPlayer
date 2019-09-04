@@ -13,21 +13,12 @@ export default class FetchLoader {
             this.data = null;
         });
 
-        flv.on('streamData', streamData => {
-            if (flv.options.live) {
-                this.flv.emit('streaming', streamData);
-            } else {
-                this.data = mergeBuffer(this.data, streamData);
-            }
-        });
-
         flv.on('timeupdate', currentTime => {
             if (!flv.options.live && flv.player.loaded - currentTime <= 5) {
                 this.readChunk();
             }
         });
 
-        this.flv.emit('streamStart');
         this.init().then(() => {
             if (!flv.options.live) {
                 this.readChunk();
@@ -45,13 +36,10 @@ export default class FetchLoader {
         }
     }
 
-    cancel() {
-        this.reader.cancel();
-    }
-
     init() {
         const { options } = this.flv;
         const self = this;
+        this.flv.emit('streamStart');
         return fetch(options.url, {
             headers: options.headers,
         })
@@ -65,12 +53,18 @@ export default class FetchLoader {
                                 self.flv.emit('streamEnd');
                                 return;
                             }
-                            self.flv.emit('streamData', new Uint8Array(value));
+
+                            if (options.live) {
+                                self.flv.emit('streaming', new Uint8Array(value));
+                            } else {
+                                self.data = mergeBuffer(self.data, new Uint8Array(value));
+                            }
+
                             // eslint-disable-next-line consistent-return
                             return read();
                         })
                         .catch(error => {
-                            self.flv.emit('streamReaderError', error);
+                            self.flv.emit('streamError', error);
                             throw error;
                         });
                 })();

@@ -1455,19 +1455,11 @@
 
         _this.data = null;
       });
-      flv.on('streamData', function (streamData) {
-        if (flv.options.live) {
-          _this.flv.emit('streaming', streamData);
-        } else {
-          _this.data = mergeBuffer(_this.data, streamData);
-        }
-      });
       flv.on('timeupdate', function (currentTime) {
         if (!flv.options.live && flv.player.loaded - currentTime <= 5) {
           _this.readChunk();
         }
       });
-      this.flv.emit('streamStart');
       this.init().then(function () {
         if (!flv.options.live) {
           _this.readChunk();
@@ -1488,15 +1480,11 @@
         }
       }
     }, {
-      key: "cancel",
-      value: function cancel() {
-        this.reader.cancel();
-      }
-    }, {
       key: "init",
       value: function init() {
         var options = this.flv.options;
         var self = this;
+        this.flv.emit('streamStart');
         return fetch(options.url, {
           headers: options.headers
         }).then(function (response) {
@@ -1511,11 +1499,16 @@
                 return;
               }
 
-              self.flv.emit('streamData', new Uint8Array(value)); // eslint-disable-next-line consistent-return
+              if (options.live) {
+                self.flv.emit('streaming', new Uint8Array(value));
+              } else {
+                self.data = mergeBuffer(self.data, new Uint8Array(value));
+              } // eslint-disable-next-line consistent-return
+
 
               return read();
             }).catch(function (error) {
-              self.flv.emit('streamReaderError', error);
+              self.flv.emit('streamError', error);
               throw error;
             });
           }();
@@ -1559,11 +1552,17 @@
   var FileLoader = function FileLoader(flv) {
     classCallCheck(this, FileLoader);
 
-    var proxy = flv.events.proxy;
     var reader = new FileReader();
+    var proxy = flv.events.proxy;
     proxy(reader, 'load', function (e) {
       var buffer = e.target.result;
       flv.emit('streamEnd', new Uint8Array(buffer));
+    });
+    proxy(reader, 'error', function (error) {
+      flv.emit('streamError', error);
+    });
+    flv.on('destroy', function () {
+      reader.abort();
     });
     flv.emit('streamStart');
     reader.readAsArrayBuffer(flv.options.url);
@@ -1575,31 +1574,19 @@
     function Stream(flv) {
       classCallCheck(this, Stream);
 
-      this.flv = flv;
-      var Loader = Stream.getStreamFactory(flv.options.url);
-      this.flv.debug.log('stream-type', Loader.name);
-      this.loader = new Loader(flv, this);
+      var Loader = Stream.getLoaderFactory(flv.options.url);
+      flv.debug.log('stream-type', Loader.name);
+      return new Loader(flv, this);
     }
 
     createClass(Stream, null, [{
-      key: "supportsXhrResponseType",
-      value: function supportsXhrResponseType(type) {
-        try {
-          var tmpXhr = new XMLHttpRequest();
-          tmpXhr.responseType = type;
-          return tmpXhr.responseType === type;
-        } catch (e) {
-          return false;
-        }
-      }
-    }, {
-      key: "getStreamFactory",
-      value: function getStreamFactory(url) {
+      key: "getLoaderFactory",
+      value: function getLoaderFactory(url) {
         if (url instanceof File) {
           return FileLoader;
         }
 
-        if (url.startsWith('ws://')) {
+        if (/^ws{1,2}:\/\//i.test(url)) {
           return WebsocketLoader;
         }
 
@@ -1695,7 +1682,7 @@
           volume: 7,
           frameRate: 30,
           maxTimeDiff: 200,
-          chunkSize: 1 * 1024 * 1024,
+          chunkSize: 1024 * 1024,
           freeMemory: 64 * 1024 * 1024,
           width: 400,
           height: 300,

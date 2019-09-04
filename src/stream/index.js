@@ -4,28 +4,17 @@ import FileLoader from './fileLoader';
 
 export default class Stream {
     constructor(flv) {
-        this.flv = flv;
-        const Loader = Stream.getStreamFactory(flv.options.url);
-        this.flv.debug.log('stream-type', Loader.name);
-        this.loader = new Loader(flv, this);
+        const Loader = Stream.getLoaderFactory(flv.options.url);
+        flv.debug.log('stream-type', Loader.name);
+        return new Loader(flv, this);
     }
 
-    static supportsXhrResponseType(type) {
-        try {
-            const tmpXhr = new XMLHttpRequest();
-            tmpXhr.responseType = type;
-            return tmpXhr.responseType === type;
-        } catch (e) {
-            return false;
-        }
-    }
-
-    static getStreamFactory(url) {
+    static getLoaderFactory(url) {
         if (url instanceof File) {
             return FileLoader;
         }
 
-        if (url.startsWith('ws://')) {
+        if (/^ws{1,2}:\/\//i.test(url)) {
             return WebsocketLoader;
         }
 

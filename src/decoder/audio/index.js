@@ -10,7 +10,11 @@ export default class AudioDecoder {
             onNext: timestamp => {
                 const currentTime = decoder.currentTime * 1000;
                 const timeDiff = Math.abs(timestamp - currentTime);
-                return timeDiff >= flv.options.maxTimeDiff ? currentTime : timestamp;
+                if (timeDiff >= flv.options.maxTimeDiff) {
+                    flv.debug.log('time-sync', timeDiff, currentTime);
+                    return currentTime;
+                }
+                return timestamp;
             },
         });
 

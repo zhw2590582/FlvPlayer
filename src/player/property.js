@@ -116,6 +116,12 @@ export default function property(flv, player) {
         },
     });
 
+    Object.defineProperty(player, 'ended', {
+        get: () => {
+            return flv.decoder.ended;
+        },
+    });
+
     Object.defineProperty(player, 'play', {
         value: () => {
             if (!player.playing) {

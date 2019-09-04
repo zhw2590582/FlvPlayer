@@ -834,7 +834,6 @@
             _this.context.resume();
 
             _this.volume = 1;
-            console.log('resume');
             document.body.removeEventListener('touchstart', unlock, false);
           };
 

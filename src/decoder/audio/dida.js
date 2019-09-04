@@ -34,7 +34,6 @@ export default class Dida {
                 const unlock = () => {
                     this.context.resume();
                     this.volume = 1;
-                    console.log('resume');
                     document.body.removeEventListener('touchstart', unlock, false);
                 };
                 document.body.addEventListener('touchstart', unlock, false);

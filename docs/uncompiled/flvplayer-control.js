@@ -594,6 +594,11 @@
     flv.on('scripMeta', function () {
       control.autoSize();
     });
+    proxy(window, 'orientationchange', function () {
+      setTimeout(function () {
+        control.autoSize();
+      }, 300);
+    });
 
     if (poster) {
       flv.on('play', function () {

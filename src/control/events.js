@@ -24,6 +24,12 @@ export default function controls(flv, control) {
         control.autoSize();
     });
 
+    proxy(window, 'orientationchange', () => {
+        setTimeout(() => {
+            control.autoSize();
+        }, 300);
+    });
+
     if (poster) {
         flv.on('play', () => {
             control.$poster.style.display = 'none';

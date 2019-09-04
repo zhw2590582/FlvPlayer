@@ -65,7 +65,7 @@ export default class VideoSuperDecoder {
                 if (this.draw(index)) {
                     const framesSize = this.getFramesSize(index);
                     if (
-                        !options.cache &&
+                        (options.live || !options.cache) &&
                         framesSize >= options.freeMemory &&
                         this.videoframes.length - 1 > index &&
                         this.timestamps.length - 1 > index
@@ -74,7 +74,11 @@ export default class VideoSuperDecoder {
                         this.videoframes.splice(0, index + 1);
                         this.timestamps.splice(0, index + 1);
                         decoder.currentTime = this.timestamps[0] / 1000;
-                        debug.log('free-memory', `${framesSize / 1024 / 1024}M`, index);
+                        debug.log('free-memory', {
+                            total: `${this.byteSize / 1024 / 1024} M`,
+                            free: `${framesSize / 1024 / 1024} M`,
+                            index,
+                        });
                         flv.emit('freeMemory', framesSize, index);
                     } else {
                         this.playIndex += 1;

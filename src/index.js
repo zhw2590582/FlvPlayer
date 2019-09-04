@@ -78,7 +78,7 @@ class FlvPlayer extends Emitter {
             control: true,
             cache: true,
             muted: false,
-            volume: 7,
+            volume: 0.7,
             frameRate: 30,
             maxTimeDiff: 200,
             chunkSize: 1024 * 1024,

@@ -136,7 +136,7 @@ export default function controls(flv, control) {
         const { width: handleWidth } = control.$volumeHandle.getBoundingClientRect();
         const percentage =
             clamp(event.x - panelLeft - handleWidth / 2, 0, panelWidth - handleWidth / 2) / (panelWidth - handleWidth);
-        return percentage * 10;
+        return percentage;
     }
 
     function setVolumeHandle(percentage) {
@@ -150,7 +150,7 @@ export default function controls(flv, control) {
             if (!flv.isMobile) {
                 const panelWidth = getStyle(control.$volumePanel, 'width') || 60;
                 const handleWidth = getStyle(control.$volumeHandle, 'width');
-                const width = ((panelWidth - handleWidth) * percentage) / 10;
+                const width = (panelWidth - handleWidth) * percentage;
                 setStyle(control.$volumeHandle, 'left', `${width}px`);
             }
             setStyle(control.$volumeOn, 'display', 'flex');
@@ -182,7 +182,7 @@ export default function controls(flv, control) {
         proxy(control.$volumeOff, 'click', () => {
             control.$volumeOn.style.display = 'block';
             control.$volumeOff.style.display = 'none';
-            player.volume = lastVolume || 7;
+            player.volume = lastVolume || 0.7;
         });
 
         if (!flv.isMobile) {
@@ -247,33 +247,6 @@ export default function controls(flv, control) {
         proxy(document, 'mouseup', () => {
             if (isIndicatorDroging) {
                 isIndicatorDroging = false;
-            }
-        });
-
-        let isCanvasDroging = false;
-        let touchstartX = 0;
-        let touchSecond = 0;
-        proxy(player.$canvas, 'touchstart', event => {
-            isCanvasDroging = true;
-            touchstartX = event.targetTouches[0].clientX;
-        });
-
-        proxy(player.$canvas, 'touchmove', event => {
-            if (isCanvasDroging) {
-                const { $progress } = control;
-                const moveWidth = event.targetTouches[0].clientX - touchstartX;
-                touchSecond = (moveWidth / $progress.clientWidth) * player.duration;
-            }
-        });
-
-        proxy(player.$canvas, 'touchend', () => {
-            if (isCanvasDroging) {
-                isCanvasDroging = false;
-                if (touchSecond <= player.loaded) {
-                    player.currentTime += touchSecond;
-                }
-                touchstartX = 0;
-                touchSecond = 0;
             }
         });
     }

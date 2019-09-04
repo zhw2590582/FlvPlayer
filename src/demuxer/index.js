@@ -29,7 +29,6 @@ function getLevelString(levelIdc) {
 export default class Demuxer {
     constructor(flv) {
         const { options, debug } = flv;
-        this.size = 0;
         this.header = null;
         this.streaming = false;
         this.demuxed = false;
@@ -43,10 +42,6 @@ export default class Demuxer {
         this.AudioSpecificConfig = null;
         this.AVCDecoderConfigurationRecord = null;
         this.demuxWorker = createWorker(workerString);
-
-        this.streamRate = calculationRate(rate => {
-            flv.emit('streamRate', rate);
-        });
 
         this.demuxRate = calculationRate(rate => {
             flv.emit('demuxRate', rate);
@@ -67,8 +62,6 @@ export default class Demuxer {
         });
 
         flv.on('streaming', uint8 => {
-            this.size += uint8.byteLength;
-            this.streamRate(uint8.byteLength);
             this.demuxWorker.postMessage(uint8);
         });
 
@@ -78,13 +71,10 @@ export default class Demuxer {
 
             if (uint8) {
                 this.index = 0;
-                this.size = uint8.byteLength;
                 this.demuxWorker.postMessage(uint8);
             }
 
-            debug.log('stream-size', `${this.size} byte`);
             debug.log('stream-time', `${this.streamEndTime - this.streamStartTime} ms`);
-
             this.demuxed = true;
             flv.emit('demuxDone');
             debug.log('demux-done');

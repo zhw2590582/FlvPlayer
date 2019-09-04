@@ -96,7 +96,7 @@ export default function property(flv, player) {
         },
         set: value => {
             try {
-                flv.decoder.audio.volume = clamp(value, 0, 10);
+                flv.decoder.audio.volume = clamp(value, 0, 1);
                 return player.volume;
             } catch (error) {
                 return value;

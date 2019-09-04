@@ -19,7 +19,7 @@ document.getElementById('file').addEventListener('change', function(event) {
             autoPlay: true,
             hasAudio: true,
             control: true,
-            volume: 7,
+            volume: 0.7,
             width: 640,
             height: 360,
         });

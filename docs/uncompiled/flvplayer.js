@@ -49,6 +49,10 @@
 
   var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
+  function unwrapExports (x) {
+  	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
+  }
+
   function createCommonjsModule(fn, module) {
   	return module = { exports: {} }, fn(module, module.exports), module.exports;
   }
@@ -135,8 +139,10 @@
   var inherits = _inherits;
 
   var optionValidator = createCommonjsModule(function (module, exports) {
-  !function(r,t){module.exports=t();}(commonjsGlobal,function(){function e(r){return (e="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(r){return typeof r}:function(r){return r&&"function"==typeof Symbol&&r.constructor===Symbol&&r!==Symbol.prototype?"symbol":typeof r})(r)}var n=Object.prototype.toString,i=function(r){if(void 0===r)return "undefined";if(null===r)return "null";var t=e(r);if("boolean"===t)return "boolean";if("string"===t)return "string";if("number"===t)return "number";if("symbol"===t)return "symbol";if("function"===t)return function(r){return "GeneratorFunction"===o(r)}(r)?"generatorfunction":"function";if(function(r){return Array.isArray?Array.isArray(r):r instanceof Array}(r))return "array";if(function(r){if(r.constructor&&"function"==typeof r.constructor.isBuffer)return r.constructor.isBuffer(r);return !1}(r))return "buffer";if(function(r){try{if("number"==typeof r.length&&"function"==typeof r.callee)return !0}catch(r){if(-1!==r.message.indexOf("callee"))return !0}return !1}(r))return "arguments";if(function(r){return r instanceof Date||"function"==typeof r.toDateString&&"function"==typeof r.getDate&&"function"==typeof r.setDate}(r))return "date";if(function(r){return r instanceof Error||"string"==typeof r.message&&r.constructor&&"number"==typeof r.constructor.stackTraceLimit}(r))return "error";if(function(r){return r instanceof RegExp||"string"==typeof r.flags&&"boolean"==typeof r.ignoreCase&&"boolean"==typeof r.multiline&&"boolean"==typeof r.global}(r))return "regexp";switch(o(r)){case"Symbol":return "symbol";case"Promise":return "promise";case"WeakMap":return "weakmap";case"WeakSet":return "weakset";case"Map":return "map";case"Set":return "set";case"Int8Array":return "int8array";case"Uint8Array":return "uint8array";case"Uint8ClampedArray":return "uint8clampedarray";case"Int16Array":return "int16array";case"Uint16Array":return "uint16array";case"Int32Array":return "int32array";case"Uint32Array":return "uint32array";case"Float32Array":return "float32array";case"Float64Array":return "float64array"}if(function(r){return "function"==typeof r.throw&&"function"==typeof r.return&&"function"==typeof r.next}(r))return "generator";switch(t=n.call(r)){case"[object Object]":return "object";case"[object Map Iterator]":return "mapiterator";case"[object Set Iterator]":return "setiterator";case"[object String Iterator]":return "stringiterator";case"[object Array Iterator]":return "arrayiterator"}return t.slice(8,-1).toLowerCase().replace(/\s/g,"")};function o(r){return r.constructor?r.constructor.name:null}function a(r,t){var e=2<arguments.length&&void 0!==arguments[2]?arguments[2]:["option"];for(var n in c(r,t,e),f(r,t,e),s(r,t,e),t)if(Object.prototype.hasOwnProperty.call(t,n)){var o=r[n],a=t[n],i=e.concat(n);if(u(r,n,a,i))continue;c(o,a,i),f(o,a,i),s(o,a,i);}return r}function u(r,t,e,n){if(!Object.prototype.hasOwnProperty.call(r,t)){if(!0===e.__required__||!0===e.required)throw new TypeError("'".concat(n.join("."),"' is required"));return !0}}function c(r,t,e){var n;if("string"===i(t)?n=t:"function"===i(t)?t.___validator__=t:t.__type__?n=t.__type__:t.type&&(n=t.type),n&&"string"===i(n)){n=n.trim().toLowerCase();var o=i(r),a=o===n;if(-1<n.indexOf("|"))a=n.split("|").filter(Boolean).some(function(r){return o===r.trim()});if(!a)throw new TypeError("'".concat(e.join("."),"' require '").concat(n,"' type, but got '").concat(o,"'"))}}function f(r,t,e){var n;if("function"===i(t)?n=t:t.___validator__?n=t.___validator__:t.validator&&(n=t.validator),"function"===i(n)){var o=n(r,i(r),e);if(!0!==o)throw new TypeError("The scheme for '".concat(e.join("."),"' validator function require return true, but got '").concat(o,"'"))}}function s(r,t,e){var n;if(t.___child__?n=t.___child__:t.child&&(n=t.child),"object"===i(n)){var o=i(r);"object"===o?a(r,n,e):"array"===o&&r.forEach(function(r,t){a(r,n,e.concat(t));});}}return a.kindOf=i,a});
+  !function(r,t){t(exports);}(commonjsGlobal,function(r){function e(r){return (e="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(r){return typeof r}:function(r){return r&&"function"==typeof Symbol&&r.constructor===Symbol&&r!==Symbol.prototype?"symbol":typeof r})(r)}function n(r,t,e){return t in r?Object.defineProperty(r,t,{value:e,enumerable:!0,configurable:!0,writable:!0}):r[t]=e,r}var o=Object.prototype.toString,c=function(r){if(void 0===r)return "undefined";if(null===r)return "null";var t=e(r);if("boolean"===t)return "boolean";if("string"===t)return "string";if("number"===t)return "number";if("symbol"===t)return "symbol";if("function"===t)return function(r){return "GeneratorFunction"===a(r)}(r)?"generatorfunction":"function";if(function(r){return Array.isArray?Array.isArray(r):r instanceof Array}(r))return "array";if(function(r){if(r.constructor&&"function"==typeof r.constructor.isBuffer)return r.constructor.isBuffer(r);return !1}(r))return "buffer";if(function(r){try{if("number"==typeof r.length&&"function"==typeof r.callee)return !0}catch(r){if(-1!==r.message.indexOf("callee"))return !0}return !1}(r))return "arguments";if(function(r){return r instanceof Date||"function"==typeof r.toDateString&&"function"==typeof r.getDate&&"function"==typeof r.setDate}(r))return "date";if(function(r){return r instanceof Error||"string"==typeof r.message&&r.constructor&&"number"==typeof r.constructor.stackTraceLimit}(r))return "error";if(function(r){return r instanceof RegExp||"string"==typeof r.flags&&"boolean"==typeof r.ignoreCase&&"boolean"==typeof r.multiline&&"boolean"==typeof r.global}(r))return "regexp";switch(a(r)){case"Symbol":return "symbol";case"Promise":return "promise";case"WeakMap":return "weakmap";case"WeakSet":return "weakset";case"Map":return "map";case"Set":return "set";case"Int8Array":return "int8array";case"Uint8Array":return "uint8array";case"Uint8ClampedArray":return "uint8clampedarray";case"Int16Array":return "int16array";case"Uint16Array":return "uint16array";case"Int32Array":return "int32array";case"Uint32Array":return "uint32array";case"Float32Array":return "float32array";case"Float64Array":return "float64array"}if(function(r){return "function"==typeof r.throw&&"function"==typeof r.return&&"function"==typeof r.next}(r))return "generator";switch(t=o.call(r)){case"[object Object]":return "object";case"[object Map Iterator]":return "mapiterator";case"[object Set Iterator]":return "setiterator";case"[object String Iterator]":return "stringiterator";case"[object Array Iterator]":return "arrayiterator"}return t.slice(8,-1).toLowerCase().replace(/\s/g,"")};function a(r){return r.constructor?r.constructor.name:null}var i=Symbol("TYPE"),u=Symbol("VALIDATOR");function f(r,t){var e=2<arguments.length&&void 0!==arguments[2]?arguments[2]:["option"];return l(r,t=y(t),e),p(r,t,e),s(r,t,e),r}function s(a,i,u){var r=c(i),t=c(a);"object"===r&&"object"===t&&Object.keys(i).forEach(function(r){var t=a[r],e=i[r],n=u.slice();n.push(r),l(t,e,n),p(t,e,n),f(t,e,n);}),"array"===r&&"array"===t&&a.forEach(function(r,t){var e=a[t],n=i[t]||i[0],o=u.slice();o.push(t),l(e,n,o),p(e,n,o),f(e,n,o);});}function y(r){var t=c(r);return "string"===t?n({},i,r.trim().toLowerCase()):"function"===t?n({},u,r):r}function l(r,t,e){if("string"===c(t[i])){var n=c(r);if(!(-1<t[i].indexOf("|")?t[i].split("|").filter(Boolean).some(function(r){return n===r.trim()}):t[i]===n))throw new Error("[Type Error]: '".concat(e.join("."),"' require '").concat(t[i],"' type, but got '").concat(n,"'"))}}function p(r,t,e){if("function"===c(t[u])){var n=c(r),o=t[u](r,n,e);if(!0!==o){var a=c(o);throw"string"===a?new Error(o):"error"===a?o:new Error("[Validator Error]: The scheme for '".concat(e.join("."),"' validator require return true, but got '").concat(o,"'"))}}}f.kindOf=c,r.checkChild=s,r.formatScheme=y,r.checkType=l,r.checkValidator=p,r.default=f,Object.defineProperty(r,"__esModule",{value:!0});});
   });
+
+  var validator = unwrapExports(optionValidator);
 
   var Emitter =
   /*#__PURE__*/
@@ -718,7 +724,7 @@
       },
       set: function set(value) {
         try {
-          flv.decoder.audio.volume = clamp(value, 0, 10);
+          flv.decoder.audio.volume = clamp(value, 0, 1);
           return player.volume;
         } catch (error) {
           return value;
@@ -1033,13 +1039,13 @@
       this.flv = flv;
       this.dida = new Dida({
         volume: flv.options.muted ? 0 : flv.options.volume,
-        cache: flv.options.cache,
+        cache: true,
         onNext: function onNext(timestamp) {
           var currentTime = decoder.currentTime * 1000;
-          var timeDiff = Math.abs(timestamp - currentTime);
+          var timeDiff = timestamp - currentTime;
 
-          if (timeDiff >= flv.options.maxTimeDiff) {
-            flv.debug.log('time-sync', timeDiff, currentTime);
+          if (Math.abs(timeDiff) >= flv.options.maxTimeDiff) {
+            flv.debug.log('time-sync', timeDiff);
             return currentTime;
           }
 
@@ -1177,7 +1183,8 @@
 
         var _this$flv = this.flv,
             options = _this$flv.options,
-            player = _this$flv.player;
+            player = _this$flv.player,
+            debug = _this$flv.debug;
         this.animationFrameTimer = requestAnimationFrame(function () {
           if (_this2.video.playing && _this2.audio.playing) {
             _this2.ended = false;
@@ -1196,6 +1203,18 @@
             _this2.flv.emit('waiting', _this2.currentTime);
 
             _this2.waitingTimer = setTimeout(function () {
+              debug.log('play-retry', {
+                streaming: player.streaming,
+                playing: {
+                  video: _this2.video.playing,
+                  audio: _this2.audio.playing
+                },
+                decoding: {
+                  video: _this2.video.decoding,
+                  audio: _this2.audio.decoding
+                }
+              });
+
               _this2.play();
             }, 1000);
             return;
@@ -1239,7 +1258,10 @@
     }, {
       key: "seeked",
       value: function seeked(time) {
-        var player = this.flv.player;
+        var _this$flv2 = this.flv,
+            player = _this$flv2.player,
+            options = _this$flv2.options;
+        if (!options.cache) return;
         cancelAnimationFrame(this.animationFrameTimer);
         clearTimeout(this.waitingTimer);
         this.animationFrameTimer = null;
@@ -1299,7 +1321,6 @@
 
     var options = flv.options,
         debug = flv.debug;
-    this.size = 0;
     this.header = null;
     this.streaming = false;
     this.demuxed = false;
@@ -1313,9 +1334,6 @@
     this.AudioSpecificConfig = null;
     this.AVCDecoderConfigurationRecord = null;
     this.demuxWorker = createWorker(workerString);
-    this.streamRate = calculationRate(function (rate) {
-      flv.emit('streamRate', rate);
-    });
     this.demuxRate = calculationRate(function (rate) {
       flv.emit('demuxRate', rate);
     });
@@ -1336,10 +1354,6 @@
       }
     });
     flv.on('streaming', function (uint8) {
-      _this.size += uint8.byteLength;
-
-      _this.streamRate(uint8.byteLength);
-
       _this.demuxWorker.postMessage(uint8);
     });
     flv.on('streamEnd', function (uint8) {
@@ -1348,12 +1362,10 @@
 
       if (uint8) {
         _this.index = 0;
-        _this.size = uint8.byteLength;
 
         _this.demuxWorker.postMessage(uint8);
       }
 
-      debug.log('stream-size', "".concat(_this.size, " byte"));
       debug.log('stream-time', "".concat(_this.streamEndTime - _this.streamStartTime, " ms"));
       _this.demuxed = true;
       flv.emit('demuxDone');
@@ -1446,10 +1458,14 @@
       classCallCheck(this, FetchLoader);
 
       this.flv = flv;
+      this.byteLength = 0;
       this.reader = null;
       this.chunkStart = 0;
       this.data = new Uint8Array();
       this.readChunk = throttle(this.readChunk, 1000);
+      this.streamRate = calculationRate(function (rate) {
+        flv.emit('streamRate', rate);
+      });
       flv.on('destroy', function () {
         _this.reader.cancel();
 
@@ -1460,11 +1476,7 @@
           _this.readChunk();
         }
       });
-      this.init().then(function () {
-        if (!flv.options.live) {
-          _this.readChunk();
-        }
-      });
+      this.init();
     }
 
     createClass(FetchLoader, [{
@@ -1482,7 +1494,9 @@
     }, {
       key: "init",
       value: function init() {
-        var options = this.flv.options;
+        var _this$flv = this.flv,
+            options = _this$flv.options,
+            debug = _this$flv.debug;
         var self = this;
         this.flv.emit('streamStart');
         return fetch(options.url, {
@@ -1496,13 +1510,22 @@
 
               if (done) {
                 self.flv.emit('streamEnd');
+                debug.log('stream-end', "".concat(self.byteLength, " byte"));
                 return;
               }
 
+              var uint8 = new Uint8Array(value);
+              self.byteLength += uint8.byteLength;
+              self.streamRate(uint8.byteLength);
+
               if (options.live) {
-                self.flv.emit('streaming', new Uint8Array(value));
+                self.flv.emit('streaming', uint8);
               } else {
-                self.data = mergeBuffer(self.data, new Uint8Array(value));
+                self.data = mergeBuffer(self.data, uint8);
+
+                if (self.chunkStart === 0) {
+                  self.readChunk();
+                }
               } // eslint-disable-next-line consistent-return
 
 
@@ -1523,29 +1546,41 @@
   }();
 
   var WebsocketLoader = function WebsocketLoader(flv) {
+    var _this = this;
+
     classCallCheck(this, WebsocketLoader);
 
-    var options = flv.options,
+    var debug = flv.debug,
+        options = flv.options,
         proxy = flv.events.proxy;
-    flv.options.live = true;
-    var socket = new WebSocket(flv.options.url);
-    socket.binaryType = 'arraybuffer';
+    this.byteLength = 0;
+    this.streamRate = calculationRate(function (rate) {
+      flv.emit('streamRate', rate);
+    });
+    this.socket = new WebSocket(flv.options.url);
+    this.socket.binaryType = 'arraybuffer';
     flv.emit('streamStart');
-    proxy(socket, 'open', function () {
-      socket.send(options.socketSend);
+    proxy(this.socket, 'open', function () {
+      _this.socket.send(options.socketSend);
     });
-    proxy(socket, 'message', function (event) {
-      flv.emit('streaming', new Uint8Array(event.data));
+    proxy(this.socket, 'message', function (event) {
+      var uint8 = new Uint8Array(event.data);
+      _this.byteLength += uint8.byteLength;
+
+      _this.streamRate(uint8.byteLength);
+
+      flv.emit('streaming', uint8);
     });
-    proxy(socket, 'close', function () {
+    proxy(this.socket, 'close', function () {
       flv.emit('streamEnd');
+      debug.log('stream-end', "".concat(_this.byteLength, " byte"));
     });
-    proxy(socket, 'error', function (error) {
+    proxy(this.socket, 'error', function (error) {
       flv.emit('streamError', error);
       throw error;
     });
     flv.on('destroy', function () {
-      socket.close();
+      _this.socket.close();
     });
   };
 
@@ -1555,8 +1590,9 @@
     var reader = new FileReader();
     var proxy = flv.events.proxy;
     proxy(reader, 'load', function (e) {
-      var buffer = e.target.result;
-      flv.emit('streamEnd', new Uint8Array(buffer));
+      var uint8 = new Uint8Array(e.target.result);
+      flv.emit('streamEnd', uint8);
+      flv.debug.log('stream-end', "".concat(uint8.byteLength, " byte"));
     });
     proxy(reader, 'error', function (error) {
       flv.emit('streamError', error);
@@ -1613,7 +1649,7 @@
       classCallCheck(this, FlvPlayer);
 
       _this = possibleConstructorReturn(this, getPrototypeOf(FlvPlayer).call(this));
-      _this.options = optionValidator(_objectSpread$1({}, FlvPlayer.options, {}, options), FlvPlayer.scheme);
+      _this.options = validator(_objectSpread$1({}, FlvPlayer.options, {}, options), FlvPlayer.scheme);
 
       if (_this.options.live) {
         _this.options.cache = false;
@@ -1679,7 +1715,7 @@
           control: true,
           cache: true,
           muted: false,
-          volume: 7,
+          volume: 0.7,
           frameRate: 30,
           maxTimeDiff: 200,
           chunkSize: 1024 * 1024,

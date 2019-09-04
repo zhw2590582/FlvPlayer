@@ -6,12 +6,12 @@ export default class AudioDecoder {
 
         this.dida = new Dida({
             volume: flv.options.muted ? 0 : flv.options.volume,
-            cache: flv.options.cache,
+            cache: true,
             onNext: timestamp => {
                 const currentTime = decoder.currentTime * 1000;
-                const timeDiff = Math.abs(timestamp - currentTime);
-                if (timeDiff >= flv.options.maxTimeDiff) {
-                    flv.debug.log('time-sync', timeDiff, currentTime);
+                const timeDiff = timestamp - currentTime;
+                if (Math.abs(timeDiff) >= flv.options.maxTimeDiff) {
+                    flv.debug.log('time-sync', timeDiff);
                     return currentTime;
                 }
                 return timestamp;

@@ -691,7 +691,7 @@
           handleWidth = _control$$volumeHandl.width;
 
       var percentage = clamp(event.x - panelLeft - handleWidth / 2, 0, panelWidth - handleWidth / 2) / (panelWidth - handleWidth);
-      return percentage * 10;
+      return percentage;
     }
 
     function setVolumeHandle(percentage) {
@@ -706,7 +706,7 @@
         if (!flv.isMobile) {
           var panelWidth = getStyle(control.$volumePanel, 'width') || 60;
           var handleWidth = getStyle(control.$volumeHandle, 'width');
-          var width = (panelWidth - handleWidth) * percentage / 10;
+          var width = (panelWidth - handleWidth) * percentage;
           setStyle(control.$volumeHandle, 'left', "".concat(width, "px"));
         }
 
@@ -737,7 +737,7 @@
       proxy(control.$volumeOff, 'click', function () {
         control.$volumeOn.style.display = 'block';
         control.$volumeOff.style.display = 'none';
-        player.volume = lastVolume || 7;
+        player.volume = lastVolume || 0.7;
       });
 
       if (!flv.isMobile) {
@@ -811,32 +811,6 @@
       proxy(document, 'mouseup', function () {
         if (isIndicatorDroging) {
           isIndicatorDroging = false;
-        }
-      });
-      var isCanvasDroging = false;
-      var touchstartX = 0;
-      var touchSecond = 0;
-      proxy(player.$canvas, 'touchstart', function (event) {
-        isCanvasDroging = true;
-        touchstartX = event.targetTouches[0].clientX;
-      });
-      proxy(player.$canvas, 'touchmove', function (event) {
-        if (isCanvasDroging) {
-          var $progress = control.$progress;
-          var moveWidth = event.targetTouches[0].clientX - touchstartX;
-          touchSecond = moveWidth / $progress.clientWidth * player.duration;
-        }
-      });
-      proxy(player.$canvas, 'touchend', function () {
-        if (isCanvasDroging) {
-          isCanvasDroging = false;
-
-          if (touchSecond <= player.loaded) {
-            player.currentTime += touchSecond;
-          }
-
-          touchstartX = 0;
-          touchSecond = 0;
         }
       });
     }

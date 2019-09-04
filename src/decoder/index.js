@@ -62,7 +62,7 @@ export default class Decoder {
     }
 
     animationFrame() {
-        const { options, player } = this.flv;
+        const { options, player, debug } = this.flv;
         this.animationFrameTimer = requestAnimationFrame(() => {
             if (this.video.playing && this.audio.playing) {
                 this.ended = false;
@@ -78,6 +78,17 @@ export default class Decoder {
                 this.waiting = true;
                 this.flv.emit('waiting', this.currentTime);
                 this.waitingTimer = setTimeout(() => {
+                    debug.log('play-retry', {
+                        streaming: player.streaming,
+                        playing: {
+                            video: this.video.playing,
+                            audio: this.audio.playing,
+                        },
+                        decoding: {
+                            video: this.video.decoding,
+                            audio: this.audio.decoding,
+                        },
+                    });
                     this.play();
                 }, 1000);
                 return;
@@ -113,7 +124,8 @@ export default class Decoder {
     }
 
     seeked(time) {
-        const { player } = this.flv;
+        const { player, options } = this.flv;
+        if (!options.cache) return;
         cancelAnimationFrame(this.animationFrameTimer);
         clearTimeout(this.waitingTimer);
         this.animationFrameTimer = null;

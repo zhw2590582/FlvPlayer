@@ -56,12 +56,14 @@ export default function property(flv, control) {
                     screenfull.request(player.$container);
                 } catch (error) {
                     player.$container.classList.add('flvplayer-fullscreen-web');
+                    control.autoSize();
                 }
             } else {
                 try {
                     screenfull.exit();
                 } catch (error) {
                     player.$container.classList.remove('flvplayer-fullscreen-web');
+                    control.autoSize();
                 }
             }
         },
@@ -69,17 +71,20 @@ export default function property(flv, control) {
 
     Object.defineProperty(control, 'autoSize', {
         value: () => {
+            player.$container.style.padding = '0 0';
             const playerWidth = player.width;
             const playerHeight = player.height;
             const playerRatio = playerWidth / playerHeight;
             const canvasWidth = player.$canvas.width;
             const canvasHeight = player.$canvas.height;
             const canvasRatio = canvasWidth / canvasHeight;
+            console.log(playerWidth, playerHeight, playerRatio, canvasWidth, canvasHeight, canvasRatio);
             if (playerRatio > canvasRatio) {
                 const padding = (playerWidth - playerHeight * canvasRatio) / 2;
                 player.$container.style.padding = `0 ${padding}px`;
             } else {
                 const padding = (playerHeight - playerWidth / canvasRatio) / 2;
+                console.log(padding);
                 player.$container.style.padding = `${padding}px 0`;
             }
         },

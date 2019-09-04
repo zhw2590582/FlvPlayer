@@ -87,6 +87,12 @@ var flv = new FlvPlayer({
     // Whether to turn off the volume
     muted: false,
 
+    // On the mobile side, try to activate the audio after the user touches the screen.
+    touchResume: true,
+
+    // Segment decoding size, with reduced memory usage
+    chunkSize: true,
+
     // Whether to play automatically
     autoPlay: false,
 

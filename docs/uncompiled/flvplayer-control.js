@@ -542,24 +542,28 @@
             screenfull.request(player.$container);
           } catch (error) {
             player.$container.classList.add('flvplayer-fullscreen-web');
+            control.autoSize();
           }
         } else {
           try {
             screenfull.exit();
           } catch (error) {
             player.$container.classList.remove('flvplayer-fullscreen-web');
+            control.autoSize();
           }
         }
       }
     });
     Object.defineProperty(control, 'autoSize', {
       value: function value() {
+        player.$container.style.padding = '0 0';
         var playerWidth = player.width;
         var playerHeight = player.height;
         var playerRatio = playerWidth / playerHeight;
         var canvasWidth = player.$canvas.width;
         var canvasHeight = player.$canvas.height;
         var canvasRatio = canvasWidth / canvasHeight;
+        console.log(playerWidth, playerHeight, playerRatio, canvasWidth, canvasHeight, canvasRatio);
 
         if (playerRatio > canvasRatio) {
           var padding = (playerWidth - playerHeight * canvasRatio) / 2;
@@ -567,6 +571,7 @@
         } else {
           var _padding = (playerHeight - playerWidth / canvasRatio) / 2;
 
+          console.log(_padding);
           player.$container.style.padding = "".concat(_padding, "px 0");
         }
       }

@@ -48,6 +48,7 @@ class FlvPlayer extends Emitter {
     init() {
         this.isDestroy = false;
         this.isMobile = utils.isMobile();
+        this.isWechat = utils.isWechat();
         this.debug = new Debug(this);
         this.events = new Events(this);
         this.player = new Player(this);

@@ -563,7 +563,6 @@
         var canvasWidth = player.$canvas.width;
         var canvasHeight = player.$canvas.height;
         var canvasRatio = canvasWidth / canvasHeight;
-        console.log(playerWidth, playerHeight, playerRatio, canvasWidth, canvasHeight, canvasRatio);
 
         if (playerRatio > canvasRatio) {
           var padding = (playerWidth - playerHeight * canvasRatio) / 2;
@@ -571,7 +570,6 @@
         } else {
           var _padding = (playerHeight - playerWidth / canvasRatio) / 2;
 
-          console.log(_padding);
           player.$container.style.padding = "".concat(_padding, "px 0");
         }
       }

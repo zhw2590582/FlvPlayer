@@ -59,6 +59,7 @@ export default class Dida {
             onDecodeDone: () => null,
             onDecodeError: () => null,
             onVolumeChange: () => null,
+            onFreeMemory: () => null,
         };
     }
 

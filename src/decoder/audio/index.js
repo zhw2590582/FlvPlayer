@@ -6,7 +6,7 @@ export default class AudioDecoder {
 
         this.dida = new Dida({
             volume: flv.options.muted ? 0 : flv.options.volume,
-            cache: false,
+            cache: flv.options.cache,
             maxTimeDiff: flv.options.maxTimeDiff,
             touchResume: flv.options.touchResume,
             onNext: timestamp => {

@@ -1058,6 +1058,9 @@
           },
           onVolumeChange: function onVolumeChange() {
             return null;
+          },
+          onFreeMemory: function onFreeMemory() {
+            return null;
           }
         };
       }
@@ -1077,7 +1080,7 @@
       this.flv = flv;
       this.dida = new Dida({
         volume: flv.options.muted ? 0 : flv.options.volume,
-        cache: false,
+        cache: flv.options.cache,
         maxTimeDiff: flv.options.maxTimeDiff,
         touchResume: flv.options.touchResume,
         onNext: function onNext(timestamp) {
@@ -1270,6 +1273,8 @@
             _this2.playing = false;
             _this2.waiting = false;
 
+            _this2.pause();
+
             _this2.flv.emit('ended', _this2.currentTime);
 
             if (options.loop && options.cache) {
@@ -1278,8 +1283,6 @@
               _this2.play();
 
               _this2.flv.emit('loop');
-            } else {
-              _this2.pause();
             }
 
             return;

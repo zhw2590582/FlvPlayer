@@ -96,13 +96,12 @@ export default class Decoder {
                 this.ended = true;
                 this.playing = false;
                 this.waiting = false;
+                this.pause();
                 this.flv.emit('ended', this.currentTime);
                 if (options.loop && options.cache) {
                     this.currentTime = 0;
                     this.play();
                     this.flv.emit('loop');
-                } else {
-                    this.pause();
                 }
                 return;
             }

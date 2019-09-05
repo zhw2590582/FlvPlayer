@@ -1,4 +1,5 @@
 import validator from 'option-validator';
+import isSupported from './isSupported';
 import Emitter from './emitter';
 import Debug from './debug';
 import Events from './events';
@@ -117,6 +118,10 @@ class FlvPlayer extends Emitter {
             headers: 'object',
             decoder: 'string',
         };
+    }
+
+    static get isSupported() {
+        return isSupported;
     }
 
     static get version() {

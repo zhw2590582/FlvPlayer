@@ -69,71 +69,75 @@ Will expose the global variable to `window.FlvplayerControl`.
 ```
 
 ```js
-var flv = new FlvPlayer({
-    // Accept http url, websocket url, and file type
-    url: '',
+if (FlvPlayer.isSupported()) {
+    var flv = new FlvPlayer({
+        // Accept http url, websocket url, and file type
+        url: '',
 
-    // Accept dom element, dom selector
-    container: '',
+        // Accept dom element, dom selector
+        container: '',
 
-    // Whether to print debug information
-    debug: false,
+        // Whether to print debug information
+        debug: false,
 
-    // Whether live mode
-    live: false,
+        // Whether live mode
+        live: false,
 
-    // Whether the video loops, in non-live mode
-    loop: false,
+        // Whether the video loops, in non-live mode
+        loop: false,
 
-    // Whether to use hotkeys, if the control exists
-    hotkey: true,
+        // Whether to use hotkeys, if the control exists
+        hotkey: true,
 
-    // Whether to turn off the volume
-    muted: false,
+        // Whether to turn off the volume
+        muted: false,
 
-    // On the mobile side, try to activate the audio after the user touches the screen.
-    touchResume: true,
+        // On the mobile side, try to activate the audio after the user touches the screen.
+        touchResume: true,
 
-    // Segment decoding size, with reduced memory usage, the default is 1M
-    chunkSize: 1024 * 1024,
+        // Segment decoding size, with reduced memory usage, the default is 1M
+        chunkSize: 1024 * 1024,
 
-    // Whether to play automatically
-    autoPlay: false,
+        // Whether to play automatically
+        autoPlay: false,
 
-    // Whether it contains an audio stream
-    hasAudio: true,
+        // Whether it contains an audio stream
+        hasAudio: true,
 
-    // Whether to cache the video frame to play
-    cache: true,
+        // Whether to cache the video frame to play
+        cache: true,
 
-    // Maximum time difference between audio and video, unit is ms
-    // used to automatically adjust audio and video synchronization
-    maxTimeDiff: 200,
+        // Maximum time difference between audio and video, unit is ms
+        // used to automatically adjust audio and video synchronization
+        maxTimeDiff: 200,
 
-    // Whether to display the control, if the control exists
-    control: true,
+        // Whether to display the control, if the control exists
+        control: true,
 
-    // Volume from 0 to 1, the default is 0.7
-    volume: 0.7,
+        // Volume from 0 to 1, the default is 0.7
+        volume: 0.7,
 
-    // Initialize the frame rate, which will be covered by the actual frame rate of the file
-    frameRate: 30,
+        // Initialize the frame rate, which will be covered by the actual frame rate of the file
+        frameRate: 30,
 
-    // Maximum limit for cached data in live mode, unit is byte, the default is 64M
-    freeMemory: 64 * 1024 * 1024,
+        // Maximum limit for cached data in live mode, unit is byte, the default is 64M
+        freeMemory: 64 * 1024 * 1024,
 
-    // Initialize the width, which will be covered by the actual width of the file
-    width: 400,
+        // Initialize the width, which will be covered by the actual width of the file
+        width: 400,
 
-    // Initialize the height, which will be covered by the actual height of the file
-    height: 300,
+        // Initialize the height, which will be covered by the actual height of the file
+        height: 300,
 
-    // Initialize http headers
-    headers: {},
+        // Initialize http headers
+        headers: {},
 
-    // The path of the video decoder, currently optional flvplayer-decoder-baseline.js and flvplayer-decoder-multiple.js
-    decoder: 'flvplayer-decoder-baseline.js',
-});
+        // The path of the video decoder, currently optional flvplayer-decoder-baseline.js and flvplayer-decoder-multiple.js
+        decoder: 'flvplayer-decoder-baseline.js',
+    });
+} else {
+    console.log('Your browser does not support Flvplayer.js');
+}
 ```
 
 ## Question
@@ -262,6 +266,24 @@ Get all instances:
 
 ```js
 FlvPlayer.instances;
+```
+
+Check if support:
+
+```js
+FlvPlayer.isSupported;
+```
+
+Get the version:
+
+```js
+FlvPlayer.version;
+```
+
+Get the env:
+
+```js
+FlvPlayer.env;
 ```
 
 ## Contribution

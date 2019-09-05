@@ -6,10 +6,13 @@ export default class AudioDecoder {
 
         this.dida = new Dida({
             volume: flv.options.muted ? 0 : flv.options.volume,
-            cache: true,
+            cache: false,
+            maxTimeDiff: flv.options.maxTimeDiff,
+            touchResume: flv.options.touchResume,
             onNext: timestamp => {
                 const currentTime = decoder.currentTime * 1000;
                 const timeDiff = timestamp - currentTime;
+                flv.debug.log('time-diff', timeDiff);
                 if (Math.abs(timeDiff) >= flv.options.maxTimeDiff) {
                     flv.debug.log('time-sync', timeDiff);
                     return currentTime;
@@ -17,7 +20,11 @@ export default class AudioDecoder {
                 return timestamp;
             },
             onVolumeChange: value => {
-                this.flv.emit('volumechange', value);
+                flv.emit('volumechange', value);
+            },
+            onFreeMemory: info => {
+                flv.debug.log('free-audio-memory', info);
+                flv.emit('freeAudioMemory', info);
             },
         });
 

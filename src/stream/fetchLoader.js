@@ -4,6 +4,7 @@ import { checkReadableStream } from '../utils/isSupported';
 export default class FetchLoader {
     constructor(flv) {
         this.flv = flv;
+        const { options, debug } = flv;
         this.byteLength = 0;
         this.reader = null;
         this.chunkStart = 0;
@@ -26,11 +27,20 @@ export default class FetchLoader {
             }
         });
 
-        if (checkReadableStream()) {
-            // this.initFetchStream();
-            this.initFetchRange(0, flv.options.chunkSize);
+        if (checkReadableStream() && !flv.isMobile) {
+            this.initFetchStream();
         } else {
-            this.initFetchRange(0, flv.options.chunkSize);
+            fetch(options.url, {
+                method: 'head',
+            }).then(response => {
+                this.contentLength = Number(response.headers.get('content-length')) || options.filesize;
+                debug.error(
+                    this.contentLength,
+                    `Unable to get response header 'content-length' or custom options 'filesize'`,
+                );
+                console.log(this.contentLength);
+                this.initFetchRange(0, flv.options.chunkSize);
+            });
         }
     }
 
@@ -101,15 +111,7 @@ export default class FetchLoader {
                 range: `bytes=${rangeStart}-${rangeEnd}`,
             },
         })
-            .then(response => {
-                console.log(options.filesize, Number(response.headers.get('content-length')));
-                self.contentLength = options.filesize || Number(response.headers.get('content-length'));
-                debug.error(
-                    self.contentLength,
-                    `Unable to get response header 'content-length' or custom options 'filesize'`,
-                );
-                return response.arrayBuffer();
-            })
+            .then(response => response.arrayBuffer())
             .then(value => {
                 if (value.byteLength === rangeEnd - rangeStart + 1) {
                     const uint8 = new Uint8Array(value);

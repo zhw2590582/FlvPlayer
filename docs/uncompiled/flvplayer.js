@@ -1578,6 +1578,8 @@
       classCallCheck(this, FetchLoader);
 
       this.flv = flv;
+      var options = flv.options,
+          debug = flv.debug;
       this.byteLength = 0;
       this.reader = null;
       this.chunkStart = 0;
@@ -1598,11 +1600,18 @@
         }
       });
 
-      if (checkReadableStream()) {
-        // this.initFetchStream();
-        this.initFetchRange(0, flv.options.chunkSize);
+      if (checkReadableStream() && !flv.isMobile) {
+        this.initFetchStream();
       } else {
-        this.initFetchRange(0, flv.options.chunkSize);
+        fetch(options.url, {
+          method: 'head'
+        }).then(function (response) {
+          _this.contentLength = Number(response.headers.get('content-length')) || options.filesize;
+          debug.error(_this.contentLength, "Unable to get response header 'content-length' or custom options 'filesize'");
+          console.log(_this.contentLength);
+
+          _this.initFetchRange(0, flv.options.chunkSize);
+        });
       }
     }
 
@@ -1680,9 +1689,6 @@
             range: "bytes=".concat(rangeStart, "-").concat(rangeEnd)
           })
         }).then(function (response) {
-          console.log(options.filesize, Number(response.headers.get('content-length')));
-          self.contentLength = options.filesize || Number(response.headers.get('content-length'));
-          debug.error(self.contentLength, "Unable to get response header 'content-length' or custom options 'filesize'");
           return response.arrayBuffer();
         }).then(function (value) {
           if (value.byteLength === rangeEnd - rangeStart + 1) {

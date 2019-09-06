@@ -1680,6 +1680,7 @@
             range: "bytes=".concat(rangeStart, "-").concat(rangeEnd)
           })
         }).then(function (response) {
+          console.log(options.filesize, Number(response.headers.get('content-length')));
           self.contentLength = options.filesize || Number(response.headers.get('content-length'));
           debug.error(self.contentLength, "Unable to get response header 'content-length' or custom options 'filesize'");
           return response.arrayBuffer();
@@ -1701,7 +1702,7 @@
 
             var nextRangeStart = Math.min(self.contentLength, rangeEnd + 1);
             var nextRangeEnd = Math.min(self.contentLength, nextRangeStart.rangeStart + options.chunkSize);
-            console.log(nextRangeStart, nextRangeEnd);
+            console.log(self.contentLength, nextRangeStart, nextRangeEnd);
 
             if (nextRangeEnd > nextRangeStart) {
               self.initFetchRange(nextRangeStart, nextRangeEnd);
@@ -1901,7 +1902,7 @@
           maxTimeDiff: 200,
           chunkSize: 1024 * 1024,
           freeMemory: 64 * 1024 * 1024,
-          filesize: 0,
+          filesize: NaN,
           width: 400,
           height: 300,
           socketSend: '',

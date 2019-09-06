@@ -86,7 +86,7 @@ class FlvPlayer extends Emitter {
             maxTimeDiff: 200,
             chunkSize: 1024 * 1024,
             freeMemory: 64 * 1024 * 1024,
-            filesize: 0,
+            filesize: NaN,
             width: 400,
             height: 300,
             socketSend: '',

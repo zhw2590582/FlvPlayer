@@ -102,6 +102,7 @@ export default class FetchLoader {
             },
         })
             .then(response => {
+                console.log(options.filesize, Number(response.headers.get('content-length')));
                 self.contentLength = options.filesize || Number(response.headers.get('content-length'));
                 debug.error(
                     self.contentLength,
@@ -126,7 +127,7 @@ export default class FetchLoader {
 
                     const nextRangeStart = Math.min(self.contentLength, rangeEnd + 1);
                     const nextRangeEnd = Math.min(self.contentLength, nextRangeStart.rangeStart + options.chunkSize);
-                    console.log(nextRangeStart, nextRangeEnd);
+                    console.log(self.contentLength, nextRangeStart, nextRangeEnd);
                     if (nextRangeEnd > nextRangeStart) {
                         self.initFetchRange(nextRangeStart, nextRangeEnd);
                     }

@@ -33,7 +33,7 @@ export default class FetchLoader {
             fetch(options.url, {
                 method: 'head',
                 headers: {
-                    range: `bytes=${0}-${1024}`,
+                    range: 'bytes=0-1024',
                 },
             })
                 .then(response => {

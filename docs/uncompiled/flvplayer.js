@@ -1607,7 +1607,7 @@
         fetch(options.url, {
           method: 'head',
           headers: {
-            range: "bytes=".concat(0, "-", 1024)
+            range: 'bytes=0-1024'
           }
         }).then(function (response) {
           _this.contentLength = Number(response.headers.get('content-length')) || options.filesize;

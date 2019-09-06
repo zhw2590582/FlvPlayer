@@ -50,27 +50,30 @@
     </script>
     <script>
         var vConsole = new VConsole();
-        var flv = new FlvPlayer({
-            container: '.flvplayer-app',
-            url: './assets/video/weathering-with-you.flv',
-            poster: './assets/img/weathering-with-you-poster.jpg',
-            decoder: './uncompiled/flvplayer-decoder-baseline.js',
-            // decoder: './uncompiled/flvplayer-decoder-multiple.js',
-            debug: true,
-            live: false,
-            loop: true,
-            hotkey: false,
-            autoPlay: false,
-            hasAudio: true,
-            muted: true,
-            touchResume: true,
-            cache: false,
-            volume: 0.7,
-            width: 640,
-            height: 360,
-            filesize: 11201578,
-        });
-
+        if (FlvPlayer.isSupported()) {
+            var flv = new FlvPlayer({
+                container: '.flvplayer-app',
+                url: './assets/video/weathering-with-you.flv',
+                poster: './assets/img/weathering-with-you-poster.jpg',
+                decoder: './uncompiled/flvplayer-decoder-baseline.js',
+                // decoder: './uncompiled/flvplayer-decoder-multiple.js',
+                debug: true,
+                live: false,
+                loop: true,
+                hotkey: false,
+                autoPlay: false,
+                hasAudio: true,
+                muted: true,
+                touchResume: true,
+                cache: false,
+                volume: 0.7,
+                width: 640,
+                height: 360,
+                filesize: 11201578,
+            });
+        } else {
+            console.warn('Your browser does not support Flvplayer.js');
+        }
     </script>
 </body>
 

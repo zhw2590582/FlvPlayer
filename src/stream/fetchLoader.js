@@ -27,7 +27,7 @@ export default class FetchLoader {
             }
         });
 
-        if (checkReadableStream() && !flv.isMobile) {
+        if (checkReadableStream()) {
             this.initFetchStream();
         } else {
             fetch(options.url, {
@@ -127,7 +127,6 @@ export default class FetchLoader {
 
                 const nextRangeStart = Math.min(self.contentLength, rangeEnd + 1);
                 const nextRangeEnd = Math.min(self.contentLength, nextRangeStart + options.chunkSize);
-                console.log(self.contentLength, nextRangeStart, nextRangeStart + options.chunkSize);
                 if (nextRangeEnd > nextRangeStart) {
                     self.initFetchRange(nextRangeStart, nextRangeEnd);
                 }

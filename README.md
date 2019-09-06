@@ -136,7 +136,7 @@ if (FlvPlayer.isSupported()) {
         decoder: 'flvplayer-decoder-baseline.js',
     });
 } else {
-    console.log('Your browser does not support Flvplayer.js');
+    console.warn('Your browser does not support Flvplayer.js');
 }
 ```
 

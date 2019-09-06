@@ -138,10 +138,6 @@ class FlvPlayer extends Emitter {
         return utils;
     }
 
-    static get Emitter() {
-        return Emitter;
-    }
-
     destroy() {
         this.isDestroy = true;
         this.emit('destroy');

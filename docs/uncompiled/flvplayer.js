@@ -207,8 +207,7 @@
     return false;
   }
   function isSupported() {
-    return checkWebAssembly() && checkWorker() && checkFetch() && // checkReadableStream() &&
-    checkBlob() && checkArrayBuffer() && checkURL() && checkAACType() && checkAudioContext() && checkWebGL();
+    return checkWebAssembly() && checkWorker() && checkFetch() && checkBlob() && checkArrayBuffer() && checkURL() && checkAACType() && checkAudioContext() && checkWebGL();
   }
 
   var Emitter =
@@ -1601,7 +1600,7 @@
         }
       });
 
-      if (checkReadableStream() && !flv.isMobile) {
+      if (checkReadableStream()) {
         this.initFetchStream();
       } else {
         fetch(options.url, {
@@ -1706,7 +1705,6 @@
 
           var nextRangeStart = Math.min(self.contentLength, rangeEnd + 1);
           var nextRangeEnd = Math.min(self.contentLength, nextRangeStart + options.chunkSize);
-          console.log(self.contentLength, nextRangeStart, nextRangeStart + options.chunkSize);
 
           if (nextRangeEnd > nextRangeStart) {
             self.initFetchRange(nextRangeStart, nextRangeEnd);
@@ -1953,11 +1951,6 @@
       key: "utils",
       get: function get() {
         return utils;
-      }
-    }, {
-      key: "Emitter",
-      get: function get() {
-        return Emitter;
       }
     }]);
 

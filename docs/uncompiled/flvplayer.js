@@ -1675,7 +1675,6 @@
             debug = _this$flv2.debug;
         var self = this;
         this.flv.emit('streamStart');
-        console.log(rangeStart, rangeEnd);
         return fetch(options.url, {
           headers: _objectSpread$1({}, options.headers, {
             range: "bytes=".concat(rangeStart, "-").concat(rangeEnd)
@@ -1685,19 +1684,14 @@
           debug.error(self.contentLength, "Unable to get response header 'content-length' or custom options 'filesize'");
           return response.arrayBuffer();
         }).then(function (value) {
-          console.log(value.byteLength, rangeEnd - rangeStart, value.byteLength === rangeEnd - rangeStart);
-
-          if (value.byteLength === rangeEnd - rangeStart) {
-            console.log(4);
+          if (value.byteLength === rangeEnd - rangeStart + 1) {
             var uint8 = new Uint8Array(value);
             self.byteLength += uint8.byteLength;
             self.streamRate(uint8.byteLength);
 
             if (options.live) {
-              console.log(5);
               self.flv.emit('streaming', uint8);
             } else {
-              console.log(6);
               self.data = mergeBuffer(self.data, uint8);
 
               if (self.chunkStart === 0) {
@@ -1713,7 +1707,6 @@
               self.initFetchRange(nextRangeStart, nextRangeEnd);
             }
           } else {
-            console.log(9);
             debug.error(false, "Unable to get correct segmentation data: ".concat(JSON.stringify({
               contentLength: self.contentLength,
               byteLength: value.byteLength,

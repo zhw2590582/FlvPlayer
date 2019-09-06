@@ -95,7 +95,6 @@ export default class FetchLoader {
         const { options, debug } = this.flv;
         const self = this;
         this.flv.emit('streamStart');
-        console.log(rangeStart, rangeEnd);
         return fetch(options.url, {
             headers: {
                 ...options.headers,
@@ -111,18 +110,14 @@ export default class FetchLoader {
                 return response.arrayBuffer();
             })
             .then(value => {
-                console.log(value.byteLength, rangeEnd - rangeStart, value.byteLength === rangeEnd - rangeStart);
-                if (value.byteLength === rangeEnd - rangeStart) {
-                    console.log(4);
+                if (value.byteLength === rangeEnd - rangeStart + 1) {
                     const uint8 = new Uint8Array(value);
                     self.byteLength += uint8.byteLength;
                     self.streamRate(uint8.byteLength);
 
                     if (options.live) {
-                        console.log(5);
                         self.flv.emit('streaming', uint8);
                     } else {
-                        console.log(6);
                         self.data = mergeBuffer(self.data, uint8);
                         if (self.chunkStart === 0) {
                             self.readChunk();
@@ -136,7 +131,6 @@ export default class FetchLoader {
                         self.initFetchRange(nextRangeStart, nextRangeEnd);
                     }
                 } else {
-                    console.log(9);
                     debug.error(
                         false,
                         `Unable to get correct segmentation data: ${JSON.stringify({

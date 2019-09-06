@@ -135,7 +135,6 @@ export default class FetchLoader {
                         }
                     }
                 } else {
-                    console.log(rangeStart, rangeEnd);
                     debug.error(
                         false,
                         `Unable to get correct segmentation data: ${JSON.stringify({

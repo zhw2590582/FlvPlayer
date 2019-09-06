@@ -1714,7 +1714,6 @@
               }
             }
           } else {
-            console.log(rangeStart, rangeEnd);
             debug.error(false, "Unable to get correct segmentation data: ".concat(JSON.stringify({
               contentLength: self.contentLength,
               rangeStart: rangeStart,

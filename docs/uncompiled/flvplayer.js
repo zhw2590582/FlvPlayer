@@ -207,7 +207,8 @@
     return false;
   }
   function isSupported() {
-    return checkWebAssembly() && checkWorker() && checkFetch() && checkReadableStream() && checkBlob() && checkArrayBuffer() && checkURL() && checkAACType() && checkAudioContext() && checkWebGL();
+    return checkWebAssembly() && checkWorker() && checkFetch() && // checkReadableStream() &&
+    checkBlob() && checkArrayBuffer() && checkURL() && checkAACType() && checkAudioContext() && checkWebGL();
   }
 
   var Emitter =
@@ -1609,6 +1610,8 @@
           _this.contentLength = Number(response.headers.get('content-length')) || options.filesize;
           debug.error(_this.contentLength, "Unable to get response header 'content-length' or custom options 'filesize'");
 
+          _this.flv.emit('streamStart');
+
           _this.initFetchRange(0, flv.options.chunkSize);
         });
       }
@@ -1680,7 +1683,6 @@
       value: function initFetchRange(rangeStart, rangeEnd) {
         var options = this.flv.options;
         var self = this;
-        this.flv.emit('streamStart');
         return fetch(options.url, {
           headers: _objectSpread$1({}, options.headers, {
             range: "bytes=".concat(rangeStart, "-").concat(rangeEnd)
@@ -1704,6 +1706,7 @@
 
           var nextRangeStart = Math.min(self.contentLength, rangeEnd + 1);
           var nextRangeEnd = Math.min(self.contentLength, nextRangeStart + options.chunkSize);
+          console.log(self.contentLength, nextRangeStart, nextRangeStart + options.chunkSize);
 
           if (nextRangeEnd > nextRangeStart) {
             self.initFetchRange(nextRangeStart, nextRangeEnd);

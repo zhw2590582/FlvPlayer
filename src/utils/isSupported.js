@@ -83,7 +83,7 @@ export default function isSupported() {
         checkWebAssembly() &&
         checkWorker() &&
         checkFetch() &&
-        checkReadableStream() &&
+        // checkReadableStream() &&
         checkBlob() &&
         checkArrayBuffer() &&
         checkURL() &&

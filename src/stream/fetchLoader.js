@@ -38,6 +38,7 @@ export default class FetchLoader {
                     this.contentLength,
                     `Unable to get response header 'content-length' or custom options 'filesize'`,
                 );
+                this.flv.emit('streamStart');
                 this.initFetchRange(0, flv.options.chunkSize);
             });
         }
@@ -103,7 +104,6 @@ export default class FetchLoader {
     initFetchRange(rangeStart, rangeEnd) {
         const { options } = this.flv;
         const self = this;
-        this.flv.emit('streamStart');
         return fetch(options.url, {
             headers: {
                 ...options.headers,
@@ -127,6 +127,7 @@ export default class FetchLoader {
 
                 const nextRangeStart = Math.min(self.contentLength, rangeEnd + 1);
                 const nextRangeEnd = Math.min(self.contentLength, nextRangeStart + options.chunkSize);
+                console.log(self.contentLength, nextRangeStart, nextRangeStart + options.chunkSize);
                 if (nextRangeEnd > nextRangeStart) {
                     self.initFetchRange(nextRangeStart, nextRangeEnd);
                 }

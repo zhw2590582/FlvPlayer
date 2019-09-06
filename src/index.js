@@ -1,5 +1,5 @@
 import validator from 'option-validator';
-import isSupported from './isSupported';
+import isSupported from './utils/isSupported';
 import Emitter from './emitter';
 import Debug from './debug';
 import Events from './events';

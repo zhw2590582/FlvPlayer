@@ -139,6 +139,7 @@ export default class FetchLoader {
                         false,
                         `Unable to get correct segmentation data: ${JSON.stringify({
                             contentLength: self.contentLength,
+                            byteLength: value.byteLength,
                             rangeStart,
                             rangeEnd,
                         })}`,

@@ -1716,6 +1716,7 @@
           } else {
             debug.error(false, "Unable to get correct segmentation data: ".concat(JSON.stringify({
               contentLength: self.contentLength,
+              byteLength: value.byteLength,
               rangeStart: rangeStart,
               rangeEnd: rangeEnd
             })));

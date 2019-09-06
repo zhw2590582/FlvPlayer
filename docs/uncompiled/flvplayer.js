@@ -1571,6 +1571,10 @@
     };
   };
 
+  function ownKeys$1(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+  function _objectSpread$1(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys$1(source, true).forEach(function (key) { defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys$1(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
   var FetchLoader =
   /*#__PURE__*/
   function () {
@@ -1600,9 +1604,9 @@
       });
 
       if (checkReadableStream()) {
-        this.initFetch();
+        this.initFetchStream();
       } else {
-        this.initXhr();
+        this.initFetchRange();
       }
     }
 
@@ -1619,8 +1623,8 @@
         }
       }
     }, {
-      key: "initFetch",
-      value: function initFetch() {
+      key: "initFetchStream",
+      value: function initFetchStream() {
         var _this$flv = this.flv,
             options = _this$flv.options,
             debug = _this$flv.debug;
@@ -1668,8 +1672,23 @@
         });
       }
     }, {
-      key: "initXhr",
-      value: function initXhr() {// TODO...
+      key: "initFetchRange",
+      value: function initFetchRange() {
+        var options = this.flv.options;
+        var self = this;
+        this.flv.emit('streamStart');
+        return fetch(options.url, {
+          headers: _objectSpread$1({}, options.headers, {
+            Range: "bytes=".concat(0, "-", 1024 * 1024)
+          })
+        }).then(function (response) {
+          return response.arrayBuffer();
+        }).then(function (value) {
+          console.log(value.byteLength);
+        }).catch(function (error) {
+          self.flv.emit('streamError', error);
+          throw error;
+        });
       }
     }]);
 
@@ -1764,9 +1783,9 @@
     return Stream;
   }();
 
-  function ownKeys$1(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+  function ownKeys$2(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
-  function _objectSpread$1(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys$1(source, true).forEach(function (key) { defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys$1(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+  function _objectSpread$2(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys$2(source, true).forEach(function (key) { defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys$2(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
   var id = 0;
 
   var FlvPlayer =
@@ -1780,7 +1799,7 @@
       classCallCheck(this, FlvPlayer);
 
       _this = possibleConstructorReturn(this, getPrototypeOf(FlvPlayer).call(this));
-      _this.options = validator(_objectSpread$1({}, FlvPlayer.options, {}, options), FlvPlayer.scheme);
+      _this.options = validator(_objectSpread$2({}, FlvPlayer.options, {}, options), FlvPlayer.scheme);
 
       if (_this.options.live) {
         _this.options.cache = false;

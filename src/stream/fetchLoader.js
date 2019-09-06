@@ -26,9 +26,9 @@ export default class FetchLoader {
         });
 
         if (checkReadableStream()) {
-            this.initFetch();
+            this.initFetchStream();
         } else {
-            this.initXhr();
+            this.initFetchRange();
         }
     }
 
@@ -42,7 +42,7 @@ export default class FetchLoader {
         }
     }
 
-    initFetch() {
+    initFetchStream() {
         const { options, debug } = this.flv;
         const self = this;
         this.flv.emit('streamStart');
@@ -89,7 +89,23 @@ export default class FetchLoader {
             });
     }
 
-    initXhr() {
-        // TODO...
+    initFetchRange() {
+        const { options } = this.flv;
+        const self = this;
+        this.flv.emit('streamStart');
+        return fetch(options.url, {
+            headers: {
+                ...options.headers,
+                Range: `bytes=${0}-${1024 * 1024}`,
+            },
+        })
+            .then(response => response.arrayBuffer())
+            .then(value => {
+                console.log(value.byteLength);
+            })
+            .catch(error => {
+                self.flv.emit('streamError', error);
+                throw error;
+            });
     }
 }

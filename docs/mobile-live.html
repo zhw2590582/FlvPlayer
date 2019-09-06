@@ -1,65 +1,72 @@
 <!DOCTYPE html>
 <html>
-
-<head>
-    <meta charset="UTF-8" />
-    <title>FlvPlayer.js</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <meta name="keywords" content="flvplayer, flv, h264, aac, canvas, player, js, html5, video" />
-    <meta name="description" content="FlvPlayer.js is a JavaScript player for decode flv to the canvas" />
-    <link rel="shortcut icon" href="./assets/img/favicon.ico" type="image/x-icon" />
-    <link rel="stylesheet" href="./assets/css/normalize.css" />
-    <link rel="stylesheet" href="./uncompiled/flvplayer-control.css" />
-    <style>
-        html,
-        body {
-            height: 100%;
-        }
-
-        .container {
-            height: 100%;
-        }
-
-        .flvplayer-app {
-            width: 100%;
-            height: 300px;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="container">
-        <div class="flvplayer-app"></div>
-    </div>
-    <script src="https://cdn.bootcss.com/vConsole/3.2.0/vconsole.min.js"></script>
-    <script src="./uncompiled/flvplayer-control.js"></script>
-    <script src="./uncompiled/flvplayer.js"></script>
-    <script>
-        var _hmt = _hmt || [];
-        (function () {
-            if (window.location.hostname !== 'localhost') {
-                var hm = document.createElement('script');
-                hm.src = 'https://hm.baidu.com/hm.js?9c575f08973a5bd2275b96a83f1a9f83';
-                var s = document.getElementsByTagName('script')[0];
-                s.parentNode.insertBefore(hm, s);
+    <head>
+        <meta charset="UTF-8" />
+        <title>FlvPlayer.js</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <meta name="keywords" content="flvplayer, flv, h264, aac, canvas, player, js, html5, video" />
+        <meta name="description" content="FlvPlayer.js is a JavaScript player for decode flv to the canvas" />
+        <link rel="shortcut icon" href="./assets/img/favicon.ico" type="image/x-icon" />
+        <link rel="stylesheet" href="./assets/css/normalize.css" />
+        <link rel="stylesheet" href="./uncompiled/flvplayer-control.css" />
+        <style>
+            html,
+            body {
+                height: 100%;
             }
-        })();
-    </script>
-    <script>
-        var vConsole = new VConsole();
-        var flv = new FlvPlayer({
-            container: '.flvplayer-app',
-            url: 'http://116.62.117.109:7001/demo/demo.flv',
-            decoder: './uncompiled/flvplayer-decoder-baseline.js',
-            debug: true,
-            live: true,
-            autoPlay: true,
-            hasAudio: false,
-            width: 960,
-            height: 540,
-        });
-    </script>
-</body>
 
+            .container {
+                height: 100%;
+            }
+
+            .flvplayer-app {
+                width: 100%;
+                height: 100%;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <div class="flvplayer-app"></div>
+        </div>
+        <script src="https://cdn.bootcss.com/vConsole/3.2.0/vconsole.min.js"></script>
+        <script src="./uncompiled/flvplayer-control.js"></script>
+        <script src="./uncompiled/flvplayer.js"></script>
+        <script>
+            var _hmt = _hmt || [];
+            (function () {
+                if (window.location.hostname !== 'localhost') {
+                    var hm = document.createElement('script');
+                    hm.src = 'https://hm.baidu.com/hm.js?9c575f08973a5bd2275b96a83f1a9f83';
+                    var s = document.getElementsByTagName('script')[0];
+                    s.parentNode.insertBefore(hm, s);
+                }
+            })();
+        </script>
+        <script>
+            var vConsole = new VConsole();
+            var url = 'https://zhw2590582.github.io/assets-cdn';
+            var flv = new FlvPlayer({
+                container: '.flvplayer-app',
+                url: url + '/video/weathering-with-you-H264(Baseline@L52)-AAC.flv',
+                poster: url + '/image/weathering-with-you-poster.jpg',
+                decoder: './uncompiled/flvplayer-decoder-baseline.js',
+                // decoder: './uncompiled/flvplayer-decoder-multiple.js',
+                debug: true,
+                live: false,
+                loop: true,
+                hotkey: false,
+                autoPlay: false,
+                hasAudio: true,
+                muted: true,
+                touchResume: true,
+                cache: false,
+                volume: 0.7,
+                width: 640,
+                height: 360,
+            });
+        </script>
+    </body>
 </html>

@@ -1599,7 +1599,8 @@
       });
 
       if (checkReadableStream()) {
-        this.initFetchStream();
+        // this.initFetchStream();
+        this.initFetchRange(0, flv.options.chunkSize);
       } else {
         this.initFetchRange(0, flv.options.chunkSize);
       }
@@ -1688,7 +1689,7 @@
           console.log(2);
           return response.arrayBuffer();
         }).then(function (value) {
-          console.log(3);
+          console.log(value.byteLength, rangeEnd - rangeStart, value.byteLength === rangeEnd - rangeStart);
 
           if (value.byteLength === rangeEnd - rangeStart) {
             console.log(4);

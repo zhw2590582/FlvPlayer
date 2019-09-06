@@ -27,7 +27,8 @@ export default class FetchLoader {
         });
 
         if (checkReadableStream()) {
-            this.initFetchStream();
+            // this.initFetchStream();
+            this.initFetchRange(0, flv.options.chunkSize);
         } else {
             this.initFetchRange(0, flv.options.chunkSize);
         }
@@ -114,7 +115,7 @@ export default class FetchLoader {
                 return response.arrayBuffer();
             })
             .then(value => {
-                console.log(3);
+                console.log(value.byteLength, rangeEnd - rangeStart, value.byteLength === rangeEnd - rangeStart);
                 if (value.byteLength === rangeEnd - rangeStart) {
                     console.log(4);
                     const uint8 = new Uint8Array(value);

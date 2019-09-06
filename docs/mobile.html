@@ -25,6 +25,7 @@
             width: 100%;
             height: 100%;
         }
+
     </style>
 </head>
 
@@ -45,14 +46,14 @@
                 s.parentNode.insertBefore(hm, s);
             }
         })();
+
     </script>
     <script>
         var vConsole = new VConsole();
-        var url = 'https://zhw2590582.github.io/assets-cdn';
         var flv = new FlvPlayer({
             container: '.flvplayer-app',
-            url: url + '/video/weathering-with-you-H264(Baseline@L52)-AAC.flv',
-            poster: url + '/image/weathering-with-you-poster.jpg',
+            url: './assets/video/weathering-with-you.flv',
+            poster: './assets/img/weathering-with-you-poster.jpg',
             decoder: './uncompiled/flvplayer-decoder-baseline.js',
             // decoder: './uncompiled/flvplayer-decoder-multiple.js',
             debug: true,
@@ -69,6 +70,7 @@
             height: 360,
             filesize: 11201578,
         });
+
     </script>
 </body>
 

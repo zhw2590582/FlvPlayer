@@ -91,6 +91,7 @@ export default class FetchLoader {
     }
 
     initFetchRange(rangeStart, rangeEnd) {
+        console.log(this.data.length);
         const { options, debug } = this.flv;
         const self = this;
         this.flv.emit('streamStart');
@@ -124,15 +125,10 @@ export default class FetchLoader {
                         }
                     }
 
-                    if (self.contentLength !== rangeEnd) {
-                        const nextRangeStart = Math.min(self.contentLength, rangeEnd + 1);
-                        const nextRangeEnd = Math.min(
-                            self.contentLength,
-                            nextRangeStart.rangeStart + options.chunkSize,
-                        );
-                        if (nextRangeEnd > nextRangeStart) {
-                            self.initFetchRange(nextRangeStart, nextRangeEnd);
-                        }
+                    const nextRangeStart = Math.min(self.contentLength, rangeEnd + 1);
+                    const nextRangeEnd = Math.min(self.contentLength, nextRangeStart.rangeStart + options.chunkSize);
+                    if (nextRangeEnd > nextRangeStart) {
+                        self.initFetchRange(nextRangeStart, nextRangeEnd);
                     }
                 } else {
                     debug.error(

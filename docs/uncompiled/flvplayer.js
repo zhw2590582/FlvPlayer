@@ -1608,7 +1608,6 @@
         }).then(function (response) {
           _this.contentLength = Number(response.headers.get('content-length')) || options.filesize;
           debug.error(_this.contentLength, "Unable to get response header 'content-length' or custom options 'filesize'");
-          console.log(_this.contentLength);
 
           _this.initFetchRange(0, flv.options.chunkSize);
         });
@@ -1691,35 +1690,31 @@
         }).then(function (response) {
           return response.arrayBuffer();
         }).then(function (value) {
-          if (value.byteLength === rangeEnd - rangeStart + 1) {
-            var uint8 = new Uint8Array(value);
-            self.byteLength += uint8.byteLength;
-            self.streamRate(uint8.byteLength);
+          debug.error(value.byteLength === rangeEnd - rangeStart + 1, "Unable to get correct segmentation data: ".concat(JSON.stringify({
+            contentLength: self.contentLength,
+            byteLength: value.byteLength,
+            rangeStart: rangeStart,
+            rangeEnd: rangeEnd
+          })));
+          var uint8 = new Uint8Array(value);
+          self.byteLength += uint8.byteLength;
+          self.streamRate(uint8.byteLength);
 
-            if (options.live) {
-              self.flv.emit('streaming', uint8);
-            } else {
-              self.data = mergeBuffer(self.data, uint8);
-
-              if (self.chunkStart === 0) {
-                self.readChunk();
-              }
-            }
-
-            var nextRangeStart = Math.min(self.contentLength, rangeEnd + 1);
-            var nextRangeEnd = Math.min(self.contentLength, nextRangeStart.rangeStart + options.chunkSize);
-            console.log(self.contentLength, nextRangeStart, nextRangeEnd);
-
-            if (nextRangeEnd > nextRangeStart) {
-              self.initFetchRange(nextRangeStart, nextRangeEnd);
-            }
+          if (options.live) {
+            self.flv.emit('streaming', uint8);
           } else {
-            debug.error(false, "Unable to get correct segmentation data: ".concat(JSON.stringify({
-              contentLength: self.contentLength,
-              byteLength: value.byteLength,
-              rangeStart: rangeStart,
-              rangeEnd: rangeEnd
-            })));
+            self.data = mergeBuffer(self.data, uint8);
+
+            if (self.chunkStart === 0) {
+              self.readChunk();
+            }
+          }
+
+          var nextRangeStart = Math.min(self.contentLength, rangeEnd + 1);
+          var nextRangeEnd = Math.min(self.contentLength, nextRangeStart + options.chunkSize);
+
+          if (nextRangeEnd > nextRangeStart) {
+            self.initFetchRange(nextRangeStart, nextRangeEnd);
           }
         }).catch(function (error) {
           self.flv.emit('streamError', error);

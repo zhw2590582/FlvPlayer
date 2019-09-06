@@ -1587,6 +1587,7 @@
       this.byteLength = 0;
       this.reader = null;
       this.chunkStart = 0;
+      this.contentLength = 0;
       this.data = new Uint8Array();
       this.readChunk = throttle(this.readChunk, 1000);
       this.streamRate = calculationRate(function (rate) {
@@ -1606,7 +1607,7 @@
       if (checkReadableStream()) {
         this.initFetchStream();
       } else {
-        this.initFetchRange();
+        this.initFetchRange(0, flv.options.chunkSize);
       }
     }
 
@@ -1673,18 +1674,53 @@
       }
     }, {
       key: "initFetchRange",
-      value: function initFetchRange() {
-        var options = this.flv.options;
+      value: function initFetchRange(rangeStart, rangeEnd) {
+        var _this$flv2 = this.flv,
+            options = _this$flv2.options,
+            debug = _this$flv2.debug;
         var self = this;
         this.flv.emit('streamStart');
         return fetch(options.url, {
+          mode: 'no-cors',
           headers: _objectSpread$1({}, options.headers, {
-            Range: "bytes=".concat(0, "-", 1024 * 1024)
+            range: "bytes=".concat(rangeStart, "-").concat(rangeEnd)
           })
         }).then(function (response) {
+          self.contentLength = Number(response.headers.get('content-length')) || options.filesize;
+          debug.error(self.contentLength, "Unable to get response header 'content-length' or custom options 'filesize'");
           return response.arrayBuffer();
         }).then(function (value) {
-          console.log(value.byteLength);
+          if (value && value.byteLength === rangeEnd - rangeStart) {
+            var uint8 = new Uint8Array(value);
+            self.byteLength += uint8.byteLength;
+            self.streamRate(uint8.byteLength);
+
+            if (options.live) {
+              self.flv.emit('streaming', uint8);
+            } else {
+              self.data = mergeBuffer(self.data, uint8);
+
+              if (self.chunkStart === 0) {
+                self.readChunk();
+              }
+            }
+
+            if (self.contentLength !== rangeEnd) {
+              var nextRangeStart = Math.min(self.contentLength, rangeEnd + 1);
+              var nextRangeEnd = Math.min(self.contentLength, nextRangeStart.rangeStart + options.chunkSize);
+
+              if (nextRangeEnd > nextRangeStart) {
+                self.initFetchRange(nextRangeStart, nextRangeEnd);
+              }
+            }
+          } else {
+            console.log(rangeStart, rangeEnd);
+            debug.error(false, "Unable to get correct segmentation data: ".concat(JSON.stringify({
+              contentLength: self.contentLength,
+              rangeStart: rangeStart,
+              rangeEnd: rangeEnd
+            })));
+          }
         }).catch(function (error) {
           self.flv.emit('streamError', error);
           throw error;
@@ -1872,6 +1908,7 @@
           maxTimeDiff: 200,
           chunkSize: 1024 * 1024,
           freeMemory: 64 * 1024 * 1024,
+          filesize: 0,
           width: 400,
           height: 300,
           socketSend: '',
@@ -1899,6 +1936,7 @@
           maxTimeDiff: 'number',
           chunkSize: 'number',
           freeMemory: 'number',
+          filesize: 'number',
           width: 'number',
           height: 'number',
           socketSend: 'string',

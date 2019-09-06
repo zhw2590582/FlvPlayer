@@ -7,6 +7,7 @@ export default class FetchLoader {
         this.byteLength = 0;
         this.reader = null;
         this.chunkStart = 0;
+        this.contentLength = 0;
         this.data = new Uint8Array();
         this.readChunk = throttle(this.readChunk, 1000);
 
@@ -28,7 +29,7 @@ export default class FetchLoader {
         if (checkReadableStream()) {
             this.initFetchStream();
         } else {
-            this.initFetchRange();
+            this.initFetchRange(0, flv.options.chunkSize);
         }
     }
 
@@ -89,19 +90,61 @@ export default class FetchLoader {
             });
     }
 
-    initFetchRange() {
-        const { options } = this.flv;
+    initFetchRange(rangeStart, rangeEnd) {
+        const { options, debug } = this.flv;
         const self = this;
         this.flv.emit('streamStart');
         return fetch(options.url, {
+            mode: 'no-cors',
             headers: {
                 ...options.headers,
-                Range: `bytes=${0}-${1024 * 1024}`,
+                range: `bytes=${rangeStart}-${rangeEnd}`,
             },
         })
-            .then(response => response.arrayBuffer())
+            .then(response => {
+                self.contentLength = Number(response.headers.get('content-length')) || options.filesize;
+                debug.error(
+                    self.contentLength,
+                    `Unable to get response header 'content-length' or custom options 'filesize'`,
+                );
+                return response.arrayBuffer();
+            })
             .then(value => {
-                console.log(value.byteLength);
+                if (value && value.byteLength === rangeEnd - rangeStart) {
+                    const uint8 = new Uint8Array(value);
+                    self.byteLength += uint8.byteLength;
+                    self.streamRate(uint8.byteLength);
+
+                    if (options.live) {
+                        self.flv.emit('streaming', uint8);
+                    } else {
+                        self.data = mergeBuffer(self.data, uint8);
+                        if (self.chunkStart === 0) {
+                            self.readChunk();
+                        }
+                    }
+
+                    if (self.contentLength !== rangeEnd) {
+                        const nextRangeStart = Math.min(self.contentLength, rangeEnd + 1);
+                        const nextRangeEnd = Math.min(
+                            self.contentLength,
+                            nextRangeStart.rangeStart + options.chunkSize,
+                        );
+                        if (nextRangeEnd > nextRangeStart) {
+                            self.initFetchRange(nextRangeStart, nextRangeEnd);
+                        }
+                    }
+                } else {
+                    console.log(rangeStart, rangeEnd);
+                    debug.error(
+                        false,
+                        `Unable to get correct segmentation data: ${JSON.stringify({
+                            contentLength: self.contentLength,
+                            rangeStart,
+                            rangeEnd,
+                        })}`,
+                    );
+                }
             })
             .catch(error => {
                 self.flv.emit('streamError', error);

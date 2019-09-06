@@ -1669,7 +1669,7 @@
     }, {
       key: "initFetchRange",
       value: function initFetchRange(rangeStart, rangeEnd) {
-        console.log(this.data.length);
+        console.log(0);
         var _this$flv2 = this.flv,
             options = _this$flv2.options,
             debug = _this$flv2.debug;
@@ -1681,18 +1681,25 @@
             range: "bytes=".concat(rangeStart, "-").concat(rangeEnd)
           })
         }).then(function (response) {
+          console.log(1);
           self.contentLength = Number(response.headers.get('content-length')) || options.filesize;
           debug.error(self.contentLength, "Unable to get response header 'content-length' or custom options 'filesize'");
+          console.log(2);
           return response.arrayBuffer();
         }).then(function (value) {
-          if (value && value.byteLength === rangeEnd - rangeStart) {
+          console.log(3);
+
+          if (value.byteLength === rangeEnd - rangeStart) {
+            console.log(4);
             var uint8 = new Uint8Array(value);
             self.byteLength += uint8.byteLength;
             self.streamRate(uint8.byteLength);
 
             if (options.live) {
+              console.log(5);
               self.flv.emit('streaming', uint8);
             } else {
+              console.log(6);
               self.data = mergeBuffer(self.data, uint8);
 
               if (self.chunkStart === 0) {
@@ -1700,13 +1707,16 @@
               }
             }
 
+            console.log(7);
             var nextRangeStart = Math.min(self.contentLength, rangeEnd + 1);
             var nextRangeEnd = Math.min(self.contentLength, nextRangeStart.rangeStart + options.chunkSize);
 
             if (nextRangeEnd > nextRangeStart) {
+              console.log(8);
               self.initFetchRange(nextRangeStart, nextRangeEnd);
             }
           } else {
+            console.log(9);
             debug.error(false, "Unable to get correct segmentation data: ".concat(JSON.stringify({
               contentLength: self.contentLength,
               byteLength: value.byteLength,

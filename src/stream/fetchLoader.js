@@ -91,7 +91,7 @@ export default class FetchLoader {
     }
 
     initFetchRange(rangeStart, rangeEnd) {
-        console.log(this.data.length);
+        console.log(0);
         const { options, debug } = this.flv;
         const self = this;
         this.flv.emit('streamStart');
@@ -103,34 +103,43 @@ export default class FetchLoader {
             },
         })
             .then(response => {
+                console.log(1);
                 self.contentLength = Number(response.headers.get('content-length')) || options.filesize;
                 debug.error(
                     self.contentLength,
                     `Unable to get response header 'content-length' or custom options 'filesize'`,
                 );
+                console.log(2);
                 return response.arrayBuffer();
             })
             .then(value => {
-                if (value && value.byteLength === rangeEnd - rangeStart) {
+                console.log(3);
+                if (value.byteLength === rangeEnd - rangeStart) {
+                    console.log(4);
                     const uint8 = new Uint8Array(value);
                     self.byteLength += uint8.byteLength;
                     self.streamRate(uint8.byteLength);
 
                     if (options.live) {
+                        console.log(5);
                         self.flv.emit('streaming', uint8);
                     } else {
+                        console.log(6);
                         self.data = mergeBuffer(self.data, uint8);
                         if (self.chunkStart === 0) {
                             self.readChunk();
                         }
                     }
 
+                    console.log(7);
                     const nextRangeStart = Math.min(self.contentLength, rangeEnd + 1);
                     const nextRangeEnd = Math.min(self.contentLength, nextRangeStart.rangeStart + options.chunkSize);
                     if (nextRangeEnd > nextRangeStart) {
+                        console.log(8);
                         self.initFetchRange(nextRangeStart, nextRangeEnd);
                     }
                 } else {
+                    console.log(9);
                     debug.error(
                         false,
                         `Unable to get correct segmentation data: ${JSON.stringify({

@@ -1678,9 +1678,7 @@
     }, {
       key: "initFetchRange",
       value: function initFetchRange(rangeStart, rangeEnd) {
-        var _this$flv2 = this.flv,
-            options = _this$flv2.options,
-            debug = _this$flv2.debug;
+        var options = this.flv.options;
         var self = this;
         this.flv.emit('streamStart');
         return fetch(options.url, {
@@ -1690,12 +1688,6 @@
         }).then(function (response) {
           return response.arrayBuffer();
         }).then(function (value) {
-          debug.error(value.byteLength === rangeEnd - rangeStart + 1, "Unable to get correct segmentation data: ".concat(JSON.stringify({
-            contentLength: self.contentLength,
-            byteLength: value.byteLength,
-            rangeStart: rangeStart,
-            rangeEnd: rangeEnd
-          })));
           var uint8 = new Uint8Array(value);
           self.byteLength += uint8.byteLength;
           self.streamRate(uint8.byteLength);

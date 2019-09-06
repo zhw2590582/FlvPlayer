@@ -101,7 +101,7 @@ export default class FetchLoader {
     }
 
     initFetchRange(rangeStart, rangeEnd) {
-        const { options, debug } = this.flv;
+        const { options } = this.flv;
         const self = this;
         this.flv.emit('streamStart');
         return fetch(options.url, {
@@ -112,16 +112,6 @@ export default class FetchLoader {
         })
             .then(response => response.arrayBuffer())
             .then(value => {
-                debug.error(
-                    value.byteLength === rangeEnd - rangeStart + 1,
-                    `Unable to get correct segmentation data: ${JSON.stringify({
-                        contentLength: self.contentLength,
-                        byteLength: value.byteLength,
-                        rangeStart,
-                        rangeEnd,
-                    })}`,
-                );
-
                 const uint8 = new Uint8Array(value);
                 self.byteLength += uint8.byteLength;
                 self.streamRate(uint8.byteLength);

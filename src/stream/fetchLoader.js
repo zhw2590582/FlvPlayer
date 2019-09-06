@@ -1,4 +1,5 @@
 import { mergeBuffer, throttle, calculationRate } from '../utils';
+import { checkReadableStream } from '../utils/isSupported';
 
 export default class FetchLoader {
     constructor(flv) {
@@ -24,7 +25,11 @@ export default class FetchLoader {
             }
         });
 
-        this.init();
+        if (checkReadableStream()) {
+            this.initFetch();
+        } else {
+            this.initXhr();
+        }
     }
 
     readChunk() {
@@ -37,7 +42,7 @@ export default class FetchLoader {
         }
     }
 
-    init() {
+    initFetch() {
         const { options, debug } = this.flv;
         const self = this;
         this.flv.emit('streamStart');
@@ -82,5 +87,9 @@ export default class FetchLoader {
                 self.flv.emit('streamError', error);
                 throw error;
             });
+    }
+
+    initXhr() {
+        // TODO...
     }
 }

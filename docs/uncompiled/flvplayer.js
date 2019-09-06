@@ -159,23 +159,18 @@
       return false;
     }
   }
-
   function checkWorker() {
     return typeof window.Worker === 'function';
   }
-
   function checkFetch() {
     return typeof window.fetch === 'function';
   }
-
   function checkURL() {
     return window.URL && typeof window.URL.createObjectURL === 'function';
   }
-
-  function checkReader() {
+  function checkReadableStream() {
     return typeof window.ReadableStream === 'function' && typeof window.Response === 'function' && Object.prototype.hasOwnProperty.call(window.Response.prototype, 'body');
   }
-
   function checkBlob() {
     return typeof window.Blob === 'function' && function () {
       try {
@@ -185,21 +180,17 @@
       }
     }();
   }
-
   function checkArrayBuffer() {
     return typeof window.ArrayBuffer === 'function';
   }
-
   function checkAACType() {
     var canPlay = new Audio().canPlayType('audio/aac;');
     return canPlay === 'probably' || canPlay === 'maybe';
   }
-
   function checkAudioContext() {
     return window.AudioContext || window.webkitAudioContext;
   }
-
-  function checkCanvas() {
+  function checkWebGL() {
     if (window.WebGLRenderingContext) {
       var canvas = document.createElement('canvas');
       var names = ['webgl2', 'webgl', 'experimental-webgl', 'moz-webgl', 'webkit-3d'];
@@ -221,9 +212,8 @@
 
     return false;
   }
-
   function isSupported() {
-    return checkWebAssembly() && checkWorker() && checkFetch() && checkReader() && checkBlob() && checkArrayBuffer() && checkURL() && checkAACType() && checkAudioContext() && checkCanvas();
+    return checkWebAssembly() && checkWorker() && checkFetch() && checkReadableStream() && checkBlob() && checkArrayBuffer() && checkURL() && checkAACType() && checkAudioContext() && checkWebGL();
   }
 
   var Emitter =
@@ -1608,7 +1598,12 @@
           _this.readChunk();
         }
       });
-      this.init();
+
+      if (checkReadableStream()) {
+        this.initFetch();
+      } else {
+        this.initXhr();
+      }
     }
 
     createClass(FetchLoader, [{
@@ -1624,8 +1619,8 @@
         }
       }
     }, {
-      key: "init",
-      value: function init() {
+      key: "initFetch",
+      value: function initFetch() {
         var _this$flv = this.flv,
             options = _this$flv.options,
             debug = _this$flv.debug;
@@ -1671,6 +1666,10 @@
           self.flv.emit('streamError', error);
           throw error;
         });
+      }
+    }, {
+      key: "initXhr",
+      value: function initXhr() {// TODO...
       }
     }]);
 

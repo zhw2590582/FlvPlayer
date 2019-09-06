@@ -1,4 +1,4 @@
-function checkWebAssembly() {
+export function checkWebAssembly() {
     try {
         if (typeof window.WebAssembly === 'object' && typeof window.WebAssembly.instantiate === 'function') {
             const module = new window.WebAssembly.Module(Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00));
@@ -12,19 +12,19 @@ function checkWebAssembly() {
     }
 }
 
-function checkWorker() {
+export function checkWorker() {
     return typeof window.Worker === 'function';
 }
 
-function checkFetch() {
+export function checkFetch() {
     return typeof window.fetch === 'function';
 }
 
-function checkURL() {
+export function checkURL() {
     return window.URL && typeof window.URL.createObjectURL === 'function';
 }
 
-function checkReader() {
+export function checkReadableStream() {
     return (
         typeof window.ReadableStream === 'function' &&
         typeof window.Response === 'function' &&
@@ -32,7 +32,7 @@ function checkReader() {
     );
 }
 
-function checkBlob() {
+export function checkBlob() {
     return (
         typeof window.Blob === 'function' &&
         (() => {
@@ -45,20 +45,20 @@ function checkBlob() {
     );
 }
 
-function checkArrayBuffer() {
+export function checkArrayBuffer() {
     return typeof window.ArrayBuffer === 'function';
 }
 
-function checkAACType() {
+export function checkAACType() {
     const canPlay = new Audio().canPlayType('audio/aac;');
     return canPlay === 'probably' || canPlay === 'maybe';
 }
 
-function checkAudioContext() {
+export function checkAudioContext() {
     return window.AudioContext || window.webkitAudioContext;
 }
 
-function checkCanvas() {
+export function checkWebGL() {
     if (window.WebGLRenderingContext) {
         const canvas = document.createElement('canvas');
         const names = ['webgl2', 'webgl', 'experimental-webgl', 'moz-webgl', 'webkit-3d'];
@@ -83,12 +83,12 @@ export default function isSupported() {
         checkWebAssembly() &&
         checkWorker() &&
         checkFetch() &&
-        checkReader() &&
+        checkReadableStream() &&
         checkBlob() &&
         checkArrayBuffer() &&
         checkURL() &&
         checkAACType() &&
         checkAudioContext() &&
-        checkCanvas()
+        checkWebGL()
     );
 }

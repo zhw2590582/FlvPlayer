@@ -92,26 +92,22 @@ export default class FetchLoader {
     }
 
     initFetchRange(rangeStart, rangeEnd) {
-        console.log(0);
         const { options, debug } = this.flv;
         const self = this;
         this.flv.emit('streamStart');
-        console.log(0.5);
+        console.log(rangeStart, rangeEnd);
         return fetch(options.url, {
-            mode: 'no-cors',
             headers: {
                 ...options.headers,
                 range: `bytes=${rangeStart}-${rangeEnd}`,
             },
         })
             .then(response => {
-                console.log(1);
-                self.contentLength = Number(response.headers.get('content-length')) || options.filesize;
+                self.contentLength = options.filesize || Number(response.headers.get('content-length'));
                 debug.error(
                     self.contentLength,
                     `Unable to get response header 'content-length' or custom options 'filesize'`,
                 );
-                console.log(2);
                 return response.arrayBuffer();
             })
             .then(value => {
@@ -133,11 +129,10 @@ export default class FetchLoader {
                         }
                     }
 
-                    console.log(7);
                     const nextRangeStart = Math.min(self.contentLength, rangeEnd + 1);
                     const nextRangeEnd = Math.min(self.contentLength, nextRangeStart.rangeStart + options.chunkSize);
+                    console.log(nextRangeStart, nextRangeEnd);
                     if (nextRangeEnd > nextRangeStart) {
-                        console.log(8);
                         self.initFetchRange(nextRangeStart, nextRangeEnd);
                     }
                 } else {

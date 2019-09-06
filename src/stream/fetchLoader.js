@@ -95,6 +95,7 @@ export default class FetchLoader {
         const { options, debug } = this.flv;
         const self = this;
         this.flv.emit('streamStart');
+        console.log(0.5);
         return fetch(options.url, {
             mode: 'no-cors',
             headers: {

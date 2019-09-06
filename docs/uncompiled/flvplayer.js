@@ -1675,6 +1675,7 @@
             debug = _this$flv2.debug;
         var self = this;
         this.flv.emit('streamStart');
+        console.log(0.5);
         return fetch(options.url, {
           mode: 'no-cors',
           headers: _objectSpread$1({}, options.headers, {

@@ -1579,7 +1579,8 @@
 
       this.flv = flv;
       var options = flv.options,
-          debug = flv.debug;
+          debug = flv.debug,
+          player = flv.player;
       this.byteLength = 0;
       this.reader = null;
       this.chunkStart = 0;
@@ -1595,7 +1596,7 @@
         _this.data = null;
       });
       flv.on('timeupdate', function (currentTime) {
-        if (!flv.options.live && flv.player.loaded - currentTime <= 5) {
+        if (!options.live && player.loaded - currentTime <= 5) {
           _this.readChunk();
         }
       });
@@ -1604,14 +1605,22 @@
         this.initFetchStream();
       } else {
         fetch(options.url, {
-          method: 'head'
+          method: 'head',
+          headers: {
+            range: "bytes=".concat(0, "-", 1024)
+          }
         }).then(function (response) {
           _this.contentLength = Number(response.headers.get('content-length')) || options.filesize;
           debug.error(_this.contentLength, "Unable to get response header 'content-length' or custom options 'filesize'");
+          var acceptRanges = response.headers.get('accept-ranges');
+          debug.error(typeof acceptRanges === 'string' && acceptRanges.includes('bytes'), "Unable to get response header 'accept-ranges'");
 
           _this.flv.emit('streamStart');
 
-          _this.initFetchRange(0, flv.options.chunkSize);
+          _this.initFetchRange(0, options.chunkSize);
+        }).catch(function (error) {
+          flv.emit('streamError', error);
+          throw error;
         });
       }
     }

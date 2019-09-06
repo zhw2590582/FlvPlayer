@@ -528,8 +528,7 @@
       flv.events.destroys.push(function () {
         screenfull.off('change', screenfullChange);
       });
-    } catch (error) {
-      flv.debug.warn(false, 'Does not seem to support full screen events');
+    } catch (error) {//
     }
 
     Object.defineProperty(control, 'fullscreen', {

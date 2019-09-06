@@ -1,9 +1,7 @@
 import screenfull from 'screenfull';
 
 export default function property(flv, control) {
-    const {
-        player,
-    } = flv;
+    const { player } = flv;
 
     Object.defineProperty(control, 'controls', {
         get: () => {
@@ -45,7 +43,7 @@ export default function property(flv, control) {
             screenfull.off('change', screenfullChange);
         });
     } catch (error) {
-        flv.debug.warn(false, 'Does not seem to support full screen events');
+        //
     }
 
     Object.defineProperty(control, 'fullscreen', {

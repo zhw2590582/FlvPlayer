@@ -4,7 +4,7 @@ import { checkReadableStream } from '../utils/isSupported';
 export default class FetchLoader {
     constructor(flv) {
         this.flv = flv;
-        const { options, debug } = flv;
+        const { options, debug, player } = flv;
         this.byteLength = 0;
         this.reader = null;
         this.chunkStart = 0;
@@ -22,7 +22,7 @@ export default class FetchLoader {
         });
 
         flv.on('timeupdate', currentTime => {
-            if (!flv.options.live && flv.player.loaded - currentTime <= 5) {
+            if (!options.live && player.loaded - currentTime <= 5) {
                 this.readChunk();
             }
         });
@@ -32,15 +32,30 @@ export default class FetchLoader {
         } else {
             fetch(options.url, {
                 method: 'head',
-            }).then(response => {
-                this.contentLength = Number(response.headers.get('content-length')) || options.filesize;
-                debug.error(
-                    this.contentLength,
-                    `Unable to get response header 'content-length' or custom options 'filesize'`,
-                );
-                this.flv.emit('streamStart');
-                this.initFetchRange(0, flv.options.chunkSize);
-            });
+                headers: {
+                    range: `bytes=${0}-${1024}`,
+                },
+            })
+                .then(response => {
+                    this.contentLength = Number(response.headers.get('content-length')) || options.filesize;
+                    debug.error(
+                        this.contentLength,
+                        `Unable to get response header 'content-length' or custom options 'filesize'`,
+                    );
+
+                    const acceptRanges = response.headers.get('accept-ranges');
+                    debug.error(
+                        typeof acceptRanges === 'string' && acceptRanges.includes('bytes'),
+                        `Unable to get response header 'accept-ranges'`,
+                    );
+
+                    this.flv.emit('streamStart');
+                    this.initFetchRange(0, options.chunkSize);
+                })
+                .catch(error => {
+                    flv.emit('streamError', error);
+                    throw error;
+                });
         }
     }
 

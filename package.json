@@ -6,7 +6,6 @@
     "scripts": {
         "dev": "npx cross-env NODE_ENV=development rollup -c -m -w",
         "build": "npx cross-env NODE_ENV=production rollup -c",
-        "server": "npx cross-env NODE_ENV=development && node ./server/index.js",
         "start": "npx cross-env NODE_ENV=development && npx servor docs index.html 8081 5000",
         "test": "npx eslint src"
     },
@@ -55,7 +54,8 @@
         "servor": "^2.2.1"
     },
     "dependencies": {
-        "option-validator": "^2.0.0",
+        "dida.js": "^1.0.0",
+        "option-validator": "^2.0.3",
         "screenfull": "^4.2.0",
         "yuv-buffer": "^1.0.0",
         "yuv-canvas": "^1.2.6"

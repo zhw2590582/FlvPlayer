@@ -31,11 +31,11 @@ export default function controls(flv, control) {
     });
 
     if (poster) {
-        flv.on('play', () => {
+        flv.once('play', () => {
             control.$poster.style.display = 'none';
         });
 
-        flv.on('seeked', () => {
+        flv.once('seeked', () => {
             control.$poster.style.display = 'none';
         });
     }

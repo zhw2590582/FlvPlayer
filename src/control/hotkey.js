@@ -25,19 +25,19 @@ export default function hotkey(flv, control) {
     });
 
     addHotkey(37, () => {
-        player.currentTime -= 10;
+        player.currentTime -= 5;
     });
 
     addHotkey(38, () => {
-        player.volume += 1;
+        player.volume += 0.1;
     });
 
     addHotkey(39, () => {
-        player.currentTime += 10;
+        player.currentTime += 5;
     });
 
     addHotkey(40, () => {
-        player.volume -= 1;
+        player.volume -= 0.1;
     });
 
     proxy(window, 'keydown', event => {

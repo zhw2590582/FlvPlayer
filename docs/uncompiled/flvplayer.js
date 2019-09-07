@@ -248,20 +248,6 @@
     }, {
       key: "emit",
       value: function emit(name) {
-        if (this.options.debug) {
-          var id = this.id;
-
-          if (!Emitter[id]) {
-            Emitter[id] = {};
-          }
-
-          if (!Emitter[id][name]) {
-            Emitter[id][name] = 1;
-          } else {
-            Emitter[id][name] += 1;
-          }
-        }
-
         var evtArr = ((this.e || (this.e = {}))[name] || []).slice();
 
         for (var _len2 = arguments.length, data = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
@@ -1539,7 +1525,7 @@
       classCallCheck(this, Stream);
 
       var Loader = Stream.getLoaderFactory(flv.options.url);
-      flv.debug.log('stream-type', Loader.name);
+      flv.debug.log('stream-loader', Loader.name);
       return new Loader(flv, this);
     }
 
@@ -1596,7 +1582,7 @@
         });
       }
 
-      console.log('%c FlvPlayer.js %c 1.1.0 %c https://flvplayer.js.org', 'color: #fff; background: #5f5f5f', 'color: #fff; background: #4bc729', '');
+      console.log('%c FlvPlayer.js %c 1.1.1 %c https://flvplayer.js.org', 'color: #fff; background: #5f5f5f', 'color: #fff; background: #4bc729', '');
       return _this;
     }
 
@@ -1665,7 +1651,7 @@
       get: function get() {
         return {
           url: 'string|file',
-          container: 'string',
+          container: 'string|htmldivelement',
           debug: 'boolean',
           live: 'boolean',
           loop: 'boolean',
@@ -1698,7 +1684,7 @@
     }, {
       key: "version",
       get: function get() {
-        return '1.1.0';
+        return '1.1.1';
       }
     }, {
       key: "env",

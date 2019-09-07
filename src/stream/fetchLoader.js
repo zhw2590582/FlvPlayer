@@ -32,23 +32,19 @@ export default class FetchLoader {
         } else {
             fetch(options.url, {
                 method: 'head',
+                credentials: options.withCredentials ? 'include' : 'omit',
+                mode: options.cors ? 'cors' : 'no-cors',
                 headers: {
                     range: 'bytes=0-1024',
                 },
             })
                 .then(response => {
                     this.contentLength = Number(response.headers.get('content-length')) || options.filesize;
-                    debug.error(
-                        this.contentLength,
-                        `Unable to get response header 'content-length' or custom options 'filesize'`,
-                    );
-
                     const acceptRanges = response.headers.get('accept-ranges');
                     debug.error(
                         typeof acceptRanges === 'string' && acceptRanges.includes('bytes'),
                         `Unable to get response header 'accept-ranges'`,
                     );
-
                     this.flv.emit('streamStart');
                     this.initFetchRange(0, options.chunkSize);
                 })
@@ -74,6 +70,8 @@ export default class FetchLoader {
         const self = this;
         this.flv.emit('streamStart');
         return fetch(options.url, {
+            credentials: options.withCredentials ? 'include' : 'omit',
+            mode: options.cors ? 'cors' : 'no-cors',
             headers: options.headers,
         })
             .then(response => {
@@ -120,6 +118,8 @@ export default class FetchLoader {
         const { options } = this.flv;
         const self = this;
         return fetch(options.url, {
+            credentials: options.withCredentials ? 'include' : 'omit',
+            mode: options.cors ? 'cors' : 'no-cors',
             headers: {
                 ...options.headers,
                 range: `bytes=${rangeStart}-${rangeEnd}`,

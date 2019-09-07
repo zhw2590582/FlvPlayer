@@ -1606,12 +1606,13 @@
       } else {
         fetch(options.url, {
           method: 'head',
+          credentials: options.withCredentials ? 'include' : 'omit',
+          mode: options.cors ? 'cors' : 'no-cors',
           headers: {
             range: 'bytes=0-1024'
           }
         }).then(function (response) {
           _this.contentLength = Number(response.headers.get('content-length')) || options.filesize;
-          debug.error(_this.contentLength, "Unable to get response header 'content-length' or custom options 'filesize'");
           var acceptRanges = response.headers.get('accept-ranges');
           debug.error(typeof acceptRanges === 'string' && acceptRanges.includes('bytes'), "Unable to get response header 'accept-ranges'");
 
@@ -1646,6 +1647,8 @@
         var self = this;
         this.flv.emit('streamStart');
         return fetch(options.url, {
+          credentials: options.withCredentials ? 'include' : 'omit',
+          mode: options.cors ? 'cors' : 'no-cors',
           headers: options.headers
         }).then(function (response) {
           self.reader = response.body.getReader();
@@ -1692,6 +1695,8 @@
         var options = this.flv.options;
         var self = this;
         return fetch(options.url, {
+          credentials: options.withCredentials ? 'include' : 'omit',
+          mode: options.cors ? 'cors' : 'no-cors',
           headers: _objectSpread$1({}, options.headers, {
             range: "bytes=".concat(rangeStart, "-").concat(rangeEnd)
           })
@@ -1899,13 +1904,15 @@
           control: true,
           cache: true,
           muted: false,
+          cors: true,
           touchResume: true,
+          withCredentials: false,
           volume: 0.7,
           frameRate: 30,
           maxTimeDiff: 200,
           chunkSize: 1024 * 1024,
           freeMemory: 64 * 1024 * 1024,
-          filesize: NaN,
+          filesize: Infinity,
           width: 400,
           height: 300,
           socketSend: '',
@@ -1927,7 +1934,9 @@
           control: 'boolean',
           cache: 'boolean',
           muted: 'boolean',
+          cors: 'boolean',
           touchResume: 'boolean',
+          withCredentials: 'boolean',
           volume: 'number',
           frameRate: 'number',
           maxTimeDiff: 'number',

@@ -114,6 +114,15 @@ if (FlvPlayer.isSupported()) {
         // Whether to display the control, if the control exists
         control: true,
 
+        // Indicates whether to do http fetching with cookies
+        withCredentials: true,
+
+        // Indicates total file size of media file, in bytes
+        filesize: Infinity,
+
+        // Indicates whether to enable CORS for http fetching
+        cors: true,
+
         // Volume from 0 to 1, the default is 0.7
         volume: 0.7,
 

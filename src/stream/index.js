@@ -5,7 +5,7 @@ import FileLoader from './fileLoader';
 export default class Stream {
     constructor(flv) {
         const Loader = Stream.getLoaderFactory(flv.options.url);
-        flv.debug.log('stream-type', Loader.name);
+        flv.debug.log('stream-loader', Loader.name);
         return new Loader(flv, this);
     }
 

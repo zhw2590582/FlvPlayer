@@ -1,9 +1,6 @@
 {
     "parser": "babel-eslint",
-    "extends": [
-        "airbnb-base",
-        "prettier"
-    ],
+    "extends": ["airbnb-base", "prettier"],
     "env": {
         "browser": true,
         "es6": true
@@ -12,7 +9,8 @@
         "no-bitwise": 0,
         "no-console": 0,
         "no-param-reassign": 0,
-        "import/no-named-as-default-member": 0
+        "import/no-named-as-default-member": 0,
+        "max-classes-per-file": ["error", 2]
     },
     "parserOptions": {
         "sourceType": "module"

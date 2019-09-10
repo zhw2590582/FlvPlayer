@@ -356,7 +356,7 @@ onmessage = event => {
         header.version = read(1)[0];
         debug.error(header.signature === 'FLV' && header.version === 1, 'FLV header not found');
         header.flags = read(1)[0];
-        const hasAudio = ((header.flags & 4) >>> 2) !== 0;
+        const hasAudio = (header.flags & 4) >>> 2 !== 0;
         const hasVideo = (header.flags & 1) !== 0;
         debug.warn(hasVideo, '[FLV header] flags not found video');
         debug.warn(hasAudio, '[FLV header] flags not found audio');

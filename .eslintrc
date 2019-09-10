@@ -9,6 +9,7 @@
         "no-bitwise": 0,
         "no-console": 0,
         "no-param-reassign": 0,
+        "prefer-destructuring": 0,
         "import/no-named-as-default-member": 0,
         "max-classes-per-file": ["error", 2]
     },

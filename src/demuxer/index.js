@@ -1,5 +1,4 @@
-import { getNowTime, createWorker, readBuffer, mergeBuffer, calculationRate } from '../utils';
-import workerString from './demuxer.worker';
+import { getNowTime, readBuffer, mergeBuffer, calculationRate } from '../utils';
 
 function getProfileString(profileIdc) {
     switch (profileIdc) {
@@ -41,7 +40,7 @@ export default class Demuxer {
         this.scripMeta = null;
         this.AudioSpecificConfig = null;
         this.AVCDecoderConfigurationRecord = null;
-        this.demuxWorker = createWorker(workerString);
+        this.demuxWorker = new Worker('./demuxer.js');
 
         this.demuxRate = calculationRate(rate => {
             flv.emit('demuxRate', rate);

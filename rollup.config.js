@@ -8,6 +8,7 @@ import { eslint } from 'rollup-plugin-eslint';
 import replace from 'rollup-plugin-replace';
 import { string } from 'rollup-plugin-string';
 import { uglify } from 'rollup-plugin-uglify';
+import workerInline from 'rollup-plugin-worker-inline';
 import { version, homepage } from './package.json';
 
 const isProd = process.env.NODE_ENV === 'production';
@@ -22,21 +23,17 @@ const baseConfig = {
             exclude: ['node_modules/**', 'src/decoder/video', 'src/control/style.scss', 'src/control/icons/*.svg'],
         }),
         string({
-            include: [
-                'src/decoder/video/**/*.worker',
-                'src/decoder/audio/*.worker',
-                'src/demuxer/*.worker',
-                'src/control/icons/*.svg',
-            ],
+            include: ['src/decoder/video/**/*.worker', 'src/control/icons/*.svg'],
         }),
         nodeResolve(),
         commonjs(),
+        workerInline(),
         babel({
             runtimeHelpers: true,
             exclude: 'node_modules/**',
             presets: [
                 [
-                    '@babel/env',
+                    '@babel/preset-env',
                     {
                         modules: false,
                     },

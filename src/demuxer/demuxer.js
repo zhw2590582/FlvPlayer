@@ -38,17 +38,17 @@ function readString(array) {
 
 function readBuffer(buffer) {
     let index = 0;
-    function read(length) {
+    function readFn(length) {
         const tempUint8 = new Uint8Array(length);
         for (let i = 0; i < length; i += 1) {
             tempUint8[i] = buffer[index];
             index += 1;
         }
-        read.index = index;
+        readFn.index = index;
         return tempUint8;
     }
-    read.index = 0;
-    return read;
+    readFn.index = 0;
+    return readFn;
 }
 
 function readDouble(array) {
@@ -155,7 +155,7 @@ function demuxerScripTag(tag) {
                 case 10: {
                     const valueLength = readBufferSum(readScripTag(4));
                     value = [];
-                    for (let index = 0; index < valueLength; index += 1) {
+                    for (let i = 0; i < valueLength; i += 1) {
                         const itemType = readScripTag(1)[0];
                         value.push(getValue(itemType));
                     }
@@ -198,11 +198,11 @@ function demuxerScripTag(tag) {
 
 function demuxerVideoTag(tag) {
     debug.error(tag.body.length > 1, 'Invalid video packet');
-    const header = {
+    const videoHeader = {
         frameType: (tag.body[0] & 0xf0) >> 4,
         codecID: tag.body[0] & 0x0f,
     };
-    debug.error(header.codecID === 7, `[videoTrack] Unsupported codec in video frame: ${header.codecID}`);
+    debug.error(videoHeader.codecID === 7, `[videoTrack] Unsupported codec in video frame: ${videoHeader.codecID}`);
     const packet = tag.body.slice(1, 5);
     debug.error(packet.length >= 4, '[H264] Invalid AVC packet, missing AVCPacketType or/and CompositionTime');
     const view = new DataView(packet.buffer);
@@ -242,7 +242,7 @@ function demuxerVideoTag(tag) {
             result.numOfSequenceParameterSets === 1,
             `[H264] Strange numOfSequenceParameterSets: ${result.numOfSequenceParameterSets}`,
         );
-        for (let index = 0; index < result.numOfSequenceParameterSets; index += 1) {
+        for (let i = 0; i < result.numOfSequenceParameterSets; i += 1) {
             result.sequenceParameterSetLength = readBufferSum(readDcr(2));
             if (result.sequenceParameterSetLength > 0) {
                 const SPS = readDcr(result.sequenceParameterSetLength);
@@ -261,7 +261,7 @@ function demuxerVideoTag(tag) {
             result.numOfPictureParameterSets === 1,
             `[H264] Strange numOfPictureParameterSets: ${result.numOfPictureParameterSets}`,
         );
-        for (let index = 0; index < result.numOfPictureParameterSets; index += 1) {
+        for (let i = 0; i < result.numOfPictureParameterSets; i += 1) {
             result.pictureParameterSetLength = readBufferSum(readDcr(2));
             if (result.pictureParameterSetLength > 0) {
                 const PPS = readDcr(result.pictureParameterSetLength);
@@ -294,13 +294,13 @@ function demuxerVideoTag(tag) {
 
 function demuxerAudioTag(tag) {
     debug.error(tag.body.length > 1, 'Invalid audio packet');
-    const header = {
+    const audioHeader = {
         soundFormat: (tag.body[0] & 0xf0) >> 4,
         soundRate: (tag.body[0] & 0x0c) >> 2,
         soundSize: (tag.body[0] & 0x02) >> 1,
         soundType: (tag.body[0] & 0x01) >> 0,
     };
-    debug.error(header.soundFormat === 10, `[audioTrack] unsupported audio format: ${header.soundFormat}`);
+    debug.error(audioHeader.soundFormat === 10, `[audioTrack] unsupported audio format: ${audioHeader.soundFormat}`);
     const packet = tag.body.subarray(1);
     const packetType = packet[0];
     if (packetType === 0) {

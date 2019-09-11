@@ -25,6 +25,18 @@ function getLevelString(levelIdc) {
     return (levelIdc / 10).toFixed(1);
 }
 
+function getAVCCodecs(record) {
+    const AVCProfileIndication = record.AVCProfileIndication.toString(16);
+    const profileCompatibility = record.profile_compatibility.toString(16);
+    const AVCLevelIndication = record.AVCLevelIndication.toString(16);
+    return `avc1.${AVCProfileIndication}${profileCompatibility}${AVCLevelIndication}`;
+}
+
+function getAACCodecs({ audioObjectType }) {
+    const objectTypeId = ((audioObjectType - 1) << 6).toString(16);
+    return `mp4a.${objectTypeId}.${audioObjectType}`;
+}
+
 export default class Demuxer {
     constructor(flv) {
         const { options, debug } = flv;
@@ -98,6 +110,7 @@ export default class Demuxer {
                     this.AVCDecoderConfigurationRecord = message.data;
                     flv.emit('AVCDecoderConfigurationRecord', this.AVCDecoderConfigurationRecord);
                     debug.log('AVCDecoderConfigurationRecord', this.AVCDecoderConfigurationRecord);
+                    debug.log('AVC-codecs', getAVCCodecs(this.AVCDecoderConfigurationRecord));
                     debug.log('AVC-profile', getProfileString(this.AVCDecoderConfigurationRecord.AVCProfileIndication));
                     debug.log('AVC-level', getLevelString(this.AVCDecoderConfigurationRecord.AVCLevelIndication));
                     break;
@@ -105,6 +118,7 @@ export default class Demuxer {
                     this.AudioSpecificConfig = message.data;
                     flv.emit('AudioSpecificConfig', this.AudioSpecificConfig);
                     debug.log('AudioSpecificConfig', this.AudioSpecificConfig);
+                    debug.log('AAC-codecs', getAACCodecs(this.AudioSpecificConfig));
                     break;
                 case 'videoData': {
                     this.demuxRate(1);

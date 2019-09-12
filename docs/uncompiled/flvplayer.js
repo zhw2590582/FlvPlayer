@@ -882,7 +882,7 @@
 
           if (Math.abs(timeDiff) >= flv.options.maxTimeDiff) {
             flv.debug.log('time-sync', timeDiff);
-            return currentTime;
+            decoder.currentTime = timestamp / 1000;
           }
 
           return timestamp;

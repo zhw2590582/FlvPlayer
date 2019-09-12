@@ -4,7 +4,7 @@ import { checkReadableStream } from '../utils/isSupported';
 export default class FetchLoader {
     constructor(flv) {
         this.flv = flv;
-        const { options, debug, player } = flv;
+        const { options, player } = flv;
         this.byteLength = 0;
         this.reader = null;
         this.chunkStart = 0;
@@ -40,11 +40,6 @@ export default class FetchLoader {
             })
                 .then(response => {
                     this.contentLength = Number(response.headers.get('content-length')) || options.filesize;
-                    const acceptRanges = response.headers.get('accept-ranges');
-                    debug.error(
-                        typeof acceptRanges === 'string' && acceptRanges.includes('bytes'),
-                        `Unable to get response header 'accept-ranges'`,
-                    );
                     this.flv.emit('streamStart');
                     this.initFetchRange(0, options.chunkSize);
                 })
@@ -117,7 +112,9 @@ export default class FetchLoader {
     initFetchRange(rangeStart, rangeEnd) {
         const { options } = this.flv;
         const self = this;
-        return fetch(options.url, {
+        const rangeUrl = new URL(options.url);
+        rangeUrl.searchParams.append('range', `${rangeStart}-${rangeEnd}`);
+        return fetch(rangeUrl.href, {
             credentials: options.withCredentials ? 'include' : 'omit',
             mode: options.cors ? 'cors' : 'no-cors',
             headers: {

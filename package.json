@@ -56,8 +56,8 @@
     },
     "dependencies": {
         "dida.js": "^1.0.0",
-        "option-validator": "^2.0.3",
-        "screenfull": "^4.2.1",
+        "option-validator": "^2.0.4",
+        "screenfull": "^5.0.0",
         "yuv-buffer": "^1.0.0",
         "yuv-canvas": "^1.2.6"
     }

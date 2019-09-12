@@ -98,7 +98,7 @@ export default class Decoder {
                 this.waiting = false;
                 this.pause();
                 this.flv.emit('ended', this.currentTime);
-                if (options.loop && options.cache) {
+                if (options.loop && options.cache && !options.live) {
                     this.currentTime = 0;
                     this.play();
                     this.flv.emit('loop');
@@ -124,7 +124,7 @@ export default class Decoder {
 
     seeked(time) {
         const { player, options } = this.flv;
-        if (!options.cache) return;
+        if (!options.cache || options.live) return;
         cancelAnimationFrame(this.animationFrameTimer);
         clearTimeout(this.waitingTimer);
         this.animationFrameTimer = null;

@@ -1069,7 +1069,7 @@
 
             _this2.flv.emit('ended', _this2.currentTime);
 
-            if (options.loop && options.cache) {
+            if (options.loop && options.cache && !options.live) {
               _this2.currentTime = 0;
 
               _this2.play();
@@ -1103,7 +1103,7 @@
         var _this$flv2 = this.flv,
             player = _this$flv2.player,
             options = _this$flv2.options;
-        if (!options.cache) return;
+        if (!options.cache || options.live) return;
         cancelAnimationFrame(this.animationFrameTimer);
         clearTimeout(this.waitingTimer);
         this.animationFrameTimer = null;

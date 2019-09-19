@@ -90,7 +90,7 @@ class FlvPlayer extends Emitter {
             filesize: Infinity,
             width: 400,
             height: 300,
-            socketSend: null,
+            socketSend: '',
             headers: {},
             decoder: './flvplayer-decoder-baseline.js',
         };

@@ -11,6 +11,7 @@ export default class FetchLoader {
         this.contentLength = 0;
         this.data = new Uint8Array();
         this.readChunk = throttle(this.readChunk, 1000);
+        this.chunkSize = options.hasAudio ? options.videoChunk : options.videoChunk + options.audioChunk;
 
         this.streamRate = calculationRate(rate => {
             flv.emit('streamRate', rate);
@@ -41,7 +42,7 @@ export default class FetchLoader {
                 .then(response => {
                     this.contentLength = Number(response.headers.get('content-length')) || options.filesize;
                     this.flv.emit('streamStart');
-                    this.initFetchRange(0, options.chunkSize);
+                    this.initFetchRange(0, this.chunkSize);
                 })
                 .catch(error => {
                     flv.emit('streamError', error);
@@ -51,8 +52,7 @@ export default class FetchLoader {
     }
 
     readChunk() {
-        const { options } = this.flv;
-        const chunkEnd = Math.min(this.chunkStart + options.chunkSize, this.data.length);
+        const chunkEnd = Math.min(this.chunkStart + this.chunkSize, this.data.length);
         if (chunkEnd > this.chunkStart) {
             const chunkData = this.data.subarray(this.chunkStart, chunkEnd);
             this.flv.emit('streaming', chunkData);
@@ -138,7 +138,7 @@ export default class FetchLoader {
                 }
 
                 const nextRangeStart = Math.min(self.contentLength, rangeEnd + 1);
-                const nextRangeEnd = Math.min(self.contentLength, nextRangeStart + options.chunkSize);
+                const nextRangeEnd = Math.min(self.contentLength, nextRangeStart + self.chunkSize);
                 if (nextRangeEnd > nextRangeStart) {
                     self.initFetchRange(nextRangeStart, nextRangeEnd);
                 }

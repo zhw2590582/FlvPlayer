@@ -209,6 +209,7 @@
 
         if (!_this.ready && _this.videoOutputLength === 1) {
           _this.ready = true;
+          decoder.currentTime = _this.timestamps[0];
           flv.emit('ready');
         }
       });
@@ -220,7 +221,7 @@
           if (_this.draw(index)) {
             var framesSize = _this.getFramesSize(index);
 
-            if ((options.live || !options.cache) && framesSize >= options.freeMemory && _this.videoframes.length - 1 > index && _this.timestamps.length - 1 > index) {
+            if ((options.live || !options.cache) && framesSize >= options.videoChunk * 64 && _this.videoframes.length - 1 > index && _this.timestamps.length - 1 > index) {
               _this.playIndex = 0;
 
               _this.videoframes.splice(0, index + 1);

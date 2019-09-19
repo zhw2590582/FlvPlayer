@@ -873,6 +873,7 @@
       this.dida = new dida({
         volume: flv.options.muted ? 0 : flv.options.volume,
         cache: flv.options.cache,
+        chunk: flv.options.audioChunk,
         maxTimeDiff: flv.options.maxTimeDiff,
         touchResume: flv.options.touchResume,
         onNext: function onNext(timestamp) {
@@ -1318,7 +1319,6 @@
 
       this.flv = flv;
       var options = flv.options,
-          debug = flv.debug,
           player = flv.player;
       this.byteLength = 0;
       this.reader = null;
@@ -1326,6 +1326,7 @@
       this.contentLength = 0;
       this.data = new Uint8Array();
       this.readChunk = throttle(this.readChunk, 1000);
+      this.chunkSize = options.hasAudio ? options.videoChunk : options.videoChunk + options.audioChunk;
       this.streamRate = calculationRate(function (rate) {
         flv.emit('streamRate', rate);
       });
@@ -1352,12 +1353,10 @@
           }
         }).then(function (response) {
           _this.contentLength = Number(response.headers.get('content-length')) || options.filesize;
-          var acceptRanges = response.headers.get('accept-ranges');
-          debug.error(typeof acceptRanges === 'string' && acceptRanges.includes('bytes'), "Unable to get response header 'accept-ranges'");
 
           _this.flv.emit('streamStart');
 
-          _this.initFetchRange(0, options.chunkSize);
+          _this.initFetchRange(0, _this.chunkSize);
         }).catch(function (error) {
           flv.emit('streamError', error);
           throw error;
@@ -1368,8 +1367,7 @@
     createClass(FetchLoader, [{
       key: "readChunk",
       value: function readChunk() {
-        var options = this.flv.options;
-        var chunkEnd = Math.min(this.chunkStart + options.chunkSize, this.data.length);
+        var chunkEnd = Math.min(this.chunkStart + this.chunkSize, this.data.length);
 
         if (chunkEnd > this.chunkStart) {
           var chunkData = this.data.subarray(this.chunkStart, chunkEnd);
@@ -1433,7 +1431,9 @@
       value: function initFetchRange(rangeStart, rangeEnd) {
         var options = this.flv.options;
         var self = this;
-        return fetch(options.url, {
+        var rangeUrl = new URL(options.url);
+        rangeUrl.searchParams.append('range', "".concat(rangeStart, "-").concat(rangeEnd));
+        return fetch(rangeUrl.href, {
           credentials: options.withCredentials ? 'include' : 'omit',
           mode: options.cors ? 'cors' : 'no-cors',
           headers: _objectSpread({}, options.headers, {
@@ -1457,7 +1457,7 @@
           }
 
           var nextRangeStart = Math.min(self.contentLength, rangeEnd + 1);
-          var nextRangeEnd = Math.min(self.contentLength, nextRangeStart + options.chunkSize);
+          var nextRangeEnd = Math.min(self.contentLength, nextRangeStart + self.chunkSize);
 
           if (nextRangeEnd > nextRangeStart) {
             self.initFetchRange(nextRangeStart, nextRangeEnd);
@@ -1580,7 +1580,6 @@
 
       if (_this.options.live) {
         _this.options.cache = false;
-        _this.options.hasAudio = false;
       }
 
       if (typeof _this.options.container === 'string') {
@@ -1595,7 +1594,7 @@
         });
       }
 
-      console.log('%c FlvPlayer.js %c 1.1.1 %c https://flvplayer.js.org', 'color: #fff; background: #5f5f5f', 'color: #fff; background: #4bc729', '');
+      console.log('%c FlvPlayer.js %c 1.1.2 %c https://flvplayer.js.org', 'color: #fff; background: #5f5f5f', 'color: #fff; background: #4bc729', '');
       return _this;
     }
 
@@ -1649,12 +1648,12 @@
           volume: 0.7,
           frameRate: 30,
           maxTimeDiff: 200,
-          chunkSize: 1024 * 1024,
-          freeMemory: 64 * 1024 * 1024,
+          videoChunk: 1024 * 1024,
+          audioChunk: 64 * 1024,
           filesize: Infinity,
           width: 400,
           height: 300,
-          socketSend: '',
+          socketSend: null,
           headers: {},
           decoder: './flvplayer-decoder-baseline.js'
         };
@@ -1679,8 +1678,8 @@
           volume: 'number',
           frameRate: 'number',
           maxTimeDiff: 'number',
-          chunkSize: 'number',
-          freeMemory: 'number',
+          videoChunk: 'number',
+          audioChunk: 'number',
           filesize: 'number',
           width: 'number',
           height: 'number',
@@ -1697,7 +1696,7 @@
     }, {
       key: "version",
       get: function get() {
-        return '1.1.1';
+        return '1.1.2';
       }
     }, {
       key: "env",

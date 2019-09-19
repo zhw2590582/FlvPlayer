@@ -8,7 +8,7 @@ var flv = new FlvPlayer({
     debug: true,
     live: true,
     autoPlay: true,
-    hasAudio: false,
+    hasAudio: true,
     width: 960,
     height: 540,
 });

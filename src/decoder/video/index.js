@@ -54,6 +54,7 @@ export default class VideoSuperDecoder {
             this.decoderRate(1);
             if (!this.ready && this.videoOutputLength === 1) {
                 this.ready = true;
+                decoder.currentTime = this.timestamps[0];
                 flv.emit('ready');
             }
         });
@@ -66,7 +67,7 @@ export default class VideoSuperDecoder {
                     const framesSize = this.getFramesSize(index);
                     if (
                         (options.live || !options.cache) &&
-                        framesSize >= options.freeMemory &&
+                        framesSize >= options.videoChunk * 64 &&
                         this.videoframes.length - 1 > index &&
                         this.timestamps.length - 1 > index
                     ) {

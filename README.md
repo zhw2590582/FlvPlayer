@@ -95,8 +95,11 @@ if (FlvPlayer.isSupported()) {
         // On the mobile side, try to activate the audio after the user touches the screen.
         touchResume: true,
 
-        // Segment decoding size, with reduced memory usage, the default is 1M
-        chunkSize: 1024 * 1024,
+        // Video chunk size, the default is 1M
+        videoChunk: 1024 * 1024,
+
+        // Audio chunk size, the default is 64kb
+        audioChunk: 64 * 1024,
 
         // Whether to play automatically
         autoPlay: false,
@@ -128,9 +131,6 @@ if (FlvPlayer.isSupported()) {
 
         // Initialize the frame rate, which will be covered by the actual frame rate of the file
         frameRate: 30,
-
-        // Maximum limit for cached data in live mode, unit is byte, the default is 64M
-        freeMemory: 64 * 1024 * 1024,
 
         // Initialize the width, which will be covered by the actual width of the file
         width: 400,

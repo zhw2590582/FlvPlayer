@@ -23,7 +23,6 @@ class FlvPlayer extends Emitter {
 
         if (this.options.live) {
             this.options.cache = false;
-            this.options.hasAudio = false;
         }
 
         if (typeof this.options.container === 'string') {
@@ -86,12 +85,12 @@ class FlvPlayer extends Emitter {
             volume: 0.7,
             frameRate: 30,
             maxTimeDiff: 200,
-            chunkSize: 1024 * 1024,
-            freeMemory: 64 * 1024 * 1024,
+            videoChunk: 1024 * 1024,
+            audioChunk: 64 * 1024,
             filesize: Infinity,
             width: 400,
             height: 300,
-            socketSend: '',
+            socketSend: null,
             headers: {},
             decoder: './flvplayer-decoder-baseline.js',
         };
@@ -115,8 +114,8 @@ class FlvPlayer extends Emitter {
             volume: 'number',
             frameRate: 'number',
             maxTimeDiff: 'number',
-            chunkSize: 'number',
-            freeMemory: 'number',
+            videoChunk: 'number',
+            audioChunk: 'number',
             filesize: 'number',
             width: 'number',
             height: 'number',

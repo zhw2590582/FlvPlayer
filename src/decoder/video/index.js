@@ -38,7 +38,6 @@ export default class VideoSuperDecoder {
             this.timestamps.push(timestamp);
             this.videoInputLength += 1;
             if (options.live && !this.initLiveTimestamp) {
-                decoder.currentTime = timestamp / 1000;
                 this.initLiveTimestamp = true;
             }
         });

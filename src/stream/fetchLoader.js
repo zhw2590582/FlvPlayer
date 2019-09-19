@@ -18,7 +18,9 @@ export default class FetchLoader {
         });
 
         flv.on('destroy', () => {
-            this.reader.cancel();
+            if (this.reader) {
+                this.reader.cancel();
+            } 
             this.data = null;
         });
 

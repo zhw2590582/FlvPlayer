@@ -1331,7 +1331,9 @@
         flv.emit('streamRate', rate);
       });
       flv.on('destroy', function () {
-        _this.reader.cancel();
+        if (_this.reader) {
+          _this.reader.cancel();
+        }
 
         _this.data = null;
       });

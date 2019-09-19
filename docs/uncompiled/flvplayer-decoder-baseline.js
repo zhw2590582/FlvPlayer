@@ -190,7 +190,6 @@
         _this.videoInputLength += 1;
 
         if (options.live && !_this.initLiveTimestamp) {
-          decoder.currentTime = timestamp / 1000;
           _this.initLiveTimestamp = true;
         }
       });

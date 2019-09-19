@@ -54,7 +54,7 @@ export default class VideoSuperDecoder {
             this.decoderRate(1);
             if (!this.ready && this.videoOutputLength === 1) {
                 this.ready = true;
-                decoder.currentTime = this.timestamps[0];
+                decoder.currentTime = this.timestamps[0] / 1000;
                 flv.emit('ready');
             }
         });

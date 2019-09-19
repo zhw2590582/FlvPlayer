@@ -11,7 +11,7 @@ export default class FetchLoader {
         this.contentLength = 0;
         this.data = new Uint8Array();
         this.readChunk = throttle(this.readChunk, 1000);
-        this.chunkSize = options.hasAudio ? options.videoChunk : options.videoChunk + options.audioChunk;
+        this.chunkSize = options.hasAudio ? options.videoChunk + options.audioChunk : options.videoChunk;
 
         this.streamRate = calculationRate(rate => {
             flv.emit('streamRate', rate);
@@ -89,7 +89,7 @@ export default class FetchLoader {
                                 self.flv.emit('streaming', uint8);
                             } else {
                                 self.data = mergeBuffer(self.data, uint8);
-                                if (self.chunkStart === 0) {
+                                if (self.chunkStart === 0 && self.data.length >= self.chunkSize) {
                                     self.readChunk();
                                 }
                             }
@@ -132,7 +132,7 @@ export default class FetchLoader {
                     self.flv.emit('streaming', uint8);
                 } else {
                     self.data = mergeBuffer(self.data, uint8);
-                    if (self.chunkStart === 0) {
+                    if (self.chunkStart === 0 && self.data.length >= self.chunkSize) {
                         self.readChunk();
                     }
                 }

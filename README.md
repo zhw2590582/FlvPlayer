@@ -77,6 +77,9 @@ if (FlvPlayer.isSupported()) {
         // Accept dom element, dom selector
         container: '',
 
+        // Video poster url
+        poster: '',
+
         // Whether to print debug information
         debug: false,
 

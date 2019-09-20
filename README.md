@@ -98,8 +98,8 @@ if (FlvPlayer.isSupported()) {
         // Video chunk size, the default is 1M
         videoChunk: 1024 * 1024,
 
-        // Audio chunk size, the default is 64kb
-        audioChunk: 64 * 1024,
+        // Audio chunk size, the default is 16kb
+        audioChunk: 16 * 1024,
 
         // Whether to play automatically
         autoPlay: false,

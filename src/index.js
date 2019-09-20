@@ -86,7 +86,7 @@ class FlvPlayer extends Emitter {
             frameRate: 30,
             maxTimeDiff: 200,
             videoChunk: 1024 * 1024,
-            audioChunk: 64 * 1024,
+            audioChunk: 16 * 1024,
             filesize: Infinity,
             width: 400,
             height: 300,

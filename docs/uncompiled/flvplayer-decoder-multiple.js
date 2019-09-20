@@ -165,7 +165,6 @@
       this.decoding = false;
       this.byteSize = 0;
       this.loaded = 0;
-      this.initLiveTimestamp = false;
       this.decoderRate = calculationRate(function (rate) {
         flv.emit('decoderRate', rate);
       });
@@ -183,23 +182,24 @@
         _this.stop();
       });
       flv.on('befoerdecoding', function (timestamp) {
-        _this.decoding = true;
+        if (options.live && options.hasAudio && !_this.playing && _this.timestamps.length >= player.frameRate) {
+          _this.timestamps.shift();
+        }
 
         _this.timestamps.push(timestamp);
 
+        _this.decoding = true;
         _this.videoInputLength += 1;
-
-        if (options.live && !_this.initLiveTimestamp) {
-          _this.initLiveTimestamp = true;
-        }
       });
       flv.on('decoding', function (message, byteSize) {
-        if (options.live && !_this.playing && _this.ready) return;
-        _this.byteSize += byteSize;
-        _this.videoOutputLength += 1;
+        if (options.live && options.hasAudio && !_this.playing && _this.timestamps.length >= player.frameRate) {
+          _this.videoframes.shift();
+        }
 
         _this.videoframes.push(message);
 
+        _this.byteSize += byteSize;
+        _this.videoOutputLength += 1;
         _this.decoding = _this.videoInputLength !== _this.videoOutputLength;
         _this.loaded = _this.videoOutputLength / player.frameRate;
         flv.emit('videoLoaded', _this.loaded);
@@ -208,6 +208,11 @@
 
         if (!_this.ready && _this.videoOutputLength === 1) {
           _this.ready = true;
+
+          if (options.live) {
+            decoder.currentTime = _this.timestamps[0] / 1000;
+          }
+
           flv.emit('ready');
         }
       });
@@ -262,9 +267,7 @@
 
         if (this.flv.options.live) {
           this.playIndex = 0;
-          this.videoframes = [];
-          this.timestamps = [];
-          this.initLiveTimestamp = false;
+          this.flv.decoder.currentTime = (this.timestamps[0] || 0) / 1000;
         } else {
           this.playIndex = this.timestamps.findIndex(function (timestamp) {
             return timestamp >= startTime * 1000;
@@ -278,9 +281,6 @@
 
         if (this.flv.options.live) {
           this.playIndex = 0;
-          this.videoframes = [];
-          this.timestamps = [];
-          this.initLiveTimestamp = false;
         }
       }
     }]);

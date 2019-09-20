@@ -15,7 +15,6 @@ export default class VideoSuperDecoder {
         this.decoding = false;
         this.byteSize = 0;
         this.loaded = 0;
-        this.initLiveTimestamp = false;
 
         this.decoderRate = calculationRate(rate => {
             flv.emit('decoderRate', rate);
@@ -34,25 +33,30 @@ export default class VideoSuperDecoder {
         });
 
         flv.on('befoerdecoding', timestamp => {
-            this.decoding = true;
-            this.timestamps.push(timestamp);
-            this.videoInputLength += 1;
-            if (options.live && !this.initLiveTimestamp) {
-                this.initLiveTimestamp = true;
+            if (options.live && options.hasAudio && !this.playing && this.timestamps.length >= player.frameRate) {
+                this.timestamps.shift();
             }
+            this.timestamps.push(timestamp);
+            this.decoding = true;
+            this.videoInputLength += 1;
         });
 
         flv.on('decoding', (message, byteSize) => {
-            if (options.live && !this.playing && this.ready) return;
+            if (options.live && options.hasAudio && !this.playing && this.timestamps.length >= player.frameRate) {
+                this.videoframes.shift();
+            }
+            this.videoframes.push(message);
             this.byteSize += byteSize;
             this.videoOutputLength += 1;
-            this.videoframes.push(message);
             this.decoding = this.videoInputLength !== this.videoOutputLength;
             this.loaded = this.videoOutputLength / player.frameRate;
             flv.emit('videoLoaded', this.loaded);
             this.decoderRate(1);
             if (!this.ready && this.videoOutputLength === 1) {
                 this.ready = true;
+                if (options.live) {
+                    decoder.currentTime = this.timestamps[0] / 1000;
+                }
                 flv.emit('ready');
             }
         });
@@ -103,9 +107,7 @@ export default class VideoSuperDecoder {
         this.playing = true;
         if (this.flv.options.live) {
             this.playIndex = 0;
-            this.videoframes = [];
-            this.timestamps = [];
-            this.initLiveTimestamp = false;
+            this.flv.decoder.currentTime = (this.timestamps[0] || 0) / 1000;
         } else {
             this.playIndex = this.timestamps.findIndex(timestamp => {
                 return timestamp >= startTime * 1000;
@@ -117,9 +119,6 @@ export default class VideoSuperDecoder {
         this.playing = false;
         if (this.flv.options.live) {
             this.playIndex = 0;
-            this.videoframes = [];
-            this.timestamps = [];
-            this.initLiveTimestamp = false;
         }
     }
 }

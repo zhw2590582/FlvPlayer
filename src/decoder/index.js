@@ -90,7 +90,7 @@ export default class Decoder {
                         },
                     });
                     this.play();
-                }, 1000);
+                }, options.live ? 3000 : 1000);
                 return;
             } else {
                 this.ended = true;

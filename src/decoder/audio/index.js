@@ -1,4 +1,4 @@
-import Dida from 'dida.js';
+import Dida from 'dida.js/src/';
 
 export default class AudioDecoder {
     constructor(flv, decoder) {

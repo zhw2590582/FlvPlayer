@@ -71,6 +71,7 @@ class FlvPlayer extends Emitter {
         return {
             url: '',
             container: '',
+            poster: '',
             debug: false,
             live: false,
             loop: false,
@@ -100,6 +101,7 @@ class FlvPlayer extends Emitter {
         return {
             url: 'string|file',
             container: 'string|htmldivelement',
+            poster: 'string',
             debug: 'boolean',
             live: 'boolean',
             loop: 'boolean',

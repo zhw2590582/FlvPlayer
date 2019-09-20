@@ -1,3 +1,10 @@
+/*!
+ * FlvPlayer.js v1.1.3
+ * Github: https://github.com/zhw2590582/FlvPlayer#readme
+ * (c) 2017-2019 Harvey Zack
+ * Released under the MIT License.
+ */
+
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
@@ -980,13 +987,6 @@
       this.option.onVolumeChange(value);
     }
 
-    get duration() {
-      return this.audiobuffers.reduce((result, item) => {
-        result += item.duration;
-        return result;
-      }, 0);
-    }
-
     destroy() {
       this.stop();
       this.context = null;
@@ -1072,9 +1072,7 @@
       const index = this.findIndex(startTime);
       const timestamp = this.timestamps[index];
       const audiobuffer = this.audiobuffers[index];
-      if (timestamp === undefined || audiobuffer === undefined) {
-        return this.stop(index, timestamp);
-      }
+      if (timestamp === undefined || audiobuffer === undefined) return this.stop(index, timestamp);
       const offset = Math.max(0, (startTime - timestamp) / 1000);
       this.source = this.context.createBufferSource();
       this.source.connect(this.gainNode);
@@ -1855,7 +1853,7 @@
         });
       }
 
-      console.log('%c FlvPlayer.js %c 1.1.2 %c https://flvplayer.js.org', 'color: #fff; background: #5f5f5f', 'color: #fff; background: #4bc729', '');
+      console.log('%c FlvPlayer.js %c 1.1.3 %c https://flvplayer.js.org', 'color: #fff; background: #5f5f5f', 'color: #fff; background: #4bc729', '');
       return _this;
     }
 
@@ -1895,6 +1893,7 @@
         return {
           url: '',
           container: '',
+          poster: '',
           debug: false,
           live: false,
           loop: false,
@@ -1925,6 +1924,7 @@
         return {
           url: 'string|file',
           container: 'string|htmldivelement',
+          poster: 'string',
           debug: 'boolean',
           live: 'boolean',
           loop: 'boolean',
@@ -1957,7 +1957,7 @@
     }, {
       key: "version",
       get: function get() {
-        return '1.1.2';
+        return '1.1.3';
       }
     }, {
       key: "env",

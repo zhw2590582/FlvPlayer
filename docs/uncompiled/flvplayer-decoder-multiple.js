@@ -1,3 +1,10 @@
+/*!
+ * FlvPlayer.js v1.1.3
+ * Github: https://github.com/zhw2590582/FlvPlayer#readme
+ * (c) 2017-2019 Harvey Zack
+ * Released under the MIT License.
+ */
+
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :

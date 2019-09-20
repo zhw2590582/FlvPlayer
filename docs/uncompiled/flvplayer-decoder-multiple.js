@@ -208,7 +208,6 @@
 
         if (!_this.ready && _this.videoOutputLength === 1) {
           _this.ready = true;
-          decoder.currentTime = _this.timestamps[0] / 1000;
           flv.emit('ready');
         }
       });

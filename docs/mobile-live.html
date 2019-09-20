@@ -52,17 +52,17 @@
         if (FlvPlayer.isSupported()) {
             var flv = new FlvPlayer({
                 container: '.flvplayer-app',
-                poster: './assets/img/weathering-with-you-poster.jpg',
-                url: './assets/video/weathering-with-you.flv',
+                url: 'http://localhost:7001/demo/demo.flv',
                 decoder: './uncompiled/flvplayer-decoder-baseline.js',
-                // decoder: './uncompiled/flvplayer-decoder-multiple.js',
                 debug: true,
-                cache: false,
+                live: true,
                 muted: true,
+                autoPlay: true,
+                hasAudio: true,
                 videoChunk: 1024 * 1024,
-                audioChunk: 64 * 1024,
-                width: 640,
-                height: 360,
+                audioChunk: 16 * 1024,
+                width: 960,
+                height: 540,
             });
         } else {
             console.warn('Your browser does not support Flvplayer.js');

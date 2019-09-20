@@ -7,7 +7,7 @@ import nodeResolve from 'rollup-plugin-node-resolve';
 import { eslint } from 'rollup-plugin-eslint';
 import replace from 'rollup-plugin-replace';
 import { string } from 'rollup-plugin-string';
-import { uglify } from 'rollup-plugin-uglify';
+import minify from 'rollup-plugin-babel-minify';
 import workerInline from 'rollup-plugin-worker-inline';
 import { version, homepage } from './package.json';
 
@@ -17,6 +17,13 @@ const baseConfig = {
     output: {
         format: 'umd',
         sourcemap: !isProd,
+        banner:
+            '/*!\n' +
+            ` * FlvPlayer.js v${version}\n` +
+            ` * Github: ${homepage}\n` +
+            ` * (c) 2017-${new Date().getFullYear()} Harvey Zack\n` +
+            ' * Released under the MIT License.\n' +
+            ' */\n',
     },
     plugins: [
         eslint({
@@ -46,18 +53,7 @@ const baseConfig = {
             __ENV__: JSON.stringify(process.env.NODE_ENV || 'development'),
             __VERSION__: version,
         }),
-        isProd &&
-            uglify({
-                output: {
-                    preamble:
-                        '/*!\n' +
-                        ` * FlvPlayer.js v${version}\n` +
-                        ` * Github: ${homepage}\n` +
-                        ` * (c) 2017-${new Date().getFullYear()} Harvey Zack\n` +
-                        ' * Released under the MIT License.\n' +
-                        ' */\n',
-                },
-            }),
+        isProd && minify(),
     ],
 };
 

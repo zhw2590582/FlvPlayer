@@ -1576,7 +1576,8 @@
 
       this.flv = flv;
       var options = flv.options,
-          player = flv.player;
+          player = flv.player,
+          debug = flv.debug;
       this.byteLength = 0;
       this.reader = null;
       this.chunkStart = 0;
@@ -1601,17 +1602,17 @@
       });
 
       if (checkReadableStream()) {
+        debug.log('stream-type', 'Try use ReadableStream');
         this.initFetchStream();
       } else {
+        debug.log('stream-type', 'Try use http headers range');
         fetch(options.url, {
           method: 'head',
           credentials: options.withCredentials ? 'include' : 'omit',
-          mode: options.cors ? 'cors' : 'no-cors',
-          headers: {
-            range: 'bytes=0-1024'
-          }
+          mode: options.cors ? 'cors' : 'no-cors'
         }).then(function (response) {
           _this.contentLength = Number(response.headers.get('content-length')) || options.filesize;
+          debug.log('stream-contentLength', _this.contentLength);
 
           _this.flv.emit('streamStart');
 
@@ -1637,62 +1638,81 @@
     }, {
       key: "initFetchStream",
       value: function initFetchStream() {
+        var _this2 = this;
+
         var _this$flv = this.flv,
             options = _this$flv.options,
             debug = _this$flv.debug;
-        var self = this;
         this.flv.emit('streamStart');
         return fetch(options.url, {
           credentials: options.withCredentials ? 'include' : 'omit',
           mode: options.cors ? 'cors' : 'no-cors',
           headers: options.headers
         }).then(function (response) {
-          self.reader = response.body.getReader();
-          return function read() {
-            return self.reader.read().then(function (_ref) {
-              var done = _ref.done,
-                  value = _ref.value;
+          if (response.body && typeof response.body.getReader === 'function') {
+            _this2.reader = response.body.getReader();
+            return function read() {
+              var _this3 = this;
 
-              if (done) {
-                self.flv.emit('streamEnd');
-                debug.log('stream-end', "".concat(self.byteLength, " byte"));
-                return;
-              }
+              return this.reader.read().then(function (_ref) {
+                var done = _ref.done,
+                    value = _ref.value;
 
-              var uint8 = new Uint8Array(value);
-              self.byteLength += uint8.byteLength;
-              self.streamRate(uint8.byteLength);
+                if (done) {
+                  _this3.flv.emit('streamEnd');
 
-              if (options.live) {
-                self.flv.emit('streaming', uint8);
-              } else {
-                self.data = mergeBuffer(self.data, uint8);
-
-                if (self.chunkStart === 0 && self.data.length >= self.chunkSize) {
-                  self.readChunk();
+                  debug.log('stream-end', "".concat(_this3.byteLength, " byte"));
+                  return null;
                 }
-              } // eslint-disable-next-line consistent-return
 
+                var uint8 = new Uint8Array(value);
+                _this3.byteLength += uint8.byteLength;
 
-              return read();
-            }).catch(function (error) {
-              self.flv.emit('streamError', error);
-              throw error;
-            });
-          }();
+                _this3.streamRate(uint8.byteLength);
+
+                if (options.live) {
+                  _this3.flv.emit('streaming', uint8);
+                } else {
+                  _this3.data = mergeBuffer(_this3.data, uint8);
+
+                  if (_this3.chunkStart === 0 && _this3.data.length >= _this3.chunkSize) {
+                    _this3.readChunk();
+                  }
+                }
+
+                return read.call(_this3);
+              }).catch(function (error) {
+                _this3.flv.emit('streamError', error);
+
+                throw error;
+              });
+            }.call(_this2);
+          }
+
+          debug.log('stream-type', 'Try use response arrayBuffer');
+          return response.arrayBuffer();
+        }).then(function (arrayBuffer) {
+          if (arrayBuffer && arrayBuffer.byteLength && !options.live) {
+            _this2.data = new Uint8Array(arrayBuffer);
+            _this2.byteLength += _this2.data.byteLength;
+
+            _this2.flv.emit('streamEnd', _this2.data);
+
+            debug.log('stream-end', "".concat(_this2.byteLength, " byte"));
+          }
         }).catch(function (error) {
-          self.flv.emit('streamError', error);
+          _this2.flv.emit('streamError', error);
+
           throw error;
         });
       }
     }, {
       key: "initFetchRange",
       value: function initFetchRange(rangeStart, rangeEnd) {
+        var _this4 = this;
+
         var options = this.flv.options;
-        var self = this;
-        var rangeUrl = new URL(options.url);
-        rangeUrl.searchParams.append('range', "".concat(rangeStart, "-").concat(rangeEnd));
-        return fetch(rangeUrl.href, {
+        return fetch(options.url, {
           credentials: options.withCredentials ? 'include' : 'omit',
           mode: options.cors ? 'cors' : 'no-cors',
           headers: _objectSpread({}, options.headers, {
@@ -1702,27 +1722,29 @@
           return response.arrayBuffer();
         }).then(function (value) {
           var uint8 = new Uint8Array(value);
-          self.byteLength += uint8.byteLength;
-          self.streamRate(uint8.byteLength);
+          _this4.byteLength += uint8.byteLength;
+
+          _this4.streamRate(uint8.byteLength);
 
           if (options.live) {
-            self.flv.emit('streaming', uint8);
+            _this4.flv.emit('streaming', uint8);
           } else {
-            self.data = mergeBuffer(self.data, uint8);
+            _this4.data = mergeBuffer(_this4.data, uint8);
 
-            if (self.chunkStart === 0 && self.data.length >= self.chunkSize) {
-              self.readChunk();
+            if (_this4.chunkStart === 0 && _this4.data.length >= _this4.chunkSize) {
+              _this4.readChunk();
             }
           }
 
-          var nextRangeStart = Math.min(self.contentLength, rangeEnd + 1);
-          var nextRangeEnd = Math.min(self.contentLength, nextRangeStart + self.chunkSize);
+          var nextRangeStart = Math.min(_this4.contentLength, rangeEnd + 1);
+          var nextRangeEnd = Math.min(_this4.contentLength, nextRangeStart + _this4.chunkSize);
 
           if (nextRangeEnd > nextRangeStart) {
-            self.initFetchRange(nextRangeStart, nextRangeEnd);
+            _this4.initFetchRange(nextRangeStart, nextRangeEnd);
           }
         }).catch(function (error) {
-          self.flv.emit('streamError', error);
+          _this4.flv.emit('streamError', error);
+
           throw error;
         });
       }

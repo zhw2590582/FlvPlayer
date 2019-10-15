@@ -4,7 +4,7 @@ import { checkReadableStream } from '../utils/isSupported';
 export default class FetchLoader {
     constructor(flv) {
         this.flv = flv;
-        const { options, player } = flv;
+        const { options, player, debug } = flv;
         this.byteLength = 0;
         this.reader = null;
         this.chunkStart = 0;
@@ -20,7 +20,7 @@ export default class FetchLoader {
         flv.on('destroy', () => {
             if (this.reader) {
                 this.reader.cancel();
-            } 
+            }
             this.data = null;
         });
 
@@ -31,18 +31,18 @@ export default class FetchLoader {
         });
 
         if (checkReadableStream()) {
+            debug.log('stream-type', 'Try use ReadableStream');
             this.initFetchStream();
         } else {
+            debug.log('stream-type', 'Try use http headers range');
             fetch(options.url, {
                 method: 'head',
                 credentials: options.withCredentials ? 'include' : 'omit',
                 mode: options.cors ? 'cors' : 'no-cors',
-                headers: {
-                    range: 'bytes=0-1024',
-                },
             })
                 .then(response => {
                     this.contentLength = Number(response.headers.get('content-length')) || options.filesize;
+                    debug.log('stream-contentLength', this.contentLength);
                     this.flv.emit('streamStart');
                     this.initFetchRange(0, this.chunkSize);
                 })
@@ -64,7 +64,6 @@ export default class FetchLoader {
 
     initFetchStream() {
         const { options, debug } = this.flv;
-        const self = this;
         this.flv.emit('streamStart');
         return fetch(options.url, {
             credentials: options.withCredentials ? 'include' : 'omit',
@@ -72,51 +71,60 @@ export default class FetchLoader {
             headers: options.headers,
         })
             .then(response => {
-                self.reader = response.body.getReader();
-                return (function read() {
-                    return self.reader
-                        .read()
-                        .then(({ done, value }) => {
-                            if (done) {
-                                self.flv.emit('streamEnd');
-                                debug.log('stream-end', `${self.byteLength} byte`);
-                                return;
-                            }
-
-                            const uint8 = new Uint8Array(value);
-                            self.byteLength += uint8.byteLength;
-                            self.streamRate(uint8.byteLength);
-
-                            if (options.live) {
-                                self.flv.emit('streaming', uint8);
-                            } else {
-                                self.data = mergeBuffer(self.data, uint8);
-                                if (self.chunkStart === 0 && self.data.length >= self.chunkSize) {
-                                    self.readChunk();
+                if (response.body && typeof response.body.getReader === 'function') {
+                    this.reader = response.body.getReader();
+                    return function read() {
+                        return this.reader
+                            .read()
+                            .then(({ done, value }) => {
+                                if (done) {
+                                    this.flv.emit('streamEnd');
+                                    debug.log('stream-end', `${this.byteLength} byte`);
+                                    return null;
                                 }
-                            }
 
-                            // eslint-disable-next-line consistent-return
-                            return read();
-                        })
-                        .catch(error => {
-                            self.flv.emit('streamError', error);
-                            throw error;
-                        });
-                })();
+                                const uint8 = new Uint8Array(value);
+                                this.byteLength += uint8.byteLength;
+                                this.streamRate(uint8.byteLength);
+
+                                if (options.live) {
+                                    this.flv.emit('streaming', uint8);
+                                } else {
+                                    this.data = mergeBuffer(this.data, uint8);
+                                    if (this.chunkStart === 0 && this.data.length >= this.chunkSize) {
+                                        this.readChunk();
+                                    }
+                                }
+
+                                return read.call(this);
+                            })
+                            .catch(error => {
+                                this.flv.emit('streamError', error);
+                                throw error;
+                            });
+                    }.call(this);
+                }
+
+                debug.log('stream-type', 'Try use response arrayBuffer');
+                return response.arrayBuffer();
+            })
+            .then(arrayBuffer => {
+                if (arrayBuffer && arrayBuffer.byteLength && !options.live) {
+                    this.data = new Uint8Array(arrayBuffer);
+                    this.byteLength += this.data.byteLength;
+                    this.flv.emit('streamEnd', this.data);
+                    debug.log('stream-end', `${this.byteLength} byte`);
+                }
             })
             .catch(error => {
-                self.flv.emit('streamError', error);
+                this.flv.emit('streamError', error);
                 throw error;
             });
     }
 
     initFetchRange(rangeStart, rangeEnd) {
         const { options } = this.flv;
-        const self = this;
-        const rangeUrl = new URL(options.url);
-        rangeUrl.searchParams.append('range', `${rangeStart}-${rangeEnd}`);
-        return fetch(rangeUrl.href, {
+        return fetch(options.url, {
             credentials: options.withCredentials ? 'include' : 'omit',
             mode: options.cors ? 'cors' : 'no-cors',
             headers: {
@@ -127,26 +135,26 @@ export default class FetchLoader {
             .then(response => response.arrayBuffer())
             .then(value => {
                 const uint8 = new Uint8Array(value);
-                self.byteLength += uint8.byteLength;
-                self.streamRate(uint8.byteLength);
+                this.byteLength += uint8.byteLength;
+                this.streamRate(uint8.byteLength);
 
                 if (options.live) {
-                    self.flv.emit('streaming', uint8);
+                    this.flv.emit('streaming', uint8);
                 } else {
-                    self.data = mergeBuffer(self.data, uint8);
-                    if (self.chunkStart === 0 && self.data.length >= self.chunkSize) {
-                        self.readChunk();
+                    this.data = mergeBuffer(this.data, uint8);
+                    if (this.chunkStart === 0 && this.data.length >= this.chunkSize) {
+                        this.readChunk();
                     }
                 }
 
-                const nextRangeStart = Math.min(self.contentLength, rangeEnd + 1);
-                const nextRangeEnd = Math.min(self.contentLength, nextRangeStart + self.chunkSize);
+                const nextRangeStart = Math.min(this.contentLength, rangeEnd + 1);
+                const nextRangeEnd = Math.min(this.contentLength, nextRangeStart + this.chunkSize);
                 if (nextRangeEnd > nextRangeStart) {
-                    self.initFetchRange(nextRangeStart, nextRangeEnd);
+                    this.initFetchRange(nextRangeStart, nextRangeEnd);
                 }
             })
             .catch(error => {
-                self.flv.emit('streamError', error);
+                this.flv.emit('streamError', error);
                 throw error;
             });
     }

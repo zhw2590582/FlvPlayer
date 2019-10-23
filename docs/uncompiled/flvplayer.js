@@ -747,9 +747,9 @@
     Object.defineProperty(player, 'duration', {
       get: function get() {
         try {
-          return flv.demuxer.scripMeta.amf2.metaData.duration;
+          return flv.demuxer.scripMeta.amf2.metaData.duration || flv.options.duration;
         } catch (error) {
-          return flv.options.duration || 0;
+          return flv.options.duration;
         }
       }
     });
@@ -1935,6 +1935,7 @@
           filesize: Infinity,
           width: 400,
           height: 300,
+          duration: 0,
           socketSend: '',
           headers: {},
           decoder: './flvplayer-decoder-baseline.js'
@@ -1966,6 +1967,7 @@
           filesize: 'number',
           width: 'number',
           height: 'number',
+          duration: 'number',
           socketSend: 'string',
           headers: 'object',
           decoder: 'string'

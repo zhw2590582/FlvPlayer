@@ -53,9 +53,9 @@ export default function property(flv, player) {
     Object.defineProperty(player, 'duration', {
         get: () => {
             try {
-                return flv.demuxer.scripMeta.amf2.metaData.duration;
+                return flv.demuxer.scripMeta.amf2.metaData.duration || flv.options.duration;
             } catch (error) {
-                return flv.options.duration || 0;
+                return flv.options.duration;
             }
         },
     });

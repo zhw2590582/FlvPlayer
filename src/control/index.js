@@ -5,7 +5,7 @@ import hotkey from './hotkey';
 import property from './property';
 import events from './events';
 
-export default class Control {
+class Control {
     constructor(flv) {
         template(flv, this);
         observer(flv, this);
@@ -16,3 +16,6 @@ export default class Control {
         }
     }
 }
+
+window.FlvplayerControl = Control;
+export default Control;

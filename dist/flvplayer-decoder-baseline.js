@@ -1,7 +1,7 @@
 /*!
- * FlvPlayer.js v1.1.3
+ * FlvPlayer.js v1.1.4
  * Github: https://github.com/zhw2590582/FlvPlayer#readme
- * (c) 2017-2019 Harvey Zack
+ * (c) 2017-2020 Harvey Zack
  * Released under the MIT License.
  */(function(A,I){"object"==typeof exports&&"undefined"!=typeof module?module.exports=I():"function"==typeof define&&define.amd?define(I):(A=A||self,A.FlvplayerDecoder=I())})(this,function(){'use strict';function A(A,I){for(var B,g=0;g<I.length;g++)B=I[g],B.enumerable=B.enumerable||!1,B.configurable=!0,"value"in B&&(B.writable=!0),Object.defineProperty(A,B.key,B)}function I(A,I){return I={exports:{}},A(I,I.exports),I.exports}function B(A){return new Worker(URL.createObjectURL(new Blob([A],{type:"application/javascript"})))}function g(){return performance&&"function"==typeof performance.now?performance.now():Date.now()}function Q(A){var I=0,B=g();return function(Q){I+=Q;var E=g(),C=E-B;1e3<=C&&(A(1e3*(I/C)),B=E,I=0)}}//
 //  Copyright (c) 2014 Sam Leitch. All rights reserved.

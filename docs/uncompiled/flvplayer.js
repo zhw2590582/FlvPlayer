@@ -1,15 +1,8 @@
-/*!
- * FlvPlayer.js v1.1.3
- * Github: https://github.com/zhw2590582/FlvPlayer#readme
- * (c) 2017-2019 Harvey Zack
- * Released under the MIT License.
- */
-
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
   (global = global || self, global.FlvPlayer = factory());
-}(this, function () { 'use strict';
+}(this, (function () { 'use strict';
 
   function _defineProperty(obj, key, value) {
     if (key in obj) {
@@ -61,16 +54,16 @@
   }
 
   var _typeof_1 = createCommonjsModule(function (module) {
-  function _typeof2(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof2 = function _typeof2(obj) { return typeof obj; }; } else { _typeof2 = function _typeof2(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof2(obj); }
-
   function _typeof(obj) {
-    if (typeof Symbol === "function" && _typeof2(Symbol.iterator) === "symbol") {
+    "@babel/helpers - typeof";
+
+    if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
       module.exports = _typeof = function _typeof(obj) {
-        return _typeof2(obj);
+        return typeof obj;
       };
     } else {
       module.exports = _typeof = function _typeof(obj) {
-        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : _typeof2(obj);
+        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
       };
     }
 
@@ -142,7 +135,7 @@
   var inherits = _inherits;
 
   var optionValidator = createCommonjsModule(function (module, exports) {
-  !function(r,t){module.exports=t();}(commonjsGlobal,function(){function e(r){return (e="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(r){return typeof r}:function(r){return r&&"function"==typeof Symbol&&r.constructor===Symbol&&r!==Symbol.prototype?"symbol":typeof r})(r)}var n=Object.prototype.toString,c=function(r){if(void 0===r)return "undefined";if(null===r)return "null";var t=e(r);if("boolean"===t)return "boolean";if("string"===t)return "string";if("number"===t)return "number";if("symbol"===t)return "symbol";if("function"===t)return function(r){return "GeneratorFunction"===o(r)}(r)?"generatorfunction":"function";if(function(r){return Array.isArray?Array.isArray(r):r instanceof Array}(r))return "array";if(function(r){if(r.constructor&&"function"==typeof r.constructor.isBuffer)return r.constructor.isBuffer(r);return !1}(r))return "buffer";if(function(r){try{if("number"==typeof r.length&&"function"==typeof r.callee)return !0}catch(r){if(-1!==r.message.indexOf("callee"))return !0}return !1}(r))return "arguments";if(function(r){return r instanceof Date||"function"==typeof r.toDateString&&"function"==typeof r.getDate&&"function"==typeof r.setDate}(r))return "date";if(function(r){return r instanceof Error||"string"==typeof r.message&&r.constructor&&"number"==typeof r.constructor.stackTraceLimit}(r))return "error";if(function(r){return r instanceof RegExp||"string"==typeof r.flags&&"boolean"==typeof r.ignoreCase&&"boolean"==typeof r.multiline&&"boolean"==typeof r.global}(r))return "regexp";switch(o(r)){case"Symbol":return "symbol";case"Promise":return "promise";case"WeakMap":return "weakmap";case"WeakSet":return "weakset";case"Map":return "map";case"Set":return "set";case"Int8Array":return "int8array";case"Uint8Array":return "uint8array";case"Uint8ClampedArray":return "uint8clampedarray";case"Int16Array":return "int16array";case"Uint16Array":return "uint16array";case"Int32Array":return "int32array";case"Uint32Array":return "uint32array";case"Float32Array":return "float32array";case"Float64Array":return "float64array"}if(function(r){return "function"==typeof r.throw&&"function"==typeof r.return&&"function"==typeof r.next}(r))return "generator";switch(t=n.call(r)){case"[object Object]":return "object";case"[object Map Iterator]":return "mapiterator";case"[object Set Iterator]":return "setiterator";case"[object String Iterator]":return "stringiterator";case"[object Array Iterator]":return "arrayiterator"}return t.slice(8,-1).toLowerCase().replace(/\s/g,"")};function o(r){return r.constructor?r.constructor.name:null}function f(r,t){var e=2<arguments.length&&void 0!==arguments[2]?arguments[2]:["option"];return s(r,t,e),y(r,t,e),function(a,i,u){var r=c(i),t=c(a);if("object"===r){if("object"!==t)throw new Error("[Type Error]: '".concat(u.join("."),"' require 'object' type, but got '").concat(t,"'"));Object.keys(i).forEach(function(r){var t=a[r],e=i[r],n=u.slice();n.push(r),s(t,e,n),y(t,e,n),f(t,e,n);});}if("array"===r){if("array"!==t)throw new Error("[Type Error]: '".concat(u.join("."),"' require 'array' type, but got '").concat(t,"'"));a.forEach(function(r,t){var e=a[t],n=i[t]||i[0],o=u.slice();o.push(t),s(e,n,o),y(e,n,o),f(e,n,o);});}}(r,t,e),r}function s(r,t,e){if("string"===c(t)){var n=c(r);if(!(-1<t.indexOf("|")?t.split("|").map(function(r){return r.toLowerCase().trim()}).filter(Boolean).some(function(r){return n===r}):t.toLowerCase().trim()===n))throw new Error("[Type Error]: '".concat(e.join("."),"' require '").concat(t,"' type, but got '").concat(n,"'"))}}function y(r,t,e){if("function"===c(t)){var n=t(r,c(r),e);if(!0!==n){var o=c(n);throw"string"===o?new Error(n):"error"===o?n:new Error("[Validator Error]: The scheme for '".concat(e.join("."),"' validator require return true, but got '").concat(n,"'"))}}}return f.kindOf=c,f});
+  !function(r,t){module.exports=t();}(commonjsGlobal,function(){function e(r){return (e="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(r){return typeof r}:function(r){return r&&"function"==typeof Symbol&&r.constructor===Symbol&&r!==Symbol.prototype?"symbol":typeof r})(r)}var n=Object.prototype.toString,c=function(r){if(void 0===r)return "undefined";if(null===r)return "null";var t=e(r);if("boolean"===t)return "boolean";if("string"===t)return "string";if("number"===t)return "number";if("symbol"===t)return "symbol";if("function"===t)return function(r){return "GeneratorFunction"===o(r)}(r)?"generatorfunction":"function";if(function(r){return Array.isArray?Array.isArray(r):r instanceof Array}(r))return "array";if(function(r){if(r.constructor&&"function"==typeof r.constructor.isBuffer)return r.constructor.isBuffer(r);return !1}(r))return "buffer";if(function(r){try{if("number"==typeof r.length&&"function"==typeof r.callee)return !0}catch(r){if(-1!==r.message.indexOf("callee"))return !0}return !1}(r))return "arguments";if(function(r){return r instanceof Date||"function"==typeof r.toDateString&&"function"==typeof r.getDate&&"function"==typeof r.setDate}(r))return "date";if(function(r){return r instanceof Error||"string"==typeof r.message&&r.constructor&&"number"==typeof r.constructor.stackTraceLimit}(r))return "error";if(function(r){return r instanceof RegExp||"string"==typeof r.flags&&"boolean"==typeof r.ignoreCase&&"boolean"==typeof r.multiline&&"boolean"==typeof r.global}(r))return "regexp";switch(o(r)){case"Symbol":return "symbol";case"Promise":return "promise";case"WeakMap":return "weakmap";case"WeakSet":return "weakset";case"Map":return "map";case"Set":return "set";case"Int8Array":return "int8array";case"Uint8Array":return "uint8array";case"Uint8ClampedArray":return "uint8clampedarray";case"Int16Array":return "int16array";case"Uint16Array":return "uint16array";case"Int32Array":return "int32array";case"Uint32Array":return "uint32array";case"Float32Array":return "float32array";case"Float64Array":return "float64array"}if(function(r){return "function"==typeof r.throw&&"function"==typeof r.return&&"function"==typeof r.next}(r))return "generator";switch(t=n.call(r)){case"[object Object]":return "object";case"[object Map Iterator]":return "mapiterator";case"[object Set Iterator]":return "setiterator";case"[object String Iterator]":return "stringiterator";case"[object Array Iterator]":return "arrayiterator"}return t.slice(8,-1).toLowerCase().replace(/\s/g,"")};function o(r){return r.constructor?r.constructor.name:null}function f(r,t){var e=2<arguments.length&&void 0!==arguments[2]?arguments[2]:["option"];return s(r,t,e),y(r,t,e),function(a,i,u){var r=c(i),t=c(a);if("object"===r){if("object"!==t)throw new Error("[Type Error]: '".concat(u.join("."),"' require 'object' type, but got '").concat(t,"'"));Object.keys(i).forEach(function(r){var t=a[r],e=i[r],n=u.slice();n.push(r),s(t,e,n),y(t,e,n),f(t,e,n);});}if("array"===r){if("array"!==t)throw new Error("[Type Error]: '".concat(u.join("."),"' require 'array' type, but got '").concat(t,"'"));a.forEach(function(r,t){var e=a[t],n=i[t]||i[0],o=u.slice();o.push(t),s(e,n,o),y(e,n,o),f(e,n,o);});}}(r,t,e),r}function s(r,t,e){if("string"===c(t)){var n=c(r);if(!(-1<t.indexOf("|")?t.split("|").map(function(r){return r.toLowerCase().trim()}).filter(Boolean).some(function(r){return n===r}):t.toLowerCase().trim()===n))throw new Error("[Type Error]: '".concat(e.join("."),"' require '").concat(t,"' type, but got '").concat(n,"'"))}}function y(r,t,e){if("function"===c(t)){var n=t(r,c(r),e);if(!0!==n){var o=c(n);throw "string"===o?new Error(n):"error"===o?n:new Error("[Validator Error]: The scheme for '".concat(e.join("."),"' validator require return true, but got '").concat(n,"'"))}}}return f.kindOf=c,f});
   });
 
   function checkWebAssembly() {
@@ -217,9 +210,7 @@
     return checkWebAssembly() && checkWorker() && checkFetch() && checkBlob() && checkArrayBuffer() && checkURL() && checkAACType() && checkAudioContext() && checkWebGL();
   }
 
-  var Emitter =
-  /*#__PURE__*/
-  function () {
+  var Emitter = /*#__PURE__*/function () {
     function Emitter() {
       classCallCheck(this, Emitter);
     }
@@ -371,9 +362,7 @@
   module.exports = _wrapNativeSuper;
   });
 
-  var FlvPlayerError =
-  /*#__PURE__*/
-  function (_Error) {
+  var FlvPlayerError = /*#__PURE__*/function (_Error) {
     inherits(FlvPlayerError, _Error);
 
     function FlvPlayerError(message) {
@@ -387,7 +376,7 @@
     }
 
     return FlvPlayerError;
-  }(wrapNativeSuper(Error));
+  }( /*#__PURE__*/wrapNativeSuper(Error));
 
   var Debug = function Debug(flv) {
     classCallCheck(this, Debug);
@@ -425,9 +414,7 @@
     };
   };
 
-  var Events =
-  /*#__PURE__*/
-  function () {
+  var Events = /*#__PURE__*/function () {
     function Events(flv) {
       var _this = this;
 
@@ -683,6 +670,7 @@
   }
 
   var utils = /*#__PURE__*/Object.freeze({
+    __proto__: null,
     isMobile: isMobile,
     isWechat: isWechat,
     hasOwnProperty: hasOwnProperty,
@@ -987,6 +975,13 @@
       this.option.onVolumeChange(value);
     }
 
+    get duration() {
+      return this.audiobuffers.reduce((result, item) => {
+        result += item.duration;
+        return result;
+      }, 0);
+    }
+
     destroy() {
       this.stop();
       this.context = null;
@@ -1118,9 +1113,7 @@
     }
   }
 
-  var AudioDecoder =
-  /*#__PURE__*/
-  function () {
+  var AudioDecoder = /*#__PURE__*/function () {
     function AudioDecoder(flv, decoder) {
       var _this = this;
 
@@ -1207,9 +1200,7 @@
     return AudioDecoder;
   }();
 
-  var Decoder =
-  /*#__PURE__*/
-  function () {
+  var Decoder = /*#__PURE__*/function () {
     function Decoder(flv) {
       var _this = this;
 
@@ -1444,7 +1435,7 @@
     this.scripMeta = null;
     this.AudioSpecificConfig = null;
     this.AVCDecoderConfigurationRecord = null;
-    this.demuxWorker = new Worker(URL.createObjectURL(new Blob(["\"use strict\";function _toConsumableArray(a){return _arrayWithoutHoles(a)||_iterableToArray(a)||_nonIterableSpread()}function _nonIterableSpread(){throw new TypeError(\"Invalid attempt to spread non-iterable instance\")}function _iterableToArray(a){if(Symbol.iterator in Object(a)||\"[object Arguments]\"===Object.prototype.toString.call(a))return Array.from(a)}function _arrayWithoutHoles(a){if(Array.isArray(a)){for(var b=0,c=Array(a.length);b<a.length;b++)c[b]=a[b];return c}}function _typeof(a){return _typeof=\"function\"==typeof Symbol&&\"symbol\"==typeof Symbol.iterator?function(a){return typeof a}:function(a){return a&&\"function\"==typeof Symbol&&a.constructor===Symbol&&a!==Symbol.prototype?\"symbol\":typeof a},_typeof(a)}function _classCallCheck(a,b){if(!(a instanceof b))throw new TypeError(\"Cannot call a class as a function\")}function _possibleConstructorReturn(a,b){return b&&(\"object\"===_typeof(b)||\"function\"==typeof b)?b:_assertThisInitialized(a)}function _assertThisInitialized(a){if(void 0===a)throw new ReferenceError(\"this hasn't been initialised - super() hasn't been called\");return a}function _inherits(a,b){if(\"function\"!=typeof b&&null!==b)throw new TypeError(\"Super expression must either be null or a function\");a.prototype=Object.create(b&&b.prototype,{constructor:{value:a,writable:!0,configurable:!0}}),b&&_setPrototypeOf(a,b)}function _wrapNativeSuper(a){var b=\"function\"==typeof Map?new Map:void 0;return _wrapNativeSuper=function(a){function c(){return _construct(a,arguments,_getPrototypeOf(this).constructor)}if(null===a||!_isNativeFunction(a))return a;if(\"function\"!=typeof a)throw new TypeError(\"Super expression must either be null or a function\");if(\"undefined\"!=typeof b){if(b.has(a))return b.get(a);b.set(a,c)}return c.prototype=Object.create(a.prototype,{constructor:{value:c,enumerable:!1,writable:!0,configurable:!0}}),_setPrototypeOf(c,a)},_wrapNativeSuper(a)}function isNativeReflectConstruct(){if(\"undefined\"==typeof Reflect||!Reflect.construct)return!1;if(Reflect.construct.sham)return!1;if(\"function\"==typeof Proxy)return!0;try{return Date.prototype.toString.call(Reflect.construct(Date,[],function(){})),!0}catch(a){return!1}}function _construct(){return _construct=isNativeReflectConstruct()?Reflect.construct:function(b,c,d){var e=[null];e.push.apply(e,c);var a=Function.bind.apply(b,e),f=new a;return d&&_setPrototypeOf(f,d.prototype),f},_construct.apply(null,arguments)}function _isNativeFunction(a){return-1!==Function.toString.call(a).indexOf(\"[native code]\")}function _setPrototypeOf(a,b){return _setPrototypeOf=Object.setPrototypeOf||function(a,b){return a.__proto__=b,a},_setPrototypeOf(a,b)}function _getPrototypeOf(a){return _getPrototypeOf=Object.setPrototypeOf?Object.getPrototypeOf:function(a){return a.__proto__||Object.getPrototypeOf(a)},_getPrototypeOf(a)}var FlvPlayerError=/*#__PURE__*/function(a){function b(a){var c;return _classCallCheck(this,b),c=_possibleConstructorReturn(this,_getPrototypeOf(b).call(this,a)),c.name=\"FlvPlayerError\",c}return _inherits(b,a),b}(_wrapNativeSuper(Error)),debug={warn:function warn(a){if(!a){for(var b,c=arguments.length,d=Array(1<c?c-1:0),e=1;e<c;e++)d[e-1]=arguments[e];(b=console).warn.apply(b,d)}},error:function error(a,b){if(!a)throw new FlvPlayerError(b)}};function mergeBuffer(){for(var a=arguments.length,b=Array(a),c=0;c<a;c++)b[c]=arguments[c];var d=b[0].constructor;return b.reduce(function(a,b){var c=new d((0|a.byteLength)+(0|b.byteLength));return c.set(a,0),c.set(b,0|a.byteLength),c},new d)}function readBufferSum(a){var b=!(1<arguments.length&&arguments[1]!==void 0)||arguments[1];return a.reduce(function(c,d,e){return c+(b?d:d-128)*Math.pow(256,a.length-e-1)},0)}function readString(a){var b;return(b=String.fromCharCode).call.apply(b,[String].concat(_toConsumableArray(a)))}function readBuffer(a){function b(d){for(var e=new Uint8Array(d),f=0;f<d;f+=1)e[f]=a[c],c+=1;return b.index=c,e}var c=0;return b.index=0,b}function readDouble(a){var c=new DataView(new ArrayBuffer(a.length));return a.forEach(function(a,b){c.setUint8(b,a)}),c.getFloat64(0)}function readBoolean(a){return 0!==a[0]}var index=0,header=null,uint8=new Uint8Array,scripMeta=null,AudioSpecificConfig=null,AVCDecoderConfigurationRecord=null,nalStart=new Uint8Array([0,0,0,1]);function readable(a){return uint8.length-index>=a}function read(a){for(var b=new Uint8Array(a),c=0;c<a;c+=1)b[c]=uint8[index],index+=1;return b}function demuxerScripTag(a){function b(a){var d=null;if(a!==void 0)switch(a){case 0:d=readDouble(c(8));break;case 1:d=readBoolean(c(1));break;case 2:{var l=readBufferSum(c(2));d=readString(c(l));break}case 3:{d=Object.create(null);for(var m=-1;9!==m;){var e=readBufferSum(c(2)),f=readString(c(e)),g=c(1)[0];f&&(d[f]=b(g)),m=g}break}case 5:d=null;break;case 6:d=void 0;break;case 7:d=\"Reference #\".concat(c.index),c(2);break;case 8:{d=Object.create(null);for(var n=-1;9!==n;){var h=readBufferSum(c(2)),j=readString(c(h)),k=c(1)[0];j&&(d[j]=b(k)),n=k}break}case 10:{var o=readBufferSum(c(4));d=[];for(var p,q=0;q<o;q+=1)p=c(1)[0],d.push(b(p));break}case 11:d=readDouble(c(2));break;case 12:{var i=readBufferSum(c(4));d=readString(c(i));break}default:debug.error(!1,\"AMF: Unknown metaData type: \".concat(a));}return d}var c=readBuffer(a.body),d=Object.create(null),e=Object.create(null);for(d.type=c(1)[0],debug.error(2===d.type,\"AMF: [amf1] type expect 2, but got \".concat(d.type)),d.size=readBufferSum(c(2)),d.string=readString(c(d.size)),e.type=c(1)[0],debug.error(8===e.type||3===e.type,\"AMF: [amf2] type expect 8 or 3, but got \".concat(e.type)),e.size=readBufferSum(c(4)),e.metaData=Object.create(null);c.index<a.body.length;){var f=readBufferSum(c(2)),g=readString(c(f)),h=c(1)[0];g&&(e.metaData[g]=b(h))}debug.warn(c.index===a.body.length,\"[AMF] Seems to be incompletely parsed\"),debug.warn(e.size===Object.keys(e.metaData).length,\"[AMF] [amf2] length does not match\"),scripMeta={amf1:d,amf2:e},postMessage({type:\"scripMeta\",data:scripMeta})}function demuxerVideoTag(a){debug.error(1<a.body.length,\"Invalid video packet\");var b={frameType:(240&a.body[0])>>4,codecID:15&a.body[0]};debug.error(7===b.codecID,\"[videoTrack] Unsupported codec in video frame: \".concat(b.codecID));var c=a.body.slice(1,5);debug.error(4<=c.length,\"[H264] Invalid AVC packet, missing AVCPacketType or/and CompositionTime\");var d=new DataView(c.buffer),e=d.getUint8(0),f=(16777215&d.getUint32(0))<<8>>8,g=f+a.timestamp,h=a.body.subarray(5);if(0===e){debug.warn(!AVCDecoderConfigurationRecord,\"[h264] Find another one AVCDecoderConfigurationRecord\"),debug.error(7<=h.length,\"[H264] AVCDecoderConfigurationRecord parse length is not enough\");var j=readBuffer(h),k={};k.configurationVersion=j(1)[0],debug.error(1===k.configurationVersion,\"[H264] Invalid configurationVersion: \".concat(k.configurationVersion)),k.AVCProfileIndication=j(1)[0],debug.error(0!==k.AVCProfileIndication,\"[H264] Invalid AVCProfileIndication: \".concat(k.AVCProfileIndication)),k.profile_compatibility=j(1)[0],k.AVCLevelIndication=j(1)[0],k.lengthSizeMinusOne=(3&j(1)[0])+1,debug.error(4===k.lengthSizeMinusOne||3!==k.lengthSizeMinusOne,\"[H264] Invalid lengthSizeMinusOne: \".concat(k.lengthSizeMinusOne)),k.numOfSequenceParameterSets=31&j(1)[0],debug.error(0!==k.numOfSequenceParameterSets,\"[H264] Invalid numOfSequenceParameterSets: \".concat(k.numOfSequenceParameterSets)),debug.warn(1===k.numOfSequenceParameterSets,\"[H264] Strange numOfSequenceParameterSets: \".concat(k.numOfSequenceParameterSets));for(var p=0;p<k.numOfSequenceParameterSets;p+=1)if(k.sequenceParameterSetLength=readBufferSum(j(2)),0<k.sequenceParameterSetLength){var i=j(k.sequenceParameterSetLength);postMessage({type:\"videoData\",data:mergeBuffer(nalStart,i)})}k.numOfPictureParameterSets=j(1)[0],debug.error(0!==k.numOfPictureParameterSets,\"[H264] Invalid numOfPictureParameterSets: \".concat(k.numOfPictureParameterSets)),debug.warn(1===k.numOfPictureParameterSets,\"[H264] Strange numOfPictureParameterSets: \".concat(k.numOfPictureParameterSets));for(var q=0;q<k.numOfPictureParameterSets;q+=1)if(k.pictureParameterSetLength=readBufferSum(j(2)),0<k.pictureParameterSetLength){var r=j(k.pictureParameterSetLength);postMessage({type:\"videoData\",data:mergeBuffer(nalStart,r)})}AVCDecoderConfigurationRecord=k,postMessage({type:\"AVCDecoderConfigurationRecord\",data:k})}else if(1===e)for(var l,m=AVCDecoderConfigurationRecord,n=m.lengthSizeMinusOne,o=readBuffer(h);o.index<h.length;)l=readBufferSum(o(n)),postMessage({type:\"videoData\",data:mergeBuffer(nalStart,o(l)),timestamp:g});else debug.error(2===e,\"[H264] Invalid video packet type \".concat(e))}function demuxerAudioTag(a){debug.error(1<a.body.length,\"Invalid audio packet\");var b={soundFormat:(240&a.body[0])>>4,soundRate:(12&a.body[0])>>2,soundSize:(2&a.body[0])>>1,soundType:(1&a.body[0])>>0};debug.error(10===b.soundFormat,\"[audioTrack] unsupported audio format: \".concat(b.soundFormat));var c=a.body.subarray(1),d=c[0];if(0===d){var k=c.subarray(1);debug.warn(!AudioSpecificConfig,\"[AAC] Find another one AudioSpecificConfig\"),debug.error(2<=k.length,\"[AAC] AudioSpecificConfig parse length is not enough\");var l={};l.audioObjectType=(248&k[0])>>3,l.samplingFrequencyIndex=((7&k[0])<<1)+(1&(128&k[1])>>7),l.channelConfiguration=(127&k[1])>>3,AudioSpecificConfig=l,postMessage({type:\"AudioSpecificConfig\",data:l})}else{var e=AudioSpecificConfig,f=e.audioObjectType,g=e.samplingFrequencyIndex,h=e.channelConfiguration,i=a.dataSize-2+7,j=new Uint8Array(7);j[0]=255,j[1]=240,j[1]|=0,j[1]|=0,j[1]|=1,j[2]=f-1<<6,j[2]|=(15&g)<<2,j[2]|=0,j[2]|=(4&h)>>2,j[3]=(3&h)<<6,j[3]|=0,j[3]|=0,j[3]|=0,j[3]|=0,j[3]|=(6144&i)>>11,j[4]=(2040&i)>>3,j[5]=(7&i)<<5,j[5]|=31,j[6]=252;var m=a.body.subarray(2);postMessage({type:\"audioData\",data:mergeBuffer(j,m),timestamp:a.timestamp})}}onmessage=function onmessage(a){if(uint8=mergeBuffer(uint8,a.data),!header&&readable(13)){header=Object.create(null),header.signature=readString(read(3)),header.version=read(1)[0],debug.error(\"FLV\"===header.signature&&1===header.version,\"FLV header not found\"),header.flags=read(1)[0];var b=0!=(4&header.flags)>>>2,c=0!=(1&header.flags);debug.warn(c,\"[FLV header] flags not found video\"),debug.warn(b,\"[FLV header] flags not found audio\"),header.headersize=readBufferSum(read(4));var j=readBufferSum(read(4));debug.error(0===j,\"PrevTagSize0 should be equal to 0, but got \".concat(j)),postMessage({type:\"flvHeader\",data:header})}for(;index<uint8.length;){var d=Object.create(null),e=index;if(readable(11)){d.tagType=read(1)[0],d.dataSize=readBufferSum(read(3));var f=read(1)[0],g=read(1)[0],h=read(1)[0],i=read(1)[0];d.timestamp=h|g<<8|f<<16|i<<24,d.streamID=readBufferSum(read(3)),debug.error(0===d.streamID,\"streamID should be equal to 0, but got \".concat(d.streamID))}else return index=0,void(uint8=uint8.subarray(e));if(readable(d.dataSize+4)){d.body=read(d.dataSize);var k=readBufferSum(read(4));debug.error(k===d.dataSize+11,\"Invalid PrevTagSize: \".concat(k))}else return index=0,void(uint8=uint8.subarray(e));switch(d.tagType){case 18:demuxerScripTag(d);break;case 9:demuxerVideoTag(d);break;case 8:demuxerAudioTag(d);break;default:debug.error(!1,\"unknown tag type: \".concat(d.tagType));}}index=0,uint8=new Uint8Array};"])));
+    this.demuxWorker = new Worker(URL.createObjectURL(new Blob(["\"use strict\";function _toConsumableArray(a){return _arrayWithoutHoles(a)||_iterableToArray(a)||_nonIterableSpread()}function _nonIterableSpread(){throw new TypeError(\"Invalid attempt to spread non-iterable instance\")}function _iterableToArray(a){if(Symbol.iterator in Object(a)||\"[object Arguments]\"===Object.prototype.toString.call(a))return Array.from(a)}function _arrayWithoutHoles(a){if(Array.isArray(a)){for(var b=0,c=Array(a.length);b<a.length;b++)c[b]=a[b];return c}}function _typeof(a){\"@babel/helpers - typeof\";return _typeof=\"function\"==typeof Symbol&&\"symbol\"==typeof Symbol.iterator?function(a){return typeof a}:function(a){return a&&\"function\"==typeof Symbol&&a.constructor===Symbol&&a!==Symbol.prototype?\"symbol\":typeof a},_typeof(a)}function _classCallCheck(a,b){if(!(a instanceof b))throw new TypeError(\"Cannot call a class as a function\")}function _possibleConstructorReturn(a,b){return b&&(\"object\"===_typeof(b)||\"function\"==typeof b)?b:_assertThisInitialized(a)}function _assertThisInitialized(a){if(void 0===a)throw new ReferenceError(\"this hasn't been initialised - super() hasn't been called\");return a}function _inherits(a,b){if(\"function\"!=typeof b&&null!==b)throw new TypeError(\"Super expression must either be null or a function\");a.prototype=Object.create(b&&b.prototype,{constructor:{value:a,writable:!0,configurable:!0}}),b&&_setPrototypeOf(a,b)}function _wrapNativeSuper(a){var b=\"function\"==typeof Map?new Map:void 0;return _wrapNativeSuper=function(a){function c(){return _construct(a,arguments,_getPrototypeOf(this).constructor)}if(null===a||!_isNativeFunction(a))return a;if(\"function\"!=typeof a)throw new TypeError(\"Super expression must either be null or a function\");if(\"undefined\"!=typeof b){if(b.has(a))return b.get(a);b.set(a,c)}return c.prototype=Object.create(a.prototype,{constructor:{value:c,enumerable:!1,writable:!0,configurable:!0}}),_setPrototypeOf(c,a)},_wrapNativeSuper(a)}function isNativeReflectConstruct(){if(\"undefined\"==typeof Reflect||!Reflect.construct)return!1;if(Reflect.construct.sham)return!1;if(\"function\"==typeof Proxy)return!0;try{return Date.prototype.toString.call(Reflect.construct(Date,[],function(){})),!0}catch(a){return!1}}function _construct(){return _construct=isNativeReflectConstruct()?Reflect.construct:function(b,c,d){var e=[null];e.push.apply(e,c);var a=Function.bind.apply(b,e),f=new a;return d&&_setPrototypeOf(f,d.prototype),f},_construct.apply(null,arguments)}function _isNativeFunction(a){return-1!==Function.toString.call(a).indexOf(\"[native code]\")}function _setPrototypeOf(a,b){return _setPrototypeOf=Object.setPrototypeOf||function(a,b){return a.__proto__=b,a},_setPrototypeOf(a,b)}function _getPrototypeOf(a){return _getPrototypeOf=Object.setPrototypeOf?Object.getPrototypeOf:function(a){return a.__proto__||Object.getPrototypeOf(a)},_getPrototypeOf(a)}var FlvPlayerError=/*#__PURE__*/function(a){function b(a){var c;return _classCallCheck(this,b),c=_possibleConstructorReturn(this,_getPrototypeOf(b).call(this,a)),c.name=\"FlvPlayerError\",c}return _inherits(b,a),b}(/*#__PURE__*/_wrapNativeSuper(Error)),debug={warn:function warn(a){if(!a){for(var b,c=arguments.length,d=Array(1<c?c-1:0),e=1;e<c;e++)d[e-1]=arguments[e];(b=console).warn.apply(b,d)}},error:function error(a,b){if(!a)throw new FlvPlayerError(b)}};function mergeBuffer(){for(var a=arguments.length,b=Array(a),c=0;c<a;c++)b[c]=arguments[c];var d=b[0].constructor;return b.reduce(function(a,b){var c=new d((0|a.byteLength)+(0|b.byteLength));return c.set(a,0),c.set(b,0|a.byteLength),c},new d)}function readBufferSum(a){var b=!(1<arguments.length&&arguments[1]!==void 0)||arguments[1];return a.reduce(function(c,d,e){return c+(b?d:d-128)*Math.pow(256,a.length-e-1)},0)}function readString(a){var b;return(b=String.fromCharCode).call.apply(b,[String].concat(_toConsumableArray(a)))}function readBuffer(a){function b(d){for(var e=new Uint8Array(d),f=0;f<d;f+=1)e[f]=a[c],c+=1;return b.index=c,e}var c=0;return b.index=0,b}function readDouble(a){var c=new DataView(new ArrayBuffer(a.length));return a.forEach(function(a,b){c.setUint8(b,a)}),c.getFloat64(0)}function readBoolean(a){return 0!==a[0]}var index=0,header=null,uint8=new Uint8Array,scripMeta=null,AudioSpecificConfig=null,AVCDecoderConfigurationRecord=null,nalStart=new Uint8Array([0,0,0,1]);function readable(a){return uint8.length-index>=a}function read(a){for(var b=new Uint8Array(a),c=0;c<a;c+=1)b[c]=uint8[index],index+=1;return b}function demuxerScripTag(a){function b(a){var d=null;if(a!==void 0)switch(a){case 0:d=readDouble(c(8));break;case 1:d=readBoolean(c(1));break;case 2:{var l=readBufferSum(c(2));d=readString(c(l));break}case 3:{d=Object.create(null);for(var m=-1;9!==m;){var e=readBufferSum(c(2)),f=readString(c(e)),g=c(1)[0];f&&(d[f]=b(g)),m=g}break}case 5:d=null;break;case 6:d=void 0;break;case 7:d=\"Reference #\".concat(c.index),c(2);break;case 8:{d=Object.create(null);for(var n=-1;9!==n;){var h=readBufferSum(c(2)),j=readString(c(h)),k=c(1)[0];j&&(d[j]=b(k)),n=k}break}case 10:{var o=readBufferSum(c(4));d=[];for(var p,q=0;q<o;q+=1)p=c(1)[0],d.push(b(p));break}case 11:d=readDouble(c(2));break;case 12:{var i=readBufferSum(c(4));d=readString(c(i));break}default:debug.error(!1,\"AMF: Unknown metaData type: \".concat(a));}return d}var c=readBuffer(a.body),d=Object.create(null),e=Object.create(null);for(d.type=c(1)[0],debug.error(2===d.type,\"AMF: [amf1] type expect 2, but got \".concat(d.type)),d.size=readBufferSum(c(2)),d.string=readString(c(d.size)),e.type=c(1)[0],debug.error(8===e.type||3===e.type,\"AMF: [amf2] type expect 8 or 3, but got \".concat(e.type)),e.size=readBufferSum(c(4)),e.metaData=Object.create(null);c.index<a.body.length;){var f=readBufferSum(c(2)),g=readString(c(f)),h=c(1)[0];g&&(e.metaData[g]=b(h))}debug.warn(c.index===a.body.length,\"[AMF] Seems to be incompletely parsed\"),debug.warn(e.size===Object.keys(e.metaData).length,\"[AMF] [amf2] length does not match\"),scripMeta={amf1:d,amf2:e},postMessage({type:\"scripMeta\",data:scripMeta})}function demuxerVideoTag(a){debug.error(1<a.body.length,\"Invalid video packet\");var b={frameType:(240&a.body[0])>>4,codecID:15&a.body[0]};debug.error(7===b.codecID,\"[videoTrack] Unsupported codec in video frame: \".concat(b.codecID));var c=a.body.slice(1,5);debug.error(4<=c.length,\"[H264] Invalid AVC packet, missing AVCPacketType or/and CompositionTime\");var d=new DataView(c.buffer),e=d.getUint8(0),f=(16777215&d.getUint32(0))<<8>>8,g=f+a.timestamp,h=a.body.subarray(5);if(0===e){debug.warn(!AVCDecoderConfigurationRecord,\"[h264] Find another one AVCDecoderConfigurationRecord\"),debug.error(7<=h.length,\"[H264] AVCDecoderConfigurationRecord parse length is not enough\");var j=readBuffer(h),k={};k.configurationVersion=j(1)[0],debug.error(1===k.configurationVersion,\"[H264] Invalid configurationVersion: \".concat(k.configurationVersion)),k.AVCProfileIndication=j(1)[0],debug.error(0!==k.AVCProfileIndication,\"[H264] Invalid AVCProfileIndication: \".concat(k.AVCProfileIndication)),k.profile_compatibility=j(1)[0],k.AVCLevelIndication=j(1)[0],k.lengthSizeMinusOne=(3&j(1)[0])+1,debug.error(4===k.lengthSizeMinusOne||3!==k.lengthSizeMinusOne,\"[H264] Invalid lengthSizeMinusOne: \".concat(k.lengthSizeMinusOne)),k.numOfSequenceParameterSets=31&j(1)[0],debug.error(0!==k.numOfSequenceParameterSets,\"[H264] Invalid numOfSequenceParameterSets: \".concat(k.numOfSequenceParameterSets)),debug.warn(1===k.numOfSequenceParameterSets,\"[H264] Strange numOfSequenceParameterSets: \".concat(k.numOfSequenceParameterSets));for(var p=0;p<k.numOfSequenceParameterSets;p+=1)if(k.sequenceParameterSetLength=readBufferSum(j(2)),0<k.sequenceParameterSetLength){var i=j(k.sequenceParameterSetLength);postMessage({type:\"videoData\",data:mergeBuffer(nalStart,i)})}k.numOfPictureParameterSets=j(1)[0],debug.error(0!==k.numOfPictureParameterSets,\"[H264] Invalid numOfPictureParameterSets: \".concat(k.numOfPictureParameterSets)),debug.warn(1===k.numOfPictureParameterSets,\"[H264] Strange numOfPictureParameterSets: \".concat(k.numOfPictureParameterSets));for(var q=0;q<k.numOfPictureParameterSets;q+=1)if(k.pictureParameterSetLength=readBufferSum(j(2)),0<k.pictureParameterSetLength){var r=j(k.pictureParameterSetLength);postMessage({type:\"videoData\",data:mergeBuffer(nalStart,r)})}AVCDecoderConfigurationRecord=k,postMessage({type:\"AVCDecoderConfigurationRecord\",data:k})}else if(1===e)for(var l,m=AVCDecoderConfigurationRecord,n=m.lengthSizeMinusOne,o=readBuffer(h);o.index<h.length;)l=readBufferSum(o(n)),postMessage({type:\"videoData\",data:mergeBuffer(nalStart,o(l)),timestamp:g});else debug.error(2===e,\"[H264] Invalid video packet type \".concat(e))}function demuxerAudioTag(a){debug.error(1<a.body.length,\"Invalid audio packet\");var b={soundFormat:(240&a.body[0])>>4,soundRate:(12&a.body[0])>>2,soundSize:(2&a.body[0])>>1,soundType:(1&a.body[0])>>0};debug.error(10===b.soundFormat,\"[audioTrack] unsupported audio format: \".concat(b.soundFormat));var c=a.body.subarray(1),d=c[0];if(0===d){var k=c.subarray(1);debug.warn(!AudioSpecificConfig,\"[AAC] Find another one AudioSpecificConfig\"),debug.error(2<=k.length,\"[AAC] AudioSpecificConfig parse length is not enough\");var l={};l.audioObjectType=(248&k[0])>>3,l.samplingFrequencyIndex=((7&k[0])<<1)+(1&(128&k[1])>>7),l.channelConfiguration=(127&k[1])>>3,AudioSpecificConfig=l,postMessage({type:\"AudioSpecificConfig\",data:l})}else{var e=AudioSpecificConfig,f=e.audioObjectType,g=e.samplingFrequencyIndex,h=e.channelConfiguration,i=a.dataSize-2+7,j=new Uint8Array(7);j[0]=255,j[1]=240,j[1]|=0,j[1]|=0,j[1]|=1,j[2]=f-1<<6,j[2]|=(15&g)<<2,j[2]|=0,j[2]|=(4&h)>>2,j[3]=(3&h)<<6,j[3]|=0,j[3]|=0,j[3]|=0,j[3]|=0,j[3]|=(6144&i)>>11,j[4]=(2040&i)>>3,j[5]=(7&i)<<5,j[5]|=31,j[6]=252;var m=a.body.subarray(2);postMessage({type:\"audioData\",data:mergeBuffer(j,m),timestamp:a.timestamp})}}onmessage=function onmessage(a){if(uint8=mergeBuffer(uint8,a.data),!header&&readable(13)){header=Object.create(null),header.signature=readString(read(3)),header.version=read(1)[0],debug.error(\"FLV\"===header.signature&&1===header.version,\"FLV header not found\"),header.flags=read(1)[0];var b=0!=(4&header.flags)>>>2,c=0!=(1&header.flags);debug.warn(c,\"[FLV header] flags not found video\"),debug.warn(b,\"[FLV header] flags not found audio\"),header.headersize=readBufferSum(read(4));var j=readBufferSum(read(4));debug.error(0===j,\"PrevTagSize0 should be equal to 0, but got \".concat(j)),postMessage({type:\"flvHeader\",data:header})}for(;index<uint8.length;){var d=Object.create(null),e=index;if(readable(11)){d.tagType=read(1)[0],d.dataSize=readBufferSum(read(3));var f=read(1)[0],g=read(1)[0],h=read(1)[0],i=read(1)[0];d.timestamp=h|g<<8|f<<16|i<<24,d.streamID=readBufferSum(read(3)),debug.error(0===d.streamID,\"streamID should be equal to 0, but got \".concat(d.streamID))}else return index=0,void(uint8=uint8.subarray(e));if(readable(d.dataSize+4)){d.body=read(d.dataSize);var k=readBufferSum(read(4));debug.error(k===d.dataSize+11,\"Invalid PrevTagSize: \".concat(k))}else return index=0,void(uint8=uint8.subarray(e));switch(d.tagType){case 18:demuxerScripTag(d);break;case 9:demuxerVideoTag(d);break;case 8:demuxerAudioTag(d);break;default:debug.error(!1,\"unknown tag type: \".concat(d.tagType));}}index=0,uint8=new Uint8Array};"])));
     this.demuxRate = calculationRate(function (rate) {
       flv.emit('demuxRate', rate);
     });
@@ -1542,9 +1533,6 @@
               case 8:
                 pps = message.data;
                 break;
-
-              default:
-                break;
             }
 
             break;
@@ -1555,20 +1543,15 @@
           _this.audioDataSize += message.data.byteLength;
           flv.emit('audioData', message.data, message.timestamp);
           break;
-
-        default:
-          break;
       }
     };
   };
 
   function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
-  function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+  function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
-  var FetchLoader =
-  /*#__PURE__*/
-  function () {
+  var FetchLoader = /*#__PURE__*/function () {
     function FetchLoader(flv) {
       var _this = this;
 
@@ -1812,9 +1795,7 @@
     reader.readAsArrayBuffer(flv.options.url);
   };
 
-  var Stream =
-  /*#__PURE__*/
-  function () {
+  var Stream = /*#__PURE__*/function () {
     function Stream(flv) {
       classCallCheck(this, Stream);
 
@@ -1843,12 +1824,10 @@
 
   function ownKeys$1(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
-  function _objectSpread$1(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys$1(source, true).forEach(function (key) { defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys$1(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+  function _objectSpread$1(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys$1(Object(source), true).forEach(function (key) { defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys$1(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
   var id = 0;
 
-  var FlvPlayer =
-  /*#__PURE__*/
-  function (_Emitter) {
+  var FlvPlayer = /*#__PURE__*/function (_Emitter) {
     inherits(FlvPlayer, _Emitter);
 
     function FlvPlayer(options) {
@@ -1875,7 +1854,7 @@
         });
       }
 
-      console.log('%c FlvPlayer.js %c 1.1.3 %c https://flvplayer.js.org', 'color: #fff; background: #5f5f5f', 'color: #fff; background: #4bc729', '');
+      console.log('%c FlvPlayer.js %c 1.1.5 %c https://flvplayer.js.org', 'color: #fff; background: #5f5f5f', 'color: #fff; background: #4bc729', '');
       return _this;
     }
 
@@ -1981,7 +1960,7 @@
     }, {
       key: "version",
       get: function get() {
-        return '1.1.3';
+        return '1.1.5';
       }
     }, {
       key: "env",
@@ -2004,5 +1983,5 @@
 
   return FlvPlayer;
 
-}));
+})));
 //# sourceMappingURL=flvplayer.js.map

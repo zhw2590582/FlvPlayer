@@ -159,7 +159,7 @@
     function initApp() {
         var _getURLParameters = getURLParameters(window.location.href),
             code = _getURLParameters.code,
-            libs = _getURLParameters.libs || `./uncompiled/flvplayer-control.css\n./uncompiled/flvplayer-control.js`;
+            libs = _getURLParameters.libs || './uncompiled/flvplayer-control.js';
         example = _getURLParameters.example;
 
         loadLib(libs)

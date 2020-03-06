@@ -7,23 +7,24 @@ import nodeResolve from 'rollup-plugin-node-resolve';
 import { eslint } from 'rollup-plugin-eslint';
 import replace from 'rollup-plugin-replace';
 import { string } from 'rollup-plugin-string';
-import minify from 'rollup-plugin-babel-minify';
+import { terser } from 'rollup-plugin-terser';
 import workerInline from 'rollup-plugin-worker-inline';
 import { version, homepage } from './package.json';
 
 const isProd = process.env.NODE_ENV === 'production';
 
+const banner =
+    '/*!\n' +
+    ` * FlvPlayer.js v${version}\n` +
+    ` * Github: ${homepage}\n` +
+    ` * (c) 2017-${new Date().getFullYear()} Harvey Zack\n` +
+    ' * Released under the MIT License.\n' +
+    ' */\n';
+
 const baseConfig = {
     output: {
         format: 'umd',
         sourcemap: !isProd,
-        banner:
-            '/*!\n' +
-            ` * FlvPlayer.js v${version}\n` +
-            ` * Github: ${homepage}\n` +
-            ` * (c) 2017-${new Date().getFullYear()} Harvey Zack\n` +
-            ' * Released under the MIT License.\n' +
-            ' */\n',
     },
     plugins: [
         eslint({
@@ -53,7 +54,21 @@ const baseConfig = {
             __ENV__: JSON.stringify(process.env.NODE_ENV || 'development'),
             __VERSION__: version,
         }),
-        isProd && minify(),
+        isProd &&
+            terser({
+                output: {
+                    preamble: banner,
+                    comments: () => false,
+                },
+            }),
+        isProd && {
+            name: 'removeHtmlSpace',
+            transform(code) {
+                return {
+                    code: code.replace(/\\n*\s*</g, '<').replace(/>\\n*\s*/g, '>'),
+                };
+            },
+        },
     ],
 };
 
@@ -97,7 +112,7 @@ export default [
                     }),
                 ],
                 sourceMap: !isProd,
-                extract: isProd ? 'dist/flvplayer-control.css' : 'docs/uncompiled/flvplayer-control.css',
+                extract: false,
             }),
         ],
     },

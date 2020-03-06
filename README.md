@@ -49,14 +49,12 @@ Will expose the global variable to `window.FlvPlayer`.
 You should load the control before load the player.
 
 ```js
-import 'path/to/flvplayer-control.css';
 import 'path/to/flvplayer-control.js';
 ```
 
 Or umd builds are also available
 
 ```html
-<link rel="stylesheet" href="path/to/flvplayer-control.css" />
 <script src="path/to/flvplayer-control.js"></script>
 ```
 

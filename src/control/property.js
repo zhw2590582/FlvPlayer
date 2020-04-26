@@ -7,7 +7,7 @@ export default function property(flv, control) {
         get: () => {
             return player.$player.classList.contains('flvplayer-controls-show');
         },
-        set: type => {
+        set: (type) => {
             if (type) {
                 player.$player.classList.add('flvplayer-controls-show');
             } else {
@@ -20,7 +20,7 @@ export default function property(flv, control) {
         get: () => {
             return player.$player.classList.contains('flvplayer-loading-show');
         },
-        set: type => {
+        set: (type) => {
             if (type) {
                 player.$player.classList.add('flvplayer-loading-show');
             } else {
@@ -48,20 +48,40 @@ export default function property(flv, control) {
 
     Object.defineProperty(control, 'fullscreen', {
         get: () => screenfull.isFullscreen || player.$container.classList.contains('flvplayer-fullscreen-web'),
-        set: type => {
+        set: (type) => {
             if (type) {
                 try {
                     screenfull.request(player.$container);
                 } catch (error) {
-                    player.$container.classList.add('flvplayer-fullscreen-web');
-                    control.autoSize();
+                    control.webFullscreen = true;
                 }
             } else {
                 try {
                     screenfull.exit();
                 } catch (error) {
-                    player.$container.classList.remove('flvplayer-fullscreen-web');
-                    control.autoSize();
+                    control.webFullscreen = false;
+                }
+            }
+        },
+    });
+
+    Object.defineProperty(control, 'webFullscreen', {
+        set: (type) => {
+            const { clientHeight: containerHeight, clientWidth: containerWidth } = player.$container;
+            const { clientHeight: playerHeight, clientWidth: playerWidth } = player.$player;
+            const containerRatio = containerWidth / containerHeight;
+            const playerRatio = playerWidth / playerHeight;
+            const needSpin = containerRatio < playerRatio;
+            if (type) {
+                player.$container.classList.add('flvplayer-fullscreen-web');
+                if (needSpin) {
+                    const scale = containerHeight / playerWidth;
+                    player.$player.style.transform = `rotate(90deg) scale(${scale},${scale})`;
+                }
+            } else {
+                player.$container.classList.remove('flvplayer-fullscreen-web');
+                if (needSpin) {
+                    player.$player.style.transform = null;
                 }
             }
         },

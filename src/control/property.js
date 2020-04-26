@@ -67,22 +67,20 @@ export default function property(flv, control) {
 
     Object.defineProperty(control, 'webFullscreen', {
         set: (type) => {
-            const { clientHeight: containerHeight, clientWidth: containerWidth } = player.$container;
-            const { clientHeight: playerHeight, clientWidth: playerWidth } = player.$player;
-            const containerRatio = containerWidth / containerHeight;
-            const playerRatio = playerWidth / playerHeight;
-            const needSpin = containerRatio < playerRatio;
             if (type) {
                 player.$container.classList.add('flvplayer-fullscreen-web');
+                const { clientHeight: bodyHeight, clientWidth: bodyWidth } = document.body;
+                const { clientHeight: playerHeight, clientWidth: playerWidth } = player.$player;
+                const bodyRatio = bodyWidth / bodyHeight;
+                const playerRatio = playerWidth / playerHeight;
+                const needSpin = bodyRatio < playerRatio;
                 if (needSpin) {
-                    const scale = Math.min(containerHeight / playerWidth, containerWidth / playerHeight);
+                    const scale = Math.min(bodyHeight / playerWidth, bodyWidth / playerHeight);
                     player.$player.style.transform = `rotate(90deg) scale(${scale},${scale})`;
                 }
             } else {
                 player.$container.classList.remove('flvplayer-fullscreen-web');
-                if (needSpin) {
-                    player.$player.style.transform = null;
-                }
+                player.$player.style.transform = null;
             }
         },
     });

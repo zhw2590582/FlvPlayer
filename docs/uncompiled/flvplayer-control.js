@@ -575,29 +575,25 @@
     });
     Object.defineProperty(control, 'webFullscreen', {
       set: function set(type) {
-        var _player$$container = player.$container,
-            containerHeight = _player$$container.clientHeight,
-            containerWidth = _player$$container.clientWidth;
-        var _player$$player = player.$player,
-            playerHeight = _player$$player.clientHeight,
-            playerWidth = _player$$player.clientWidth;
-        var containerRatio = containerWidth / containerHeight;
-        var playerRatio = playerWidth / playerHeight;
-        var needSpin = containerRatio < playerRatio;
-
         if (type) {
           player.$container.classList.add('flvplayer-fullscreen-web');
+          var _document$body = document.body,
+              bodyHeight = _document$body.clientHeight,
+              bodyWidth = _document$body.clientWidth;
+          var _player$$player = player.$player,
+              playerHeight = _player$$player.clientHeight,
+              playerWidth = _player$$player.clientWidth;
+          var bodyRatio = bodyWidth / bodyHeight;
+          var playerRatio = playerWidth / playerHeight;
+          var needSpin = bodyRatio < playerRatio;
 
           if (needSpin) {
-            var scale = Math.min(containerHeight / playerWidth, containerWidth / playerHeight);
+            var scale = Math.min(bodyHeight / playerWidth, bodyWidth / playerHeight);
             player.$player.style.transform = "rotate(90deg) scale(".concat(scale, ",").concat(scale, ")");
           }
         } else {
           player.$container.classList.remove('flvplayer-fullscreen-web');
-
-          if (needSpin) {
-            player.$player.style.transform = null;
-          }
+          player.$player.style.transform = null;
         }
       }
     });

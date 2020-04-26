@@ -589,7 +589,7 @@
           player.$container.classList.add('flvplayer-fullscreen-web');
 
           if (needSpin) {
-            var scale = containerHeight / playerWidth;
+            var scale = Math.min(containerHeight / playerWidth, containerWidth / playerHeight);
             player.$player.style.transform = "rotate(90deg) scale(".concat(scale, ",").concat(scale, ")");
           }
         } else {

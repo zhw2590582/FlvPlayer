@@ -75,7 +75,7 @@ export default function property(flv, control) {
             if (type) {
                 player.$container.classList.add('flvplayer-fullscreen-web');
                 if (needSpin) {
-                    const scale = containerHeight / playerWidth;
+                    const scale = Math.min(containerHeight / playerWidth, containerWidth / playerHeight);
                     player.$player.style.transform = `rotate(90deg) scale(${scale},${scale})`;
                 }
             } else {

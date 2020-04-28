@@ -1,6 +1,10 @@
 ---
 name: Bug report
 about: Report an issue or unexpected behaviour with Artplayer
+title: ''
+labels: ''
+assignees: ''
+
 ---
 
 ### Expected behaviour

@@ -54,7 +54,7 @@ export default class Demuxer {
         this.AVCDecoderConfigurationRecord = null;
         this.demuxWorker = new Worker('./demuxer.js');
 
-        this.demuxRate = calculationRate(rate => {
+        this.demuxRate = calculationRate((rate) => {
             flv.emit('demuxRate', rate);
         });
 
@@ -72,17 +72,23 @@ export default class Demuxer {
             }
         });
 
-        flv.on('streaming', uint8 => {
-            this.demuxWorker.postMessage(uint8);
+        flv.on('streaming', (uint8) => {
+            this.demuxWorker.postMessage({
+                uint8,
+                hasAudio: options.hasAudio,
+            });
         });
 
-        flv.on('streamEnd', uint8 => {
+        flv.on('streamEnd', (uint8) => {
             this.streaming = false;
             this.streamEndTime = getNowTime();
 
             if (uint8) {
                 this.index = 0;
-                this.demuxWorker.postMessage(uint8);
+                this.demuxWorker.postMessage({
+                    uint8,
+                    hasAudio: options.hasAudio,
+                });
             }
 
             debug.log('stream-time', `${this.streamEndTime - this.streamStartTime} ms`);
@@ -93,7 +99,7 @@ export default class Demuxer {
 
         let sps = new Uint8Array();
         let pps = new Uint8Array();
-        this.demuxWorker.onmessage = event => {
+        this.demuxWorker.onmessage = (event) => {
             const message = event.data;
             switch (message.type) {
                 case 'flvHeader':

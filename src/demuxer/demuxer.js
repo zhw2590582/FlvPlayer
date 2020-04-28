@@ -348,8 +348,8 @@ function demuxerAudioTag(tag) {
     }
 }
 
-onmessage = event => {
-    uint8 = mergeBuffer(uint8, event.data);
+onmessage = (event) => {
+    uint8 = mergeBuffer(uint8, event.data.uint8);
     if (!header && readable(13)) {
         header = Object.create(null);
         header.signature = readString(read(3));
@@ -407,7 +407,9 @@ onmessage = event => {
                 demuxerVideoTag(tag);
                 break;
             case 8:
-                demuxerAudioTag(tag);
+                if (event.data.hasAudio) {
+                    demuxerAudioTag(tag);
+                }
                 break;
             default:
                 debug.error(false, `unknown tag type: ${tag.tagType}`);

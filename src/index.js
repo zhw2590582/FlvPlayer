@@ -10,7 +10,8 @@ import Stream from './stream';
 import * as utils from './utils';
 
 let id = 0;
-class FlvPlayer extends Emitter {
+const instances = [];
+export default class FlvPlayer extends Emitter {
     constructor(options) {
         super();
         this.options = validator(
@@ -36,13 +37,6 @@ class FlvPlayer extends Emitter {
                 this.init();
             });
         }
-
-        console.log(
-            '%c FlvPlayer.js %c __VERSION__ %c https://flvplayer.js.org',
-            'color: #fff; background: #5f5f5f',
-            'color: #fff; background: #4bc729',
-            '',
-        );
     }
 
     init() {
@@ -64,7 +58,7 @@ class FlvPlayer extends Emitter {
 
         id += 1;
         this.id = id;
-        FlvPlayer.instances.push(this);
+        instances.push(this);
     }
 
     static get options() {
@@ -133,6 +127,10 @@ class FlvPlayer extends Emitter {
         return isSupported;
     }
 
+    static get instances() {
+        return instances;
+    }
+
     static get version() {
         return '__VERSION__';
     }
@@ -148,12 +146,13 @@ class FlvPlayer extends Emitter {
     destroy() {
         this.isDestroy = true;
         this.emit('destroy');
-        FlvPlayer.instances.splice(FlvPlayer.instances.indexOf(this), 1);
+        instances.splice(instances.indexOf(this), 1);
     }
 }
 
-Object.defineProperty(FlvPlayer, 'instances', {
-    value: [],
-});
-
-export default FlvPlayer;
+console.log(
+    '%c FlvPlayer.js %c __VERSION__ %c https://flvplayer.js.org',
+    'color: #fff; background: #5f5f5f',
+    'color: #fff; background: #4bc729',
+    '',
+);

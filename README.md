@@ -265,7 +265,7 @@ flv.$canvas;
 Example:
 
 ```js
-flv.on('play', function() {
+flv.on('play', function () {
     console.log('Video is play!');
 });
 ```
@@ -315,6 +315,15 @@ Open web server
 ```bash
 $ npm start
 ```
+
+## Donations
+
+We accept donations through these channels:
+
+-   [Patreon](https://www.patreon.com/artplayer)
+-   [Paypal](https://www.paypal.me/harveyzack)
+-   [WeChat Pay](./images/wechatpay.jpg)
+-   [Alipay](./images/alipay.jpg)
 
 ## QQ Group
 

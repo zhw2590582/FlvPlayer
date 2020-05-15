@@ -33,7 +33,7 @@ function readBufferSum(array, uint = true) {
 }
 
 function readString(array) {
-    return String.fromCharCode.call(String, ...array);
+    return String.fromCharCode.apply(String, array);
 }
 
 function readBuffer(buffer) {

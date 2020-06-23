@@ -12,7 +12,7 @@
 
 ## Homepage
 
-[https://flvplayer.js.org/](https://flvplayer.js.org/)
+[https://flvplayer.js.org](https://flvplayer.js.org)
 
 ## Mobile Demo
 

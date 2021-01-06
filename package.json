@@ -33,16 +33,16 @@
     "@babel/plugin-transform-runtime": "^7.12.10",
     "@babel/preset-env": "^7.12.11",
     "@babel/runtime": "^7.12.5",
-    "autoprefixer": "^10.1.0",
+    "autoprefixer": "^10.2.0",
     "babel-eslint": "^10.1.0",
     "cross-env": "^7.0.3",
     "cssnano": "^4.1.10",
-    "eslint": "^7.16.0",
+    "eslint": "^7.17.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-config-prettier": "^7.1.0",
     "eslint-plugin-import": "^2.22.1",
     "node-sass": "^5.0.0",
-    "rollup": "^2.35.1",
+    "rollup": "^2.36.0",
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-babel-minify": "^10.0.0",
     "rollup-plugin-commonjs": "^10.1.0",
@@ -59,7 +59,7 @@
   "dependencies": {
     "dida.js": "^1.0.1",
     "option-validator": "^2.0.6",
-    "screenfull": "^5.0.2",
+    "screenfull": "^5.1.0",
     "yuv-buffer": "^1.0.0",
     "yuv-canvas": "^1.2.6"
   }
